@@ -10,6 +10,7 @@ Located in `.claude/skills/`, these skills enhance Claude Code's capabilities:
 
 - **phaser**: Battle-tested patterns and best practices for Phaser 3 game development
 - **report-writer**: Structured technical analysis and debugging reports
+- **rigorous-debug**: Evidence-based debugging protocol using the scientific method (requires one-time initialization)
 - **skill-writer**: Tools for creating effective Claude Code skills
 - **spec-workflow**: Two-phase specification and implementation workflow
 
