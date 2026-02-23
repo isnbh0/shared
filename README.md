@@ -2,82 +2,91 @@
 
 Personal collection of generalizable dotfiles, configurations, and Claude Code skills for reuse across projects.
 
-## Contents
+[한국어](README.ko.md)
 
-### Claude Code Skills
+## Skills
 
 Located in `.claude/skills/`, these skills enhance Claude Code's capabilities:
 
-- **interview**: Structured requirements discovery through conversational interviews
-- **phaser**: Battle-tested patterns and best practices for Phaser 3 game development
-- **report-writer**: Structured technical analysis and debugging reports
-- **rigorous-debug**: Evidence-based debugging protocol using the scientific method (requires one-time initialization)
-- **skill-writer**: Tools for creating effective Claude Code skills
-- **spec-workflow**: Two-phase specification and implementation workflow with phased implementation support. Accepts `write`, `write-phased`, or `implement` as argument. Convenience aliases: `/write-spec`, `/write-spec-phased`, `/implement-spec`
+### interview
 
-## Spec-and-Report Development System
+Structured requirements discovery through conversational interviews.
 
-This repository includes a systematic approach to software development using two complementary workflows:
-
-### 1. Spec Workflow (Two-Phase Development)
-
-A disciplined approach that separates planning from execution. Supports both single-spec and phased implementations for complex multi-step features.
-
-#### Phase 1: Writing Specifications
-- Agent investigates and creates detailed technical specifications
-- Specs are timestamped (`YYMMDD-HHMMSS-description.md`) and stored in `agent-workspace/specs/`
-- Status starts as "Requires Implementation"
-- Agent commits spec and **stops** - no implementation yet
-- Forces thorough investigation before coding
-
-#### Phase 2: Implementation
-- Different agent (or same agent in new session) reads the spec
-- Updates status to "In Progress"
-- Implements according to specification
-- Updates spec status to "Completed" with commit references
-- Commits all changes together
-
-**Why separate phases?**
-- Ensures specifications are reviewed before implementation
-- Fresh perspective catches overlooked issues
-- Self-contained specs enable independent implementation
-- Prevents rushing into solutions before understanding problems
-
-**Spec Structure:**
 ```
-agent-workspace/specs/
-├── {timestamp}-name.md           # New specs (Requires Implementation)
-├── active/                        # In progress specs
-└── archive/
-    ├── implemented/              # Completed specs
-    └── deprecated/               # Obsolete specs
+/interview <topic> [--ref <path>] [--workspace <dir>]
 ```
 
-### 2. Report Writer (Post-Implementation Analysis)
+- Extracts requirements, constraints, and design decisions through guided Q&A
+- Supports reference files to anchor discussion around existing artifacts
+- Produces timestamped synthesis documents in the workspace
 
-Creates structured technical documentation after work is completed:
+### phaser
 
-#### Report Types
-- **Debugging Reports**: Problem investigation and resolution
-- **Analysis Reports**: Technical comparisons and evaluations
-- **Implementation Reports**: Completed work documentation
+Battle-tested patterns and best practices for Phaser 3 game development.
 
-#### Report Structure
-- Timestamped naming (`YYMMDD-HHMMSS-description.md`)
-- Stored in `agent-workspace/reports/`
-- Standardized sections:
-  - Executive Summary
-  - Key Findings
-  - Root Cause Analysis
-  - Recommendations
+Passive knowledgebase — automatically consulted when writing Phaser code.
 
-**Benefits:**
+- Multi-scene flow, object pooling, and physics patterns
+- Performance optimization and common pitfall avoidance
+- Architecture guidance for game projects
+
+### report-writer
+
+Structured technical analysis and debugging reports with standardized sections.
+
+```
+/report-writer [topic] [--workspace <dir>]
+```
+
+- Generates timestamped reports (debugging, analysis, implementation)
+- Standardized sections: Executive Summary, Key Findings, Root Cause Analysis, Recommendations
 - Evidence-based documentation with code references
-- Captures lessons learned and decision rationale
-- Creates searchable knowledge base
-- Helps prevent repeating mistakes
 
-### Workspace Configuration
+### rigorous-debug
+
+Evidence-based debugging protocol using the scientific method.
+
+```
+/rigorous-debug
+```
+
+- Requires one-time project-specific initialization before first use
+- Enforces hypothesis → experiment → conclusion cycles
+- Prevents assumption-driven debugging with structured evidence gathering
+
+### skill-writer
+
+Tools for creating effective Claude Code skills.
+
+```
+/skill-writer
+```
+
+- Step-by-step workflow from pattern identification to polished SKILL.md
+- Covers frontmatter, instruction structure, and best practices
+- Helps extract reusable patterns into shareable skills
+
+### spec-workflow
+
+Two-phase specification and implementation workflow that separates planning from execution.
+
+```
+/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]
+```
+
+- **write**: Create a spec, commit it, and stop — no implementation
+- **write-phased**: Create a multi-phase spec for complex features
+- **implement**: Follow an existing spec, implement, update status, and commit
+
+## Command Aliases
+
+| Alias | Expands to |
+|-------|------------|
+| `/write-spec` | `/spec-workflow write` |
+| `/write-spec-phased` | `/spec-workflow write-phased` |
+| `/implement-spec` | `/spec-workflow implement` |
+
+## Workspace Configuration
 
 All file-producing skills (interview, spec-workflow, report-writer) support configurable workspace directories with layered precedence:
 
@@ -86,22 +95,6 @@ All file-producing skills (interview, spec-workflow, report-writer) support conf
 3. **CLI flag** (`--workspace <dir>`)
 
 Defaults follow the `agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
-
-### System Integration
-
-The complete workflow:
-1. **Spec Writing**: Investigate → Document → Commit spec
-2. **Implementation**: Read spec → Code → Update spec → Commit
-3. **Report**: Analyze results → Document findings → Archive
-
-This creates a full audit trail from problem identification through implementation to post-mortem analysis.
-
-## Usage
-
-These configurations and skills can be:
-- Symlinked into new projects
-- Copied as starting templates
-- Referenced for patterns and best practices
 
 ## Installation
 
@@ -118,4 +111,4 @@ cp -r ~/shared/.claude/skills/spec-workflow /path/to/project/.claude/skills/
 
 ## License
 
-Personal use - adapt and modify as needed for your own projects.
+Personal use — adapt and modify as needed for your own projects.
