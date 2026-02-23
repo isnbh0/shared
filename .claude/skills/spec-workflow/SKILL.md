@@ -1,6 +1,8 @@
 ---
 name: Spec Workflow (Write & Implement)
 description: Two-phase workflow for technical specifications - WRITING phase creates and commits specs then stops; IMPLEMENTATION phase follows specs, updates status, and commits all changes. Different agents handle each phase.
+argument-hint: "<write|write-phased|implement> [args...]"
+disable-model-invocation: true
 ---
 
 # Spec Workflow: Writing and Implementation
@@ -16,6 +18,21 @@ This skill supports a **two-phase workflow** where specification writing and imp
 
 > **For phased implementations**: When a feature requires multiple independent phases
 > (each leaving the system working), see [PHASED-IMPLEMENTATION.md](./PHASED-IMPLEMENTATION.md).
+
+---
+
+## Mode Dispatch
+
+Read the first word of `$ARGUMENTS` to determine the mode:
+
+| First word | Mode | Action |
+|------------|------|--------|
+| `write` | Write spec | Follow **Phase 1: Writing Specifications** below. Remaining args are context/requirements. |
+| `write-phased` | Write phased spec | Follow **Phase 1** + the **Phased Spec Requirements** subsection. Remaining args are context/requirements. |
+| `implement` | Implement spec | Follow **Phase 2: Implementing Specifications** below. Remaining args = spec file path (if provided). |
+| _(empty or unrecognized)_ | Help | Show usage: `/spec-workflow <write\|write-phased\|implement> [args...]` and briefly describe each mode. |
+
+After dispatching, follow the corresponding phase section below.
 
 ---
 
@@ -125,6 +142,29 @@ Before committing, verify:
 - [ ] No meta-commentary or self-notes
 - [ ] Self-contained for fresh agent to implement
 
+### Phased Spec Requirements (write-phased mode)
+
+When in `write-phased` mode, your spec must also include these sections (see [PHASED-IMPLEMENTATION.md](./PHASED-IMPLEMENTATION.md) for full templates):
+
+- **Design Principles** section (5-7 guiding principles)
+- **Key Design Decisions** table (Decision | Choice | Rationale)
+- **Multiple phases** following the strict phase template:
+  - Goal, Entry/Exit state
+  - Implementation Checklist with `[ ]` items
+  - Complete Code examples (not snippets)
+  - Required Tests (complete test files)
+  - Example Workflow (verification commands)
+- **Phase Summary** table
+- **Progress Tracking** section
+
+Each phase must be:
+- **Self-contained** — Completable in one session
+- **Self-consistent** — System works after completion (tests pass)
+- **Backward compatible** — Existing functionality preserved
+- **Independently committable** — One commit per phase
+- **Test-required** — Unit tests for new code
+- **Workflow-verified** — Reproducible example to verify
+
 ---
 
 ## Phase 2: Implementing Specifications
@@ -147,13 +187,45 @@ Before committing, verify:
 
 **Step 1: Read the spec**
 
-```bash
-# Find the spec to implement
-ls agent-workspace/specs/*.md
+If a spec file path was provided in `$ARGUMENTS` (after the `implement` keyword), use that path directly.
 
-# Read it completely
-cat agent-workspace/specs/{timestamp}-name.md
+Otherwise, find the latest non-future spec automatically:
+
+```bash
+python3 -c "
+import os
+import re
+from datetime import datetime
+
+specs_dir = 'agent-workspace/specs'
+now = datetime.now()
+pattern = re.compile(r'^(\d{6})-(\d{6})-.*\.md$')
+
+valid_specs = []
+for filename in os.listdir(specs_dir):
+    match = pattern.match(filename)
+    if match:
+        date_part, time_part = match.groups()
+        year = int('20' + date_part[0:2])
+        month = int(date_part[2:4])
+        day = int(date_part[4:6])
+        hour = int(time_part[0:2])
+        minute = int(time_part[2:4])
+        second = int(time_part[4:6])
+        try:
+            spec_dt = datetime(year, month, day, hour, minute, second)
+            if spec_dt <= now:
+                valid_specs.append((spec_dt, filename))
+        except ValueError:
+            continue
+
+if valid_specs:
+    latest = sorted(valid_specs, key=lambda x: x[0], reverse=True)[0]
+    print(latest[1])
+"
 ```
+
+The script outputs the filename of the latest spec. Construct the full path as `agent-workspace/specs/{filename}` and read it completely.
 
 Understand:
 - Problem statement

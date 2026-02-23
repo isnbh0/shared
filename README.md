@@ -8,11 +8,12 @@ Personal collection of generalizable dotfiles, configurations, and Claude Code s
 
 Located in `.claude/skills/`, these skills enhance Claude Code's capabilities:
 
+- **interview**: Structured requirements discovery through conversational interviews
 - **phaser**: Battle-tested patterns and best practices for Phaser 3 game development
 - **report-writer**: Structured technical analysis and debugging reports
 - **rigorous-debug**: Evidence-based debugging protocol using the scientific method (requires one-time initialization)
 - **skill-writer**: Tools for creating effective Claude Code skills
-- **spec-workflow**: Two-phase specification and implementation workflow
+- **spec-workflow**: Two-phase specification and implementation workflow with phased implementation support. Accepts `write`, `write-phased`, or `implement` as argument. Convenience aliases: `/write-spec`, `/write-spec-phased`, `/implement-spec`
 
 ## Spec-and-Report Development System
 
@@ -20,11 +21,11 @@ This repository includes a systematic approach to software development using two
 
 ### 1. Spec Workflow (Two-Phase Development)
 
-A disciplined approach that separates planning from execution:
+A disciplined approach that separates planning from execution. Supports both single-spec and phased implementations for complex multi-step features.
 
 #### Phase 1: Writing Specifications
 - Agent investigates and creates detailed technical specifications
-- Specs are timestamped (`YYMMDD-HHMMSS-description.md`) and stored in `specs/`
+- Specs are timestamped (`YYMMDD-HHMMSS-description.md`) and stored in `agent-workspace/specs/`
 - Status starts as "Requires Implementation"
 - Agent commits spec and **stops** - no implementation yet
 - Forces thorough investigation before coding
@@ -44,7 +45,7 @@ A disciplined approach that separates planning from execution:
 
 **Spec Structure:**
 ```
-specs/
+agent-workspace/specs/
 ├── {timestamp}-name.md           # New specs (Requires Implementation)
 ├── active/                        # In progress specs
 └── archive/
