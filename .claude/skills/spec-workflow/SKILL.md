@@ -14,6 +14,9 @@ This skill supports a **two-phase workflow** where specification writing and imp
 
 **CRITICAL**: These are separate tasks. Never write AND implement in the same session.
 
+> **For phased implementations**: When a feature requires multiple independent phases
+> (each leaving the system working), see [PHASED-IMPLEMENTATION.md](./PHASED-IMPLEMENTATION.md).
+
 ---
 
 ## Phase 1: Writing Specifications
@@ -37,11 +40,11 @@ This skill supports a **two-phase workflow** where specification writing and imp
 ```bash
 # Generate timestamp and create spec
 TIMESTAMP=$(date +"%y%m%d-%H%M%S")
-touch specs/${TIMESTAMP}-descriptive-name.md
+touch agent-workspace/specs/${TIMESTAMP}-descriptive-name.md
 ```
 
 **File naming**: `{YYMMDD-HHMMSS}-{kebab-case-description}.md`
-**Location**: `specs/` directory at project root
+**Location**: `agent-workspace/specs/` directory
 
 **Step 2: Investigate thoroughly**
 
@@ -94,7 +97,7 @@ Use this template:
 
 ```bash
 # Add the spec file only
-git add specs/${TIMESTAMP}-descriptive-name.md
+git add agent-workspace/specs/${TIMESTAMP}-descriptive-name.md
 
 # Commit with descriptive message
 git commit -m "spec: add specification for [brief description]
@@ -110,7 +113,7 @@ Status: Requires Implementation"
 Before committing, verify:
 
 - [ ] Timestamp formatted correctly (YYMMDD-HHMMSS)
-- [ ] File in `specs/` directory at project root
+- [ ] File in `agent-workspace/specs/` directory
 - [ ] Status is "Requires Implementation"
 - [ ] All required sections present
 - [ ] Investigated existing code before proposing changes
@@ -146,10 +149,10 @@ Before committing, verify:
 
 ```bash
 # Find the spec to implement
-ls specs/*.md
+ls agent-workspace/specs/*.md
 
 # Read it completely
-cat specs/{timestamp}-name.md
+cat agent-workspace/specs/{timestamp}-name.md
 ```
 
 Understand:
@@ -159,7 +162,29 @@ Understand:
 - All implementation details
 - Testing requirements
 
-**Step 2: Update spec status to "In Progress"**
+**Step 2: Create implementation todo list**
+
+**RECOMMENDED**: Use TodoWrite to create a todo list with ALL steps, including wrap-up. This prevents forgetting to update/archive the spec after long implementations.
+
+Create todos for:
+1. Implementation tasks (from spec's Implementation Details)
+2. Testing/verification
+3. **Update spec status to "Completed"**
+4. **Add commit hash to spec**
+5. **Archive spec to agent-workspace/specs/archive/implemented/**
+6. **Git commit all changes**
+
+Example:
+```
+TodoWrite:
+- Implement feature X according to spec
+- Run tests to verify requirements
+- Update spec status to "Completed" with commit hash
+- Archive spec to agent-workspace/specs/archive/implemented/
+- Git add and commit all changes (code + spec)
+```
+
+**Step 3: Update spec status to "In Progress"**
 
 Edit the spec file:
 
@@ -171,16 +196,18 @@ Edit the spec file:
 Optional: Move to active directory
 
 ```bash
-git mv specs/{spec}.md specs/active/{spec}.md
+git mv agent-workspace/specs/{spec}.md agent-workspace/specs/active/{spec}.md
+git add agent-workspace/specs/active/{spec}.md
 ```
 
-**Step 3: Implement according to spec**
+**Step 4: Implement according to spec**
 
 Follow the implementation details exactly:
 - Make all code changes specified
 - Install any required dependencies
 - Follow the step-by-step plan
 - Test as specified in the spec
+- **Mark todos as completed as you finish each step**
 
 **Follow all usual best practices**:
 - Write clean, maintainable code
@@ -189,7 +216,7 @@ Follow the implementation details exactly:
 - Ensure type safety
 - Test thoroughly
 
-**Step 4: Verify requirements**
+**Step 5: Verify requirements**
 
 ```bash
 # Test the implementation
@@ -199,7 +226,7 @@ npm run dev  # or appropriate test command
 # Check each item in Implementation Details section
 ```
 
-**Step 5: Update spec status to "Completed"**
+**Step 6: Update spec status to "Completed"**
 
 Edit the spec file:
 
@@ -211,21 +238,24 @@ Edit the spec file:
 **Completed:** YYYY-MM-DD
 ```
 
-Optional: Archive the spec
+**Step 7: Archive the spec**
 
 ```bash
 # Move to implemented archive
-git mv specs/active/{spec}.md specs/archive/implemented/{spec}.md
+mkdir -p agent-workspace/specs/archive/implemented
+git mv agent-workspace/specs/active/{spec}.md agent-workspace/specs/archive/implemented/{spec}.md
+git add agent-workspace/specs/archive/implemented/{spec}.md
 # OR if not in active/
-git mv specs/{spec}.md specs/archive/implemented/{spec}.md
+git mv agent-workspace/specs/{spec}.md agent-workspace/specs/archive/implemented/{spec}.md
+git add agent-workspace/specs/archive/implemented/{spec}.md
 ```
 
-**Step 6: Git add and commit everything**
+**Step 8: Git add and commit everything**
 
 ```bash
 # Add all changes (implementation + updated spec)
 git add [files-you-modified]
-git add specs/archive/implemented/{spec}.md  # or wherever spec is
+git add agent-workspace/specs/archive/implemented/{spec}.md  # or wherever spec is
 
 # Commit with reference to spec
 git commit -m "feat: implement [feature name]
@@ -241,13 +271,14 @@ Status: Completed"
 
 Before committing, verify:
 
+- [ ] **All todos marked as completed**
 - [ ] All spec requirements implemented
 - [ ] Code follows best practices
 - [ ] Tests pass / manual testing complete
 - [ ] Spec status updated to "Completed"
 - [ ] Spec includes commit hashes
 - [ ] Spec includes completion date
-- [ ] Spec archived (optional but recommended)
+- [ ] Spec archived to `agent-workspace/specs/archive/implemented/`
 - [ ] All files added to git (implementation + spec)
 - [ ] Commit message references spec file
 - [ ] No uncommitted changes remain
@@ -257,7 +288,7 @@ Before committing, verify:
 ## Directory Structure
 
 ```
-specs/
+agent-workspace/specs/
 ├── {timestamp}-name.md           # New specs (Status: Requires Implementation)
 ├── active/                        # In progress (Status: In Progress)
 ├── archive/
@@ -423,20 +454,22 @@ Write spec → commit → stop. Later: implement spec → update status → comm
 ## Quick Reference
 
 ### I'm WRITING a spec:
-1. Create timestamped file in `specs/`
+1. Create timestamped file in `agent-workspace/specs/`
 2. Investigate thoroughly
 3. Write complete spec with "Status: Requires Implementation"
-4. `git add specs/{spec}.md && git commit`
+4. `git add agent-workspace/specs/{spec}.md && git commit`
 5. **STOP** - Don't implement
 
 ### I'm IMPLEMENTING a spec:
 1. Read spec completely
-2. Update status to "In Progress"
-3. Implement according to spec + best practices
-4. Test thoroughly
-5. Update spec status to "Completed" with commits
-6. `git add [all-files] && git commit`
-7. Done
+2. **Create TodoWrite list with all steps including wrap-up**
+3. Update status to "In Progress"
+4. Implement according to spec + best practices
+5. Test thoroughly
+6. Update spec status to "Completed" with commits and date
+7. Archive spec to `agent-workspace/specs/archive/implemented/`
+8. `git add [all-files] && git commit`
+9. Done
 
 ---
 
