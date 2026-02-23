@@ -1,6 +1,6 @@
-# Interview skill configuration
+# Spec workflow configuration
 # These defaults can be overridden via command-line arguments
 
-# Directory where interview workspaces are created
+# Directory where spec files are created and managed
 # Relative paths are resolved from the current working directory
-workspace_dir: agent-workspace/interviews
+workspace_dir: agent-workspace/specs

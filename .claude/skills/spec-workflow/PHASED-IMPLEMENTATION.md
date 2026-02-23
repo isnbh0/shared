@@ -2,6 +2,8 @@
 
 Companion document to [SKILL.md](./SKILL.md) for writing multi-phase specifications.
 
+> **Note:** `${SPECS_DIR}` is resolved during the Setup step in [SKILL.md](./SKILL.md). All paths in this document use that variable.
+
 ## When to Use Phased Implementation
 
 Use this pattern when:
@@ -239,7 +241,7 @@ When architecture changes fundamentally, fork the spec rather than rewriting:
 # Feature Name v2
 
 **Date:** YYYY-MM-DD
-**Forked from:** `agent-workspace/specs/archive/superseded/YYMMDD-original.md` at Phase 3.7
+**Forked from:** `${SPECS_DIR}/archive/superseded/YYMMDD-original.md` at Phase 3.7
 
 **Why forked:** [Brief explanation of what changed]
 
@@ -247,7 +249,7 @@ When architecture changes fundamentally, fork the spec rather than rewriting:
 This document continues from Phase 3.8.
 ```
 
-Move the original to `agent-workspace/specs/archive/superseded/`.
+Move the original to `${SPECS_DIR}/archive/superseded/`.
 
 ### Migration Strategies
 
@@ -280,7 +282,7 @@ TodoWrite:
 - Add unit tests for new code
 - Run full test suite
 - Update spec status to "Completed" with commit hash
-- Archive spec to agent-workspace/specs/archive/implemented/
+- Archive spec to ${SPECS_DIR}/archive/implemented/
 - Git add and commit all changes
 ```
 
@@ -292,7 +294,7 @@ Based on repository conventions:
 
 **Spec creation:**
 ```bash
-git add agent-workspace/specs/YYMMDD-HHMMSS-name.md
+git add ${SPECS_DIR}/YYMMDD-HHMMSS-name.md
 git commit -m "spec: add specification for [brief description]
 
 Created spec: YYMMDD-HHMMSS-name.md
@@ -310,7 +312,7 @@ git commit -m "docs(spec): [what changed]
 ```bash
 git commit -m "feat(scope): [what was implemented]
 
-Implements Phase N of agent-workspace/specs/YYMMDD-name.md
+Implements Phase N of ${SPECS_DIR}/YYMMDD-name.md
 
 - [Change 1]
 - [Change 2]
@@ -353,7 +355,7 @@ Example:
 ## Quick Reference
 
 ### Writing a phased spec:
-1. Create timestamped file in `agent-workspace/specs/`
+1. Create timestamped file in `${SPECS_DIR}/`
 2. Add header with status "Requires Implementation"
 3. Write Design Principles and Key Design Decisions
 4. Define phases following strict template

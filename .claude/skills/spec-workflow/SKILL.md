@@ -1,7 +1,7 @@
 ---
 name: Spec Workflow (Write & Implement)
 description: Two-phase workflow for technical specifications - WRITING phase creates and commits specs then stops; IMPLEMENTATION phase follows specs, updates status, and commits all changes. Different agents handle each phase.
-argument-hint: "<write|write-phased|implement> [args...]"
+argument-hint: "<write|write-phased|implement> [args...] [--workspace <dir>]"
 disable-model-invocation: true
 ---
 
@@ -19,6 +19,38 @@ This skill supports a **two-phase workflow** where specification writing and imp
 > **For phased implementations**: When a feature requires multiple independent phases
 > (each leaving the system working), see [PHASED-IMPLEMENTATION.md](./PHASED-IMPLEMENTATION.md).
 
+## Invocation
+
+```
+/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]
+```
+
+- `write`: Create a new spec from requirements
+- `write-phased`: Create a phased spec for multi-step features
+- `implement`: Implement an existing spec
+- `--workspace <dir>`: Override the workspace directory for this session
+
+## Configuration
+
+Config is resolved with layered precedence:
+
+1. **Project config** (`.claude/skill-configs/spec-workflow/config.yaml`) — project-specific overrides
+2. **User config** (`~/.claude/skills/spec-workflow/config.yaml`) — user defaults
+3. **CLI flag** (`--workspace`) — one-off override
+
+```yaml
+workspace_dir: agent-workspace/specs  # where spec files are created and managed
+```
+
+## Setup
+
+1. Resolve configuration (check in order, use first found):
+   - `.claude/skill-configs/spec-workflow/config.yaml` (project-level override)
+   - `~/.claude/skills/spec-workflow/config.yaml` (user defaults)
+   - Use `--workspace` CLI flag to override either
+
+2. Set `${SPECS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
+
 ---
 
 ## Mode Dispatch
@@ -30,7 +62,7 @@ Read the first word of `$ARGUMENTS` to determine the mode:
 | `write` | Write spec | Follow **Phase 1: Writing Specifications** below. Remaining args are context/requirements. |
 | `write-phased` | Write phased spec | Follow **Phase 1** + the **Phased Spec Requirements** subsection. Remaining args are context/requirements. |
 | `implement` | Implement spec | Follow **Phase 2: Implementing Specifications** below. Remaining args = spec file path (if provided). |
-| _(empty or unrecognized)_ | Help | Show usage: `/spec-workflow <write\|write-phased\|implement> [args...]` and briefly describe each mode. |
+| _(empty or unrecognized)_ | Help | Show usage: `/spec-workflow <write\|write-phased\|implement> [args...] [--workspace <dir>]` and briefly describe each mode. |
 
 After dispatching, follow the corresponding phase section below.
 
@@ -57,11 +89,11 @@ After dispatching, follow the corresponding phase section below.
 ```bash
 # Generate timestamp and create spec
 TIMESTAMP=$(date +"%y%m%d-%H%M%S")
-touch agent-workspace/specs/${TIMESTAMP}-descriptive-name.md
+touch ${SPECS_DIR}/${TIMESTAMP}-descriptive-name.md
 ```
 
 **File naming**: `{YYMMDD-HHMMSS}-{kebab-case-description}.md`
-**Location**: `agent-workspace/specs/` directory
+**Location**: `${SPECS_DIR}/` directory
 
 **Step 2: Investigate thoroughly**
 
@@ -114,7 +146,7 @@ Use this template:
 
 ```bash
 # Add the spec file only
-git add agent-workspace/specs/${TIMESTAMP}-descriptive-name.md
+git add ${SPECS_DIR}/${TIMESTAMP}-descriptive-name.md
 
 # Commit with descriptive message
 git commit -m "spec: add specification for [brief description]
@@ -130,7 +162,7 @@ Status: Requires Implementation"
 Before committing, verify:
 
 - [ ] Timestamp formatted correctly (YYMMDD-HHMMSS)
-- [ ] File in `agent-workspace/specs/` directory
+- [ ] File in `${SPECS_DIR}/` directory
 - [ ] Status is "Requires Implementation"
 - [ ] All required sections present
 - [ ] Investigated existing code before proposing changes
@@ -195,9 +227,10 @@ Otherwise, find the latest non-future spec automatically:
 python3 -c "
 import os
 import re
+import sys
 from datetime import datetime
 
-specs_dir = 'agent-workspace/specs'
+specs_dir = sys.argv[1]
 now = datetime.now()
 pattern = re.compile(r'^(\d{6})-(\d{6})-.*\.md$')
 
@@ -222,10 +255,10 @@ for filename in os.listdir(specs_dir):
 if valid_specs:
     latest = sorted(valid_specs, key=lambda x: x[0], reverse=True)[0]
     print(latest[1])
-"
+" "${SPECS_DIR}"
 ```
 
-The script outputs the filename of the latest spec. Construct the full path as `agent-workspace/specs/{filename}` and read it completely.
+The script outputs the filename of the latest spec. Construct the full path as `${SPECS_DIR}/{filename}` and read it completely.
 
 Understand:
 - Problem statement
@@ -243,7 +276,7 @@ Create todos for:
 2. Testing/verification
 3. **Update spec status to "Completed"**
 4. **Add commit hash to spec**
-5. **Archive spec to agent-workspace/specs/archive/implemented/**
+5. **Archive spec to ${SPECS_DIR}/archive/implemented/**
 6. **Git commit all changes**
 
 Example:
@@ -252,7 +285,7 @@ TodoWrite:
 - Implement feature X according to spec
 - Run tests to verify requirements
 - Update spec status to "Completed" with commit hash
-- Archive spec to agent-workspace/specs/archive/implemented/
+- Archive spec to ${SPECS_DIR}/archive/implemented/
 - Git add and commit all changes (code + spec)
 ```
 
@@ -268,8 +301,8 @@ Edit the spec file:
 Optional: Move to active directory
 
 ```bash
-git mv agent-workspace/specs/{spec}.md agent-workspace/specs/active/{spec}.md
-git add agent-workspace/specs/active/{spec}.md
+git mv ${SPECS_DIR}/{spec}.md ${SPECS_DIR}/active/{spec}.md
+git add ${SPECS_DIR}/active/{spec}.md
 ```
 
 **Step 4: Implement according to spec**
@@ -314,12 +347,12 @@ Edit the spec file:
 
 ```bash
 # Move to implemented archive
-mkdir -p agent-workspace/specs/archive/implemented
-git mv agent-workspace/specs/active/{spec}.md agent-workspace/specs/archive/implemented/{spec}.md
-git add agent-workspace/specs/archive/implemented/{spec}.md
+mkdir -p ${SPECS_DIR}/archive/implemented
+git mv ${SPECS_DIR}/active/{spec}.md ${SPECS_DIR}/archive/implemented/{spec}.md
+git add ${SPECS_DIR}/archive/implemented/{spec}.md
 # OR if not in active/
-git mv agent-workspace/specs/{spec}.md agent-workspace/specs/archive/implemented/{spec}.md
-git add agent-workspace/specs/archive/implemented/{spec}.md
+git mv ${SPECS_DIR}/{spec}.md ${SPECS_DIR}/archive/implemented/{spec}.md
+git add ${SPECS_DIR}/archive/implemented/{spec}.md
 ```
 
 **Step 8: Git add and commit everything**
@@ -327,7 +360,7 @@ git add agent-workspace/specs/archive/implemented/{spec}.md
 ```bash
 # Add all changes (implementation + updated spec)
 git add [files-you-modified]
-git add agent-workspace/specs/archive/implemented/{spec}.md  # or wherever spec is
+git add ${SPECS_DIR}/archive/implemented/{spec}.md  # or wherever spec is
 
 # Commit with reference to spec
 git commit -m "feat: implement [feature name]
@@ -350,7 +383,7 @@ Before committing, verify:
 - [ ] Spec status updated to "Completed"
 - [ ] Spec includes commit hashes
 - [ ] Spec includes completion date
-- [ ] Spec archived to `agent-workspace/specs/archive/implemented/`
+- [ ] Spec archived to `${SPECS_DIR}/archive/implemented/`
 - [ ] All files added to git (implementation + spec)
 - [ ] Commit message references spec file
 - [ ] No uncommitted changes remain
@@ -360,7 +393,7 @@ Before committing, verify:
 ## Directory Structure
 
 ```
-agent-workspace/specs/
+${SPECS_DIR}/
 ├── {timestamp}-name.md           # New specs (Status: Requires Implementation)
 ├── active/                        # In progress (Status: In Progress)
 ├── archive/
@@ -526,10 +559,10 @@ Write spec → commit → stop. Later: implement spec → update status → comm
 ## Quick Reference
 
 ### I'm WRITING a spec:
-1. Create timestamped file in `agent-workspace/specs/`
+1. Create timestamped file in `${SPECS_DIR}/`
 2. Investigate thoroughly
 3. Write complete spec with "Status: Requires Implementation"
-4. `git add agent-workspace/specs/{spec}.md && git commit`
+4. `git add ${SPECS_DIR}/{spec}.md && git commit`
 5. **STOP** - Don't implement
 
 ### I'm IMPLEMENTING a spec:
@@ -539,7 +572,7 @@ Write spec → commit → stop. Later: implement spec → update status → comm
 4. Implement according to spec + best practices
 5. Test thoroughly
 6. Update spec status to "Completed" with commits and date
-7. Archive spec to `agent-workspace/specs/archive/implemented/`
+7. Archive spec to `${SPECS_DIR}/archive/implemented/`
 8. `git add [all-files] && git commit`
 9. Done
 

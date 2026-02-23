@@ -1,11 +1,42 @@
 ---
 name: Writing Technical Reports
 description: Creates timestamped technical analysis and debugging reports following a standardized structure. Use when documenting completed work, analyzing technical issues, investigating bugs, or when the user requests a report.
+argument-hint: "[topic] [--workspace <dir>]"
 ---
 
 # Writing Technical Reports
 
 Create structured technical analysis reports with timestamp-based naming and standardized sections.
+
+## Invocation
+
+```
+/report-writer [topic] [--workspace <dir>]
+```
+
+- `[topic]`: Subject of the report
+- `--workspace <dir>`: Override the workspace directory for this report
+
+## Configuration
+
+Config is resolved with layered precedence:
+
+1. **Project config** (`.claude/skill-configs/report-writer/config.yaml`) — project-specific overrides
+2. **User config** (`~/.claude/skills/report-writer/config.yaml`) — user defaults
+3. **CLI flag** (`--workspace`) — one-off override
+
+```yaml
+workspace_dir: agent-workspace/reports  # where report files are created
+```
+
+## Setup
+
+1. Resolve configuration (check in order, use first found):
+   - `.claude/skill-configs/report-writer/config.yaml` (project-level override)
+   - `~/.claude/skills/report-writer/config.yaml` (user defaults)
+   - Use `--workspace` CLI flag to override either
+
+2. Set `${REPORTS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
 
 ## File Naming Convention
 
@@ -80,7 +111,7 @@ git rev-parse HEAD
 
 **Step 2: Create file**
 
-Name the file using `{timestamp}-{descriptive-name}.md` and place in `reports/` directory.
+Name the file using `{timestamp}-{descriptive-name}.md` and place in `${REPORTS_DIR}/` directory.
 
 **Step 3: Add header metadata**
 
