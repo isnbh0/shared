@@ -64,7 +64,7 @@ Creates structured technical documentation after work is completed:
 
 #### Report Structure
 - Timestamped naming (`YYMMDD-HHMMSS-description.md`)
-- Stored in `reports/`
+- Stored in `agent-workspace/reports/`
 - Standardized sections:
   - Executive Summary
   - Key Findings
@@ -76,6 +76,16 @@ Creates structured technical documentation after work is completed:
 - Captures lessons learned and decision rationale
 - Creates searchable knowledge base
 - Helps prevent repeating mistakes
+
+### Workspace Configuration
+
+All file-producing skills (interview, spec-workflow, report-writer) support configurable workspace directories with layered precedence:
+
+1. **Project config** (`.claude/skill-configs/<skill>/config.yaml`)
+2. **User config** (`~/.claude/skills/<skill>/config.yaml`)
+3. **CLI flag** (`--workspace <dir>`)
+
+Defaults follow the `agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
 
 ### System Integration
 
