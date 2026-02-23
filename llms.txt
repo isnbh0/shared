@@ -46,18 +46,7 @@ The target project must have a `.claude/` directory. Create one if it does not e
 mkdir -p /path/to/project/.claude/skills
 ```
 
-### Option A: Install all skills (symlink)
-
-Clone the repository and symlink the entire `.claude` directory. This installs all skills and command aliases together.
-
-```bash
-git clone git@github.com:isnbh0/shared.git ~/shared
-ln -s ~/shared/.claude /path/to/project/.claude
-```
-
-Warning: This replaces any existing `.claude` directory in the target project.
-
-### Option B: Install individual skills (copy)
+### Option A: Install individual skills (copy)
 
 Copy only the skills the user needs. Each skill is a self-contained directory under `.claude/skills/`.
 
@@ -69,7 +58,7 @@ git clone git@github.com:isnbh0/shared.git ~/shared
 cp -r ~/shared/.claude/skills/<skill-name> /path/to/project/.claude/skills/
 ```
 
-### Option C: Install individual skills (symlink)
+### Option B: Install individual skills (symlink)
 
 Symlink individual skills for automatic updates when the source repo is pulled.
 
@@ -156,7 +145,7 @@ Override precedence (highest to lowest):
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option B (copy) unless they specifically want auto-updates or want all skills.
+- When a user asks to "install" or "add" a skill, prefer Option A (copy) unless they specifically want auto-updates via symlinks.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.
