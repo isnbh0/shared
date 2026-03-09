@@ -21,10 +21,9 @@ This skill supports a **two-phase workflow** where specification writing and imp
 
 ## Invocation
 
-```
-/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]
-```
+This skill is invoked via commands (write-spec, write-spec-phased, implement-spec) which set the mode and arguments. Do NOT re-invoke this skill via the Skill tool — just follow the Mode Dispatch below.
 
+Modes:
 - `write`: Create a new spec from requirements
 - `write-phased`: Create a phased spec for multi-step features
 - `implement`: Implement an existing spec
