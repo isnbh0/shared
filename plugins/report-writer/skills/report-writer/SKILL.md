@@ -26,7 +26,7 @@ Config is resolved with layered precedence:
 3. **CLI flag** (`--workspace`) — one-off override
 
 ```yaml
-workspace_dir: agent-workspace/reports  # where report files are created
+workspace_dir: .agent-workspace/reports  # where report files are created
 ```
 
 ## Setup

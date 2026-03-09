@@ -137,9 +137,9 @@ Skills that produce files (interview, spec-workflow, report-writer) write to con
 
 | Skill | Default workspace |
 |-------|-------------------|
-| interview | `agent-workspace/interviews` |
-| spec-workflow | `agent-workspace/specs` |
-| report-writer | `agent-workspace/reports` |
+| interview | `.agent-workspace/interviews` |
+| spec-workflow | `.agent-workspace/specs` |
+| report-writer | `.agent-workspace/reports` |
 
 Override precedence (highest to lowest):
 

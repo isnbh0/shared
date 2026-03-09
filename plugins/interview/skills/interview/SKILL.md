@@ -26,7 +26,7 @@ Config is resolved with layered precedence:
 3. **CLI flag** (`--workspace`) — one-off override
 
 ```yaml
-workspace_dir: agent-workspace/interviews  # where interview folders are created
+workspace_dir: .agent-workspace/interviews  # where interview folders are created
 ```
 
 ## Setup

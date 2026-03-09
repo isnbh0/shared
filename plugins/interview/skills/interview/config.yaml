@@ -3,4 +3,4 @@
 
 # Directory where interview workspaces are created
 # Relative paths are resolved from the current working directory
-workspace_dir: agent-workspace/interviews
+workspace_dir: .agent-workspace/interviews

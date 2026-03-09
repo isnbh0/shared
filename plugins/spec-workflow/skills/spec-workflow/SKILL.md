@@ -39,7 +39,7 @@ Config is resolved with layered precedence:
 3. **CLI flag** (`--workspace`) — one-off override
 
 ```yaml
-workspace_dir: agent-workspace/specs  # where spec files are created and managed
+workspace_dir: .agent-workspace/specs  # where spec files are created and managed
 ```
 
 ## Setup

@@ -128,7 +128,7 @@ All file-producing skills (interview, spec-workflow, report-writer) support conf
 2. **User config** (`~/.claude/skills/<skill>/config.yaml`)
 3. **CLI flag** (`--workspace <dir>`)
 
-Defaults follow the `agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
+Defaults follow the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
 
 ## License
 

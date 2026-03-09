@@ -3,4 +3,4 @@
 
 # Directory where report files are created
 # Relative paths are resolved from the current working directory
-workspace_dir: agent-workspace/reports
+workspace_dir: .agent-workspace/reports
