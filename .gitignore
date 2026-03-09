@@ -1,3 +1,6 @@
+.cursorindexingignore
+.specstory/
+
 # OS-specific files
 .DS_Store
 .DS_Store?
