@@ -4,43 +4,17 @@
 
 A collection of reusable Claude Code skills and command aliases, distributed as Claude Code plugins. This file instructs LLMs on how to install skills from this repository into a user's project.
 
-## Available Skills
-
-### interview
-Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
-
-Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
-
-### spec-workflow
-Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
-
-Invocation: `/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]`
-
-Includes command aliases: `/write-spec`, `/write-spec-phased`, `/implement-spec`
-
-### report-writer
-Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
-
-Invocation: `/report-writer [topic] [--workspace <dir>]`
-
-### rigorous-debug
-Evidence-based debugging protocol using the scientific method. Enforces hypothesis-driven investigation with controlled experiments. Requires one-time project-specific initialization before first use.
-
-Invocation: `/rigorous-debug`
-
-### skill-writer
-Tools and guidance for creating effective Claude Code skills following best practices.
-
-Invocation: `/skill-writer`
-
-### phaser
-Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase — automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
-
 ## Installation Instructions
 
 ### Option A: Plugin (recommended)
 
-Install individual skills as Claude Code plugins:
+First, register the marketplace:
+
+```
+/plugin marketplace add isnbh0/shared
+```
+
+Then install individual skills:
 
 ```
 /plugin install interview@isnbh0
@@ -85,6 +59,38 @@ ln -s ~/shared/plugins/spec-workflow/commands/write-spec.md /path/to/project/.cl
 ln -s ~/shared/plugins/spec-workflow/commands/write-spec-phased.md /path/to/project/.claude/commands/
 ln -s ~/shared/plugins/spec-workflow/commands/implement-spec.md /path/to/project/.claude/commands/
 ```
+
+## Available Skills
+
+### interview
+Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
+
+Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
+
+### spec-workflow
+Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
+
+Invocation: `/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]`
+
+Includes command aliases: `/write-spec`, `/write-spec-phased`, `/implement-spec`
+
+### report-writer
+Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
+
+Invocation: `/report-writer [topic] [--workspace <dir>]`
+
+### rigorous-debug
+Evidence-based debugging protocol using the scientific method. Enforces hypothesis-driven investigation with controlled experiments. Requires one-time project-specific initialization before first use.
+
+Invocation: `/rigorous-debug`
+
+### skill-writer
+Tools and guidance for creating effective Claude Code skills following best practices.
+
+Invocation: `/skill-writer`
+
+### phaser
+Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase — automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
 
 ## Skill Dependencies
 

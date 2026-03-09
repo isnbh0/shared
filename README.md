@@ -4,6 +4,40 @@ Personal collection of generalizable dotfiles, configurations, and Claude Code s
 
 [한국어](README.ko.md)
 
+## Installation
+
+### Option A: Plugin (recommended)
+
+First, register the marketplace:
+
+```bash
+/plugin marketplace add isnbh0/shared
+```
+
+Then install individual skills:
+
+```bash
+/plugin install interview@isnbh0
+/plugin install spec-workflow@isnbh0
+/plugin install report-writer@isnbh0
+/plugin install rigorous-debug@isnbh0
+/plugin install skill-writer@isnbh0
+/plugin install phaser@isnbh0
+```
+
+### Option B: Symlink / Copy
+
+```bash
+# Clone to your preferred location
+git clone <repo-url> ~/shared
+
+# Symlink .claude directory into a project
+ln -s ~/shared/.claude /path/to/project/.claude
+
+# Or copy specific skills
+cp -r ~/shared/plugins/spec-workflow/skills/spec-workflow /path/to/project/.claude/skills/
+```
+
 ## Skills
 
 Six independent skills, each available as a Claude Code plugin:
@@ -95,34 +129,6 @@ All file-producing skills (interview, spec-workflow, report-writer) support conf
 3. **CLI flag** (`--workspace <dir>`)
 
 Defaults follow the `agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
-
-## Installation
-
-### Option A: Plugin (recommended)
-
-Install individual skills as Claude Code plugins:
-
-```bash
-/plugin install interview@isnbh0
-/plugin install spec-workflow@isnbh0
-/plugin install report-writer@isnbh0
-/plugin install rigorous-debug@isnbh0
-/plugin install skill-writer@isnbh0
-/plugin install phaser@isnbh0
-```
-
-### Option B: Symlink / Copy
-
-```bash
-# Clone to your preferred location
-git clone <repo-url> ~/shared
-
-# Symlink .claude directory into a project
-ln -s ~/shared/.claude /path/to/project/.claude
-
-# Or copy specific skills
-cp -r ~/shared/plugins/spec-workflow/skills/spec-workflow /path/to/project/.claude/skills/
-```
 
 ## License
 
