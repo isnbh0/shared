@@ -54,14 +54,15 @@ workspace_dir: .agent-workspace/specs  # where spec files are created and manage
 
 ## Mode Dispatch
 
-Read the first word of `$ARGUMENTS` to determine the mode:
+Use the **Mode** provided by the invoking command to determine which phase to follow:
 
-| First word | Mode | Action |
-|------------|------|--------|
-| `write` | Write spec | Follow **Phase 1: Writing Specifications** below. Remaining args are context/requirements. |
-| `write-phased` | Write phased spec | Follow **Phase 1** + the **Phased Spec Requirements** subsection. Remaining args are context/requirements. |
-| `implement` | Implement spec | Follow **Phase 2: Implementing Specifications** below. Remaining args = spec file path (if provided). |
-| _(empty or unrecognized)_ | Help | Show usage: `/spec-workflow <write\|write-phased\|implement> [args...] [--workspace <dir>]` and briefly describe each mode. |
+| Mode | Action |
+|------|--------|
+| `write` | Follow **Phase 1: Writing Specifications** below. `$ARGUMENTS` contains context/requirements. |
+| `write-phased` | Follow **Phase 1** + the **Phased Spec Requirements** subsection. `$ARGUMENTS` contains context/requirements. |
+| `implement` | Follow **Phase 2: Implementing Specifications** below. `$ARGUMENTS` = spec file path (if provided). |
+
+If no mode is provided, show the available modes (`write`, `write-phased`, `implement`) and briefly describe each.
 
 After dispatching, follow the corresponding phase section below.
 

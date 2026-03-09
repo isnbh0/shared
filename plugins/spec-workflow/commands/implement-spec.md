@@ -1,7 +1,7 @@
 ---
 description: Implement a specification (alias for /spec-workflow implement)
 ---
-Read the file `plugins/spec-workflow/skills/spec-workflow/SKILL.md` (relative to the project that contains this plugin) and follow its instructions.
+Read the file `../skills/spec-workflow/SKILL.md` (relative to this command file) and follow its instructions.
 
 **Mode**: `implement`
 **Arguments**: $ARGUMENTS
