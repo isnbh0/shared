@@ -8,11 +8,11 @@
 (Update as patterns surface / 패턴이 나타나면 업데이트)
 -
 
-## Requirements Captured / 수집된 요구사항
-(Explicit requirements stated by interviewee / 인터뷰 대상자가 명시한 요구사항)
+## Key Insights / 핵심 인사이트
+(Important points stated by the interviewee / 인터뷰 대상자가 밝힌 중요한 사항)
 -
 
-## Constraints / 제약사항
+## Constraints & Boundaries / 제약사항 및 경계
 (Non-negotiables, limitations, boundaries / 필수조건, 제한사항, 경계)
 -
 

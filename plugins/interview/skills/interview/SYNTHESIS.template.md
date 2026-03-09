@@ -1,20 +1,20 @@
-# {{TOPIC}} - Requirements Synthesis / 요구사항 종합
+# {{TOPIC}} - Synthesis / 종합
 
 ## What This Is / 개요
 
 {{Brief description of what was discussed and why / 논의 내용과 이유에 대한 간략한 설명}}
 
-## Key Requirements / 핵심 요구사항
+## Key Insights / 핵심 인사이트
 
-{{Numbered list of concrete requirements extracted from the interview / 인터뷰에서 도출한 구체적 요구사항}}
+{{Numbered list of concrete findings extracted from the interview / 인터뷰에서 도출한 구체적 발견사항}}
 
 1.
 2.
 3.
 
-## Constraints / 제약사항
+## Constraints & Boundaries / 제약사항 및 경계
 
-{{Non-negotiables and boundaries that shape the solution / 솔루션을 결정짓는 필수조건과 경계}}
+{{Non-negotiables and boundaries that shape the path forward / 앞으로의 방향을 결정짓는 필수조건과 경계}}
 
 -
 -
@@ -26,9 +26,9 @@
 -
 -
 
-## Architecture / Approach / 아키텍처 및 접근방식
+## Approach / Direction / 접근방식 및 방향
 
-{{High-level approach or technical direction if discussed / 논의된 고수준 접근방식이나 기술적 방향}}
+{{High-level approach or direction if one emerged / 도출된 고수준 접근방식이나 방향}}
 
 ## What's Deferred / 보류된 항목
 

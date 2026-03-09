@@ -1,6 +1,6 @@
 {
   "name": "interview",
-  "description": "Structured interviews for requirements discovery",
+  "description": "Structured interviews for exploring any topic through guided conversation",
   "version": "1.0.0",
   "author": { "name": "isnbh0" }
 }

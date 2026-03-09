@@ -1,11 +1,11 @@
 ---
 name: interview
-description: Conducts structured interviews to extract requirements, constraints, and design decisions. Use when the user invokes /interview or needs to discover requirements through conversation.
+description: Conducts structured interviews to explore any topic through conversational discovery — from software requirements to personal decisions, creative projects, or life planning. Use when the user invokes /interview or needs to think through something via guided conversation.
 ---
 
-# Requirements Interview
+# Interview
 
-Conduct one-on-one interviews to extract requirements, constraints, and decisions from the user through conversational discovery.
+Conduct one-on-one interviews to help the user think through any topic — extracting insights, constraints, decisions, and clarity through conversational discovery.
 
 ## Invocation
 
@@ -13,7 +13,7 @@ Conduct one-on-one interviews to extract requirements, constraints, and decision
 /interview <topic> [--ref <path>] [--workspace <dir>]
 ```
 
-- `<topic>`: Short kebab-case name for the interview (e.g., `auth-system`, `api-design`)
+- `<topic>`: Short kebab-case name for the interview (e.g., `career-change`, `auth-system`, `family-dynamics`)
 - `--ref <path>`: Optional reference file to anchor discussion
 - `--workspace <dir>`: Override the workspace directory for this interview
 
@@ -51,35 +51,41 @@ mkdir -p ${WORKSPACE_DIR}/${TIMESTAMP}-<topic>
 
 **Format**: Conversational, one question per turn
 
-**Goal**: Extract requirements, constraints, decisions, and rationale
+**Goal**: Help the user think clearly — extract insights, constraints, decisions, and rationale on any topic
 
 ### Interviewer Approach
 
 - **One focused question per exchange** — never bundle questions
-- Listen for implicit requirements and constraints
+- Listen for implicit needs, concerns, and constraints
 - Dig into "why" 2-3 times when you sense deeper reasoning
 - Follow unexpected threads — often the best insights emerge tangentially
 - Reference specific context from prior answers to show you're tracking
-- Watch for tensions between stated goals (speed vs quality, flexibility vs simplicity)
+- Watch for tensions between stated goals or competing values
+- Meet the user where they are emotionally — some topics are personal
 
 ### Question Flow
 
-Draw from these categories based on conversation flow:
+Adapt these categories to the topic at hand. Not all categories apply to every interview — use judgment.
 
 **Opening**
-- What problem are we solving?
-- What does success look like?
-- Who are the users/stakeholders?
+- What's on your mind? / What are we exploring?
+- What does a good outcome look like?
+- Who else is involved or affected?
 
-**Constraints**
+**Situation**
+- What's the current state of things?
+- How did we get here?
+- What's been tried before?
+
+**Constraints & Boundaries**
 - What's non-negotiable?
-- What resources/timeline exist?
-- What can we defer?
+- What resources, time, or energy exist?
+- What can we set aside for now?
 
-**Technical**
-- What's the current state?
-- What patterns should we follow/avoid?
-- What integrations matter?
+**Feelings & Values**
+- What matters most to you here?
+- What are you worried about?
+- What would you regret not doing?
 
 **Decisions**
 - What have you already decided?
@@ -87,7 +93,7 @@ Draw from these categories based on conversation flow:
 - What trade-offs are you willing to make?
 
 **Priorities**
-- What's the MVP?
+- What's most important right now?
 - What's nice-to-have?
 - What's explicitly out of scope?
 
@@ -96,7 +102,7 @@ Draw from these categories based on conversation flow:
 Update SCRATCHPAD.md after **every exchange**:
 
 - Add emerging themes as patterns surface
-- Capture decisions and requirements verbatim
+- Capture decisions and key insights verbatim
 - Note tensions and trade-offs
 - Track areas needing deeper exploration
 - Record key quotes worth preserving
@@ -136,3 +142,4 @@ Detect the user's language from their first response and conduct the interview i
 - Dig into tensions and trade-offs
 - Capture quotes verbatim when they're insightful
 - Stay curious — follow the user's energy
+- Adapt tone to the topic — warm for personal, crisp for technical
