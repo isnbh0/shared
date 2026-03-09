@@ -1,0 +1,12 @@
+{
+  "name": "isnbh0",
+  "owner": { "name": "isnbh0" },
+  "plugins": [
+    { "name": "interview", "source": "./plugins/interview" },
+    { "name": "spec-workflow", "source": "./plugins/spec-workflow" },
+    { "name": "report-writer", "source": "./plugins/report-writer" },
+    { "name": "rigorous-debug", "source": "./plugins/rigorous-debug" },
+    { "name": "skill-writer", "source": "./plugins/skill-writer" },
+    { "name": "phaser", "source": "./plugins/phaser" }
+  ]
+}

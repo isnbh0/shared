@@ -1,0 +1,6 @@
+{
+  "name": "phaser",
+  "description": "Battle-tested patterns for Phaser 3 game development",
+  "version": "1.0.0",
+  "author": { "name": "isnbh0" }
+}

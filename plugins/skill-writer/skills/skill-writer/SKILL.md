@@ -166,12 +166,3 @@ ALWAYS use this exact structure:
 **Testing**: Test with all target models
 
 **Conciseness**: Assume Claude is smart, only add what's needed
-
-## Detailed Reference
-
-For comprehensive guidance, see [specs/skills-best-practices.md](../../specs/skills-best-practices.md):
-- Complete examples for all patterns
-- Advanced progressive disclosure techniques
-- Evaluation-driven development
-- Runtime environment details
-- MCP tool references

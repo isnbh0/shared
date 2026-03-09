@@ -2,7 +2,7 @@
 
 > Source: https://github.com/isnbh0/shared
 
-A collection of reusable Claude Code skills and command aliases. This file instructs LLMs on how to install skills from this repository into a user's project.
+A collection of reusable Claude Code skills and command aliases, distributed as Claude Code plugins. This file instructs LLMs on how to install skills from this repository into a user's project.
 
 ## Available Skills
 
@@ -38,47 +38,52 @@ Battle-tested patterns and best practices for Phaser 3 game development. Passive
 
 ## Installation Instructions
 
-### Prerequisites
+### Option A: Plugin (recommended)
 
-The target project must have a `.claude/` directory. Create one if it does not exist:
+Install individual skills as Claude Code plugins:
 
-```bash
-mkdir -p /path/to/project/.claude/skills
+```
+/plugin install interview@isnbh0
+/plugin install spec-workflow@isnbh0
+/plugin install report-writer@isnbh0
+/plugin install rigorous-debug@isnbh0
+/plugin install skill-writer@isnbh0
+/plugin install phaser@isnbh0
 ```
 
-### Option A: Install individual skills (copy)
+### Option B: Install individual skills (copy)
 
-Copy only the skills the user needs. Each skill is a self-contained directory under `.claude/skills/`.
+Copy only the skills the user needs. Each skill is a self-contained directory under `plugins/<name>/skills/<name>/`.
 
 ```bash
 # Clone the repository (if not already cloned)
 git clone git@github.com:isnbh0/shared.git ~/shared
 
 # Copy a specific skill
-cp -r ~/shared/.claude/skills/<skill-name> /path/to/project/.claude/skills/
+cp -r ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude/skills/
 ```
 
-### Option B: Install individual skills (symlink)
+### Option C: Install individual skills (symlink)
 
 Symlink individual skills for automatic updates when the source repo is pulled.
 
 ```bash
-ln -s ~/shared/.claude/skills/<skill-name> /path/to/project/.claude/skills/<skill-name>
+ln -s ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude/skills/<skill-name>
 ```
 
 ### Installing command aliases
 
-The spec-workflow skill has convenience command aliases. To use them, copy or symlink the commands directory:
+The spec-workflow skill has convenience command aliases. To use them, copy or symlink the commands:
 
 ```bash
 # Copy
 mkdir -p /path/to/project/.claude/commands
-cp ~/shared/.claude/commands/*.md /path/to/project/.claude/commands/
+cp ~/shared/plugins/spec-workflow/commands/*.md /path/to/project/.claude/commands/
 
 # Or symlink individual commands
-ln -s ~/shared/.claude/commands/write-spec.md /path/to/project/.claude/commands/
-ln -s ~/shared/.claude/commands/write-spec-phased.md /path/to/project/.claude/commands/
-ln -s ~/shared/.claude/commands/implement-spec.md /path/to/project/.claude/commands/
+ln -s ~/shared/plugins/spec-workflow/commands/write-spec.md /path/to/project/.claude/commands/
+ln -s ~/shared/plugins/spec-workflow/commands/write-spec-phased.md /path/to/project/.claude/commands/
+ln -s ~/shared/plugins/spec-workflow/commands/implement-spec.md /path/to/project/.claude/commands/
 ```
 
 ## Skill Dependencies
@@ -89,42 +94,35 @@ The command aliases (`write-spec`, `write-spec-phased`, `implement-spec`) depend
 
 ## File Structure Reference
 
-A complete installation looks like this:
+Skills live under `plugins/` as independent plugin packages:
 
 ```
-project/
+shared/
+├── .claude-plugin/
+│   └── marketplace.json              # Marketplace catalog
+├── plugins/
+│   ├── interview/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/interview/
+│   ├── spec-workflow/
+│   │   ├── .claude-plugin/plugin.json
+│   │   ├── skills/spec-workflow/
+│   │   └── commands/
+│   ├── report-writer/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/report-writer/
+│   ├── rigorous-debug/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/rigorous-debug/
+│   ├── skill-writer/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/skill-writer/
+│   └── phaser/
+│       ├── .claude-plugin/plugin.json
+│       └── skills/phaser/
 └── .claude/
-    ├── commands/                          # Optional command aliases
-    │   ├── write-spec.md
-    │   ├── write-spec-phased.md
-    │   └── implement-spec.md
-    └── skills/
-        ├── interview/                     # Requirements discovery
-        │   ├── SKILL.md
-        │   ├── config.yaml
-        │   ├── SCRATCHPAD.template.md
-        │   ├── SYNTHESIS.template.md
-        │   └── JUST_IN_CASE.template.md
-        ├── spec-workflow/                 # Spec writing & implementation
-        │   ├── SKILL.md
-        │   ├── config.yaml
-        │   └── PHASED-IMPLEMENTATION.md
-        ├── report-writer/                 # Technical reports
-        │   ├── SKILL.md
-        │   └── config.yaml
-        ├── rigorous-debug/                # Scientific debugging
-        │   ├── SKILL.md
-        │   ├── DOMAIN-EXAMPLES.md
-        │   └── TEMPLATE-INITIALIZED.md
-        ├── skill-writer/                  # Skill creation guide
-        │   └── SKILL.md
-        └── phaser/                        # Phaser 3 game dev patterns
-            ├── SKILL.md
-            └── knowledgebase/             # 18 pattern files
-                ├── TOC.md
-                ├── 01-scene-architecture.md
-                ├── ...
-                └── 18-development-philosophy.md
+    ├── skills/       # Symlinks to plugins/*/skills/* (backward compat)
+    └── commands/     # Symlinks to plugins/spec-workflow/commands/* (backward compat)
 ```
 
 ## Workspace Configuration
@@ -145,7 +143,7 @@ Override precedence (highest to lowest):
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (copy) unless they specifically want auto-updates via symlinks.
+- When a user asks to "install" or "add" a skill, prefer Option A (plugin) unless they specifically want copy/symlink.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.

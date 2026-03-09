@@ -1,0 +1,6 @@
+{
+  "name": "report-writer",
+  "description": "Timestamped technical analysis and debugging reports",
+  "version": "1.0.0",
+  "author": { "name": "isnbh0" }
+}
