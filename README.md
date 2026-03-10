@@ -130,6 +130,16 @@ All file-producing skills (interview, spec-workflow, report-writer) support conf
 
 Defaults follow the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
 
+## Other Agentic Tools
+
+These skills use the SKILL.md format, which is supported across multiple AI coding tools. See the [cross-platform guide](docs/cross-platform/README.md) for installation instructions for:
+
+- [Codex CLI](docs/cross-platform/codex-cli.md) (OpenAI)
+- [Gemini CLI](docs/cross-platform/gemini-cli.md) (Google)
+- [Antigravity](docs/cross-platform/antigravity.md) (Google)
+- [Amp](docs/cross-platform/amp.md) (Sourcegraph)
+- [Cursor](docs/cross-platform/cursor.md)
+
 ## License
 
 Personal use — adapt and modify as needed for your own projects.
