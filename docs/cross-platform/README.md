@@ -11,6 +11,7 @@ These skills use the **SKILL.md** format — markdown files with YAML frontmatte
 | [Gemini CLI](gemini-cli.md) | `.gemini/skills/<name>/` | Semantic triggering or `.toml` commands | Adapt config paths | Extensions ecosystem |
 | [Antigravity](antigravity.md) | `.antigravity/skills/<name>/` | Semantic triggering | Adapt config paths | Native SKILL.md support |
 | [Amp](amp.md) | Project-level skills directory | Semantic triggering | Adapt config paths | SKILL.md compatible |
+| [Cursor](cursor.md) | `.cursor/skills/<name>/` | Semantic triggering | Adapt config paths | Plugin marketplace |
 
 ## What Works Everywhere
 

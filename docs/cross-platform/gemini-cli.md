@@ -1,3 +1,5 @@
+[← Back to cross-platform overview](README.md)
+
 # Gemini CLI
 
 > **Note:** The agentic tooling ecosystem is evolving rapidly. Paths and mechanisms described here are based on research as of early 2026 and may have changed. Verify against [Gemini CLI's current documentation](https://geminicli.com/docs/) before use.

@@ -1,3 +1,5 @@
+[← Back to cross-platform overview](README.md)
+
 # Amp (Sourcegraph)
 
 > **Note:** The agentic tooling ecosystem is evolving rapidly. Paths and mechanisms described here are based on research as of early 2026 and may have changed. Verify against [Amp's current documentation](https://ampcode.com/manual) before use.
