@@ -33,7 +33,7 @@ Modes:
 
 Config is resolved with layered precedence:
 
-1. **Project config** (`.claude/skill-configs/spec-workflow/config.yaml`) — project-specific overrides
+1. **Project config** (`.claude/skill-configs/spec-workflow/config.yaml`) — required for new projects; created on first run
 2. **User config** (`~/.claude/skills/spec-workflow/config.yaml`) — user defaults
 3. **CLI flag** (`--workspace`) — one-off override
 
@@ -43,10 +43,16 @@ workspace_dir: .agent-workspace/specs  # where spec files are created and manage
 
 ## Setup
 
-1. Resolve configuration (check in order, use first found):
-   - `.claude/skill-configs/spec-workflow/config.yaml` (project-level override)
-   - `~/.claude/skills/spec-workflow/config.yaml` (user defaults)
-   - Use `--workspace` CLI flag to override either
+1. Resolve configuration:
+   - If `--workspace` flag provided: use it directly, skip config lookup
+   - Check `.claude/skill-configs/spec-workflow/config.yaml` for project config
+   - **If NOT found**: stop and ask the user:
+     > "No project config found at `.claude/skill-configs/spec-workflow/config.yaml`.
+     > Files will be written to `.agent-workspace/specs/` by default.
+     > Confirm this path, or specify a different directory?"
+   - After confirmation, create `.claude/skill-configs/spec-workflow/config.yaml` with the chosen path before continuing
+   - If project config exists: use it
+   - Fallback: `~/.claude/skills/spec-workflow/config.yaml`, then built-in default
 
 2. Set `${SPECS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
 

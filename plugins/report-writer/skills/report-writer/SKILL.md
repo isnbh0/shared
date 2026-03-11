@@ -21,7 +21,7 @@ Create structured technical analysis reports with timestamp-based naming and sta
 
 Config is resolved with layered precedence:
 
-1. **Project config** (`.claude/skill-configs/report-writer/config.yaml`) — project-specific overrides
+1. **Project config** (`.claude/skill-configs/report-writer/config.yaml`) — required for new projects; created on first run
 2. **User config** (`~/.claude/skills/report-writer/config.yaml`) — user defaults
 3. **CLI flag** (`--workspace`) — one-off override
 
@@ -31,10 +31,16 @@ workspace_dir: .agent-workspace/reports  # where report files are created
 
 ## Setup
 
-1. Resolve configuration (check in order, use first found):
-   - `.claude/skill-configs/report-writer/config.yaml` (project-level override)
-   - `~/.claude/skills/report-writer/config.yaml` (user defaults)
-   - Use `--workspace` CLI flag to override either
+1. Resolve configuration:
+   - If `--workspace` flag provided: use it directly, skip config lookup
+   - Check `.claude/skill-configs/report-writer/config.yaml` for project config
+   - **If NOT found**: stop and ask the user:
+     > "No project config found at `.claude/skill-configs/report-writer/config.yaml`.
+     > Files will be written to `.agent-workspace/reports/` by default.
+     > Confirm this path, or specify a different directory?"
+   - After confirmation, create `.claude/skill-configs/report-writer/config.yaml` with the chosen path before continuing
+   - If project config exists: use it
+   - Fallback: `~/.claude/skills/report-writer/config.yaml`, then built-in default
 
 2. Set `${REPORTS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
 

@@ -21,7 +21,7 @@ Conduct one-on-one interviews to help the user think through any topic — extra
 
 Config is resolved with layered precedence:
 
-1. **Project config** (`.claude/skill-configs/interview/config.yaml`) — project-specific overrides
+1. **Project config** (`.claude/skill-configs/interview/config.yaml`) — required for new projects; created on first run
 2. **User config** (`~/.claude/skills/interview/config.yaml`) — user defaults
 3. **CLI flag** (`--workspace`) — one-off override
 
@@ -31,10 +31,16 @@ workspace_dir: .agent-workspace/interviews  # where interview folders are create
 
 ## Setup
 
-1. Resolve configuration (check in order, use first found):
-   - `.claude/skill-configs/interview/config.yaml` (project-level override)
-   - `~/.claude/skills/interview/config.yaml` (user defaults)
-   - Use `--workspace` CLI flag to override either
+1. Resolve configuration:
+   - If `--workspace` flag provided: use it directly, skip config lookup
+   - Check `.claude/skill-configs/interview/config.yaml` for project config
+   - **If NOT found**: stop and ask the user:
+     > "No project config found at `.claude/skill-configs/interview/config.yaml`.
+     > Files will be written to `.agent-workspace/interviews/` by default.
+     > Confirm this path, or specify a different directory?"
+   - After confirmation, create `.claude/skill-configs/interview/config.yaml` with the chosen path before continuing
+   - If project config exists: use it
+   - Fallback: `~/.claude/skills/interview/config.yaml`, then built-in default
 
 2. Generate timestamp and create workspace:
 
