@@ -19,11 +19,13 @@ Conduct one-on-one interviews to help the user think through any topic — extra
 
 ## Configuration
 
-Config is resolved with layered precedence:
+Config is resolved with the following precedence (first match wins):
 
-1. **Project config** (`.claude/skill-configs/interview/config.yaml`) — required for new projects; created on first run
-2. **User config** (`~/.claude/skills/interview/config.yaml`) — user defaults
-3. **CLI flag** (`--workspace`) — one-off override
+1. **CLI flag** (`--workspace`) — one-off override
+2. **Local config** (`.claude/skill-configs/interview/config.local.yaml`) — personal/local scope, gitignored
+3. **Project config** (`.claude/skill-configs/interview/config.yaml`) — committed to repo
+
+See [`config.example.yaml`](config.example.yaml) in this plugin for reference.
 
 ```yaml
 workspace_dir: .agent-workspace/interviews  # where interview folders are created
@@ -31,18 +33,22 @@ workspace_dir: .agent-workspace/interviews  # where interview folders are create
 
 ## Setup
 
-1. Resolve configuration:
-   - If `--workspace` flag provided: use it directly, skip config lookup
-   - Check `.claude/skill-configs/interview/config.yaml` for project config
-   - **If NOT found**: stop and ask the user:
-     > "No project config found at `.claude/skill-configs/interview/config.yaml`.
-     > Files will be written to `.agent-workspace/interviews/` by default.
-     > Confirm this path, or specify a different directory?"
-   - After confirmation, create `.claude/skill-configs/interview/config.yaml` with the chosen path before continuing
-   - If project config exists: use it
-   - Fallback: `~/.claude/skills/interview/config.yaml`, then built-in default
+1. Check if `$ARGUMENTS` contains `--workspace <dir>`. If so, use that directory and skip config lookup.
+2. Check for config files (first match wins):
+   - `.claude/skill-configs/interview/config.local.yaml` (local scope, gitignored)
+   - `.claude/skill-configs/interview/config.yaml` (project scope, committed to repo)
+3. **If no config found**: STOP and tell the user:
+   > "No interview config found. I need a workspace directory to store interview files.
+   > You can either:
+   > 1. Specify a custom path
+   > 2. Use the default `.agent-workspace/interviews`
+   >
+   > I'll create `.claude/skill-configs/interview/config.yaml` with your choice.
+   > (See `config.example.yaml` in the interview plugin for reference.)"
+   Wait for the user's response, then create the config file before continuing.
+4. Set `${WORKSPACE_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
 
-2. Generate timestamp and create workspace:
+5. Generate timestamp and create workspace:
 
 ```bash
 TIMESTAMP=$(date +"%y%m%d-%H%M%S")

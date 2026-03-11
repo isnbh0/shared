@@ -1,0 +1,7 @@
+# Interview configuration
+# Copy this file to .claude/skill-configs/interview/config.yaml (project scope)
+# or .claude/skill-configs/interview/config.local.yaml (local/personal scope)
+
+# Directory where interview workspaces are created
+# Relative paths are resolved from the current working directory
+workspace_dir: .agent-workspace/interviews

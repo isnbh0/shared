@@ -1,5 +1,6 @@
 # Report writer configuration
-# These defaults can be overridden via command-line arguments
+# Copy this file to .claude/skill-configs/report-writer/config.yaml (project scope)
+# or .claude/skill-configs/report-writer/config.local.yaml (local/personal scope)
 
 # Directory where report files are created
 # Relative paths are resolved from the current working directory

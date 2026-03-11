@@ -19,30 +19,34 @@ Create structured technical analysis reports with timestamp-based naming and sta
 
 ## Configuration
 
-Config is resolved with layered precedence:
+Config is resolved with the following precedence (first match wins):
 
-1. **Project config** (`.claude/skill-configs/report-writer/config.yaml`) — required for new projects; created on first run
-2. **User config** (`~/.claude/skills/report-writer/config.yaml`) — user defaults
-3. **CLI flag** (`--workspace`) — one-off override
+1. **CLI flag** (`--workspace`) — one-off override
+2. **Local config** (`.claude/skill-configs/report-writer/config.local.yaml`) — personal/local scope, gitignored
+3. **Project config** (`.claude/skill-configs/report-writer/config.yaml`) — project scope, committed to repo
 
 ```yaml
 workspace_dir: .agent-workspace/reports  # where report files are created
 ```
 
+See `config.example.yaml` in the report-writer plugin for reference.
+
 ## Setup
 
-1. Resolve configuration:
-   - If `--workspace` flag provided: use it directly, skip config lookup
-   - Check `.claude/skill-configs/report-writer/config.yaml` for project config
-   - **If NOT found**: stop and ask the user:
-     > "No project config found at `.claude/skill-configs/report-writer/config.yaml`.
-     > Files will be written to `.agent-workspace/reports/` by default.
-     > Confirm this path, or specify a different directory?"
-   - After confirmation, create `.claude/skill-configs/report-writer/config.yaml` with the chosen path before continuing
-   - If project config exists: use it
-   - Fallback: `~/.claude/skills/report-writer/config.yaml`, then built-in default
-
-2. Set `${REPORTS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
+1. Check if `$ARGUMENTS` contains `--workspace <dir>`. If so, use that directory and skip config lookup.
+2. Check for config files (first match wins):
+   - `.claude/skill-configs/report-writer/config.local.yaml` (local scope, gitignored)
+   - `.claude/skill-configs/report-writer/config.yaml` (project scope, committed to repo)
+3. **If no config found**: STOP and tell the user:
+   > "No report-writer config found. I need a workspace directory to store report files.
+   > You can either:
+   > 1. Specify a custom path
+   > 2. Use the default `.agent-workspace/reports`
+   >
+   > I'll create `.claude/skill-configs/report-writer/config.yaml` with your choice.
+   > (See `config.example.yaml` in the report-writer plugin for reference.)"
+   Wait for the user's response, then create the config file before continuing.
+4. Set `${REPORTS_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
 
 ## File Naming Convention
 
