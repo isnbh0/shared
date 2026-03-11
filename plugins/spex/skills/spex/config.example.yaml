@@ -1,0 +1,7 @@
+# Spex configuration
+# Copy this file to .claude/skill-configs/spex/config.yaml (project scope)
+# or .claude/skill-configs/spex/config.local.yaml (local/personal scope)
+
+# Directory where spec files are created and managed
+# Relative paths are resolved from the current working directory
+workspace_dir: .agent-workspace/specs

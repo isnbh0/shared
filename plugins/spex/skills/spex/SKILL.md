@@ -19,31 +19,36 @@ This skill supports a **two-phase workflow** where specification writing and imp
 
 ## Configuration
 
-Config is resolved with layered precedence:
+Config is resolved with the following precedence (first match wins):
 
-1. **CLI flag** (`--workspace`) — one-off override
-2. **Project config** (`.claude/skill-configs/spex/config.yaml`) — required for new projects; created on first run
-3. **User config** (`~/.claude/skills/spex/config.yaml`) — user defaults
-4. **Built-in default** (`.agent-workspace/specs`)
+1. **CLI flag** (`--workspace <dir>`) — one-off override
+2. **Local config** (`.claude/skill-configs/spex/config.local.yaml`) — gitignored, personal overrides
+3. **Project config** (`.claude/skill-configs/spex/config.yaml`) — committed to repo, shared with team
+4. **No config found** → STOP and ask the user
+
+There are no built-in defaults. See `config.example.yaml` in the plugin for reference.
 
 ```yaml
+# .claude/skill-configs/spex/config.yaml
 workspace_dir: .agent-workspace/specs  # where spec files are created and managed
 ```
 
 ## Setup
 
-1. Resolve configuration:
-   - If `--workspace` flag provided: use it directly, skip config lookup
-   - Check `.claude/skill-configs/spex/config.yaml` for project config
-   - **If NOT found**: stop and ask the user:
-     > "No project config found at `.claude/skill-configs/spex/config.yaml`.
-     > Files will be written to `.agent-workspace/specs/` by default.
-     > Confirm this path, or specify a different directory?"
-   - After confirmation, create `.claude/skill-configs/spex/config.yaml` with the chosen path before continuing
-   - If project config exists: use it
-   - Fallback: `~/.claude/skills/spex/config.yaml`, then built-in default
-
-2. Set `${SPECS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
+1. If `--workspace` flag provided: use it directly, skip config lookup.
+2. Check for config files (first match wins):
+   - `.claude/skill-configs/spex/config.local.yaml` (local scope)
+   - `.claude/skill-configs/spex/config.yaml` (project scope)
+3. **If no config found**: STOP and tell the user:
+   > "No spex config found. I need a workspace directory to store spec files.
+   > You can either:
+   > 1. Specify a custom path
+   > 2. Use the default `.agent-workspace/specs`
+   >
+   > I'll create `.claude/skill-configs/spex/config.yaml` with your choice.
+   > (See `config.example.yaml` in the spex plugin for reference.)"
+   Wait for the user's response, then create the config file before continuing.
+4. Set `${SPECS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
 
 ---
 
