@@ -1,6 +1,6 @@
 ---
 name: Spec Workflow (Write & Implement)
-description: Reference documentation for the spex plugin. Not used at runtime — each command file (/write-spec, /write-spec-phased, /implement-spec) is self-contained.
+description: Reference documentation for the spex plugin. Not used at runtime — each command file (/write, /write-phased, /implement) is self-contained.
 disable-model-invocation: true
 ---
 
@@ -54,7 +54,7 @@ workspace_dir: .agent-workspace/specs  # where spec files are created and manage
 
 ## Phase 1: Writing Specifications
 
-*[Reference only — see `/write-spec` and `/write-spec-phased` command files for runtime instructions]*
+*[Reference only — see `/write` and `/write-phased` command files for runtime instructions]*
 
 **When to use**: User requests a spec to be written, or you need to document a bug/feature/system change.
 
@@ -187,7 +187,7 @@ Each phase must be:
 
 ## Phase 2: Implementing Specifications
 
-*[Reference only — see `/implement-spec` command file for runtime instructions]*
+*[Reference only — see `/implement` command file for runtime instructions]*
 
 **When to use**: User requests implementation of an existing spec.
 
