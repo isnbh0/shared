@@ -50,7 +50,7 @@ description = "Write a specification document"
 
 [command.prompt]
 text = """
-Read the skill instructions at .gemini/skills/spec-workflow/SKILL.md and follow them.
+Read the skill instructions at .gemini/skills/spex/SKILL.md and follow them.
 Mode: write
 Args: $ARGS
 """

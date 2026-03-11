@@ -1,11 +1,12 @@
 ---
 name: Spec Workflow (Write & Implement)
-description: Two-phase workflow for technical specifications - WRITING phase creates and commits specs then stops; IMPLEMENTATION phase follows specs, updates status, and commits all changes. Different agents handle each phase.
-argument-hint: "<write|write-phased|implement> [args...] [--workspace <dir>]"
+description: Reference documentation for the spex plugin. Not used at runtime — each command file (/write-spec, /write-spec-phased, /implement-spec) is self-contained.
 disable-model-invocation: true
 ---
 
 # Spec Workflow: Writing and Implementation
+
+**This document is reference documentation for humans. The command files are authoritative at runtime. If you are an LLM reading this document during task execution, STOP — you should be following the instructions in your command file, not this document.**
 
 ## Overview
 
@@ -16,26 +17,14 @@ This skill supports a **two-phase workflow** where specification writing and imp
 
 **CRITICAL**: These are separate tasks. Never write AND implement in the same session.
 
-> **For phased implementations**: When a feature requires multiple independent phases
-> (each leaving the system working), see [PHASED-IMPLEMENTATION.md](./PHASED-IMPLEMENTATION.md).
-
-## Invocation
-
-This skill is invoked via commands (write-spec, write-spec-phased, implement-spec) which set the mode and arguments. Do NOT re-invoke this skill via the Skill tool — just follow the Mode Dispatch below.
-
-Modes:
-- `write`: Create a new spec from requirements
-- `write-phased`: Create a phased spec for multi-step features
-- `implement`: Implement an existing spec
-- `--workspace <dir>`: Override the workspace directory for this session
-
 ## Configuration
 
 Config is resolved with layered precedence:
 
-1. **Project config** (`.claude/skill-configs/spec-workflow/config.yaml`) — required for new projects; created on first run
-2. **User config** (`~/.claude/skills/spec-workflow/config.yaml`) — user defaults
-3. **CLI flag** (`--workspace`) — one-off override
+1. **CLI flag** (`--workspace`) — one-off override
+2. **Project config** (`.claude/skill-configs/spex/config.yaml`) — required for new projects; created on first run
+3. **User config** (`~/.claude/skills/spex/config.yaml`) — user defaults
+4. **Built-in default** (`.agent-workspace/specs`)
 
 ```yaml
 workspace_dir: .agent-workspace/specs  # where spec files are created and managed
@@ -45,36 +34,22 @@ workspace_dir: .agent-workspace/specs  # where spec files are created and manage
 
 1. Resolve configuration:
    - If `--workspace` flag provided: use it directly, skip config lookup
-   - Check `.claude/skill-configs/spec-workflow/config.yaml` for project config
+   - Check `.claude/skill-configs/spex/config.yaml` for project config
    - **If NOT found**: stop and ask the user:
-     > "No project config found at `.claude/skill-configs/spec-workflow/config.yaml`.
+     > "No project config found at `.claude/skill-configs/spex/config.yaml`.
      > Files will be written to `.agent-workspace/specs/` by default.
      > Confirm this path, or specify a different directory?"
-   - After confirmation, create `.claude/skill-configs/spec-workflow/config.yaml` with the chosen path before continuing
+   - After confirmation, create `.claude/skill-configs/spex/config.yaml` with the chosen path before continuing
    - If project config exists: use it
-   - Fallback: `~/.claude/skills/spec-workflow/config.yaml`, then built-in default
+   - Fallback: `~/.claude/skills/spex/config.yaml`, then built-in default
 
 2. Set `${SPECS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
 
 ---
 
-## Mode Dispatch
-
-Use the **Mode** provided by the invoking command to determine which phase to follow:
-
-| Mode | Action |
-|------|--------|
-| `write` | Follow **Phase 1: Writing Specifications** below. `$ARGUMENTS` contains context/requirements. |
-| `write-phased` | Follow **Phase 1** + the **Phased Spec Requirements** subsection. `$ARGUMENTS` contains context/requirements. |
-| `implement` | Follow **Phase 2: Implementing Specifications** below. `$ARGUMENTS` = spec file path (if provided). |
-
-If no mode is provided, show the available modes (`write`, `write-phased`, `implement`) and briefly describe each.
-
-After dispatching, follow the corresponding phase section below.
-
----
-
 ## Phase 1: Writing Specifications
+
+*[Reference only — see `/write-spec` and `/write-spec-phased` command files for runtime instructions]*
 
 **When to use**: User requests a spec to be written, or you need to document a bug/feature/system change.
 
@@ -206,6 +181,8 @@ Each phase must be:
 ---
 
 ## Phase 2: Implementing Specifications
+
+*[Reference only — see `/implement-spec` command file for runtime instructions]*
 
 **When to use**: User requests implementation of an existing spec.
 

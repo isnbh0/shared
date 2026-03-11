@@ -18,7 +18,7 @@ Then install individual skills:
 
 ```bash
 /plugin install interview@isnbh0
-/plugin install spec-workflow@isnbh0
+/plugin install spex@isnbh0
 /plugin install report-writer@isnbh0
 /plugin install rigorous-debug@isnbh0
 /plugin install skill-writer@isnbh0
@@ -35,7 +35,7 @@ git clone <repo-url> ~/shared
 ln -s ~/shared/.claude /path/to/project/.claude
 
 # Or copy specific skills
-cp -r ~/shared/plugins/spec-workflow/skills/spec-workflow /path/to/project/.claude/skills/
+cp -r ~/shared/plugins/spex/skills/spex /path/to/project/.claude/skills/
 ```
 
 ## Skills
@@ -100,29 +100,19 @@ Tools for creating effective Claude Code skills.
 - Covers frontmatter, instruction structure, and best practices
 - Helps extract reusable patterns into shareable skills
 
-### spec-workflow
+### spex
 
 Two-phase specification and implementation workflow that separates planning from execution.
 
-```
-/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]
-```
+Three self-contained commands:
 
-- **write**: Create a spec, commit it, and stop — no implementation
-- **write-phased**: Create a multi-phase spec for complex features
-- **implement**: Follow an existing spec, implement, update status, and commit
-
-## Command Aliases
-
-| Alias | Expands to |
-|-------|------------|
-| `/write-spec` | `/spec-workflow write` |
-| `/write-spec-phased` | `/spec-workflow write-phased` |
-| `/implement-spec` | `/spec-workflow implement` |
+- `/spex__write-spec` — Create a spec, commit it, and stop — no implementation
+- `/spex__write-spec-phased` — Create a multi-phase spec for complex features
+- `/spex__implement-spec` — Follow an existing spec, implement, update status, and commit
 
 ## Workspace Configuration
 
-All file-producing skills (interview, spec-workflow, report-writer) support configurable workspace directories with layered precedence:
+All file-producing skills (interview, spex, report-writer) support configurable workspace directories with layered precedence:
 
 1. **Project config** (`.claude/skill-configs/<skill>/config.yaml`)
 2. **User config** (`~/.claude/skills/<skill>/config.yaml`)

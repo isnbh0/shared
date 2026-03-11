@@ -1,1 +1,1 @@
-../../plugins/spec-workflow/commands/implement-spec.md
+../../plugins/spex/commands/implement-spec.md

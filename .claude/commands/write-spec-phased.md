@@ -1,1 +1,1 @@
-../../plugins/spec-workflow/commands/write-spec-phased.md
+../../plugins/spex/commands/write-spec-phased.md

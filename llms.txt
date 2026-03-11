@@ -18,7 +18,7 @@ Then install individual skills:
 
 ```
 /plugin install interview@isnbh0
-/plugin install spec-workflow@isnbh0
+/plugin install spex@isnbh0
 /plugin install report-writer@isnbh0
 /plugin install rigorous-debug@isnbh0
 /plugin install skill-writer@isnbh0
@@ -47,17 +47,17 @@ ln -s ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude
 
 ### Installing command aliases
 
-The spec-workflow skill has convenience command aliases. To use them, copy or symlink the commands:
+The spex plugin includes command files. To use them manually (copy/symlink), copy or symlink the commands:
 
 ```bash
 # Copy
 mkdir -p /path/to/project/.claude/commands
-cp ~/shared/plugins/spec-workflow/commands/*.md /path/to/project/.claude/commands/
+cp ~/shared/plugins/spex/commands/*.md /path/to/project/.claude/commands/
 
 # Or symlink individual commands
-ln -s ~/shared/plugins/spec-workflow/commands/write-spec.md /path/to/project/.claude/commands/
-ln -s ~/shared/plugins/spec-workflow/commands/write-spec-phased.md /path/to/project/.claude/commands/
-ln -s ~/shared/plugins/spec-workflow/commands/implement-spec.md /path/to/project/.claude/commands/
+ln -s ~/shared/plugins/spex/commands/write-spec.md /path/to/project/.claude/commands/
+ln -s ~/shared/plugins/spex/commands/write-spec-phased.md /path/to/project/.claude/commands/
+ln -s ~/shared/plugins/spex/commands/implement-spec.md /path/to/project/.claude/commands/
 ```
 
 ## Available Skills
@@ -67,12 +67,10 @@ Structured requirements discovery through conversational interviews. Extracts re
 
 Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
 
-### spec-workflow
+### spex
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
 
-Invocation: `/spec-workflow <write|write-phased|implement> [args...] [--workspace <dir>]`
-
-Includes command aliases: `/write-spec`, `/write-spec-phased`, `/implement-spec`
+Commands: `/spex__write-spec`, `/spex__write-spec-phased`, `/spex__implement-spec`
 
 ### report-writer
 Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
@@ -96,7 +94,7 @@ Battle-tested patterns and best practices for Phaser 3 game development. Passive
 
 Each skill is fully self-contained. There are no cross-skill dependencies. Install only what you need.
 
-The command aliases (`write-spec`, `write-spec-phased`, `implement-spec`) depend on the `spec-workflow` skill being installed.
+The commands (`write-spec`, `write-spec-phased`, `implement-spec`) are included in the `spex` plugin.
 
 ## File Structure Reference
 
@@ -110,9 +108,9 @@ shared/
 │   ├── interview/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/interview/
-│   ├── spec-workflow/
+│   ├── spex/
 │   │   ├── .claude-plugin/plugin.json
-│   │   ├── skills/spec-workflow/
+│   │   ├── skills/spex/
 │   │   └── commands/
 │   ├── report-writer/
 │   │   ├── .claude-plugin/plugin.json
@@ -128,17 +126,17 @@ shared/
 │       └── skills/phaser/
 └── .claude/
     ├── skills/       # Symlinks to plugins/*/skills/* (backward compat)
-    └── commands/     # Symlinks to plugins/spec-workflow/commands/* (backward compat)
+    └── commands/     # Symlinks to plugins/spex/commands/* (backward compat)
 ```
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spec-workflow, report-writer) write to configurable workspace directories. Defaults:
+Skills that produce files (interview, spex, report-writer) write to configurable workspace directories. Defaults:
 
 | Skill | Default workspace |
 |-------|-------------------|
 | interview | `.agent-workspace/interviews` |
-| spec-workflow | `.agent-workspace/specs` |
+| spex | `.agent-workspace/specs` |
 | report-writer | `.agent-workspace/reports` |
 
 Override precedence (highest to lowest):

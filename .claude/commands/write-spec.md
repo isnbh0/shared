@@ -1,1 +1,1 @@
-../../plugins/spec-workflow/commands/write-spec.md
+../../plugins/spex/commands/write-spec.md

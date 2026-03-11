@@ -24,7 +24,7 @@ These skills use the **SKILL.md** format — markdown files with YAML frontmatte
 
 ### Invocation
 
-Claude Code uses explicit slash commands (`/interview`, `/spec-workflow`). Other tools use **semantic triggering** — the agent reads the skill's `description` field and activates it when your request matches. Instead of typing `/interview career-change`, you'd say:
+Claude Code uses explicit slash commands (`/interview`, `/spex`). Other tools use **semantic triggering** — the agent reads the skill's `description` field and activates it when your request matches. Instead of typing `/interview career-change`, you'd say:
 
 > "Interview me about a career change"
 
@@ -43,7 +43,7 @@ Most tools don't have a layered config system. The simplest approach: edit `conf
 
 ### Command Aliases
 
-The spec-workflow skill includes command aliases (`/write-spec`, `/implement-spec`). These are Claude Code-specific (`.claude/commands/` directory). In other tools, invoke by description:
+The spex skill includes command aliases (`/write-spec`, `/implement-spec`). These are Claude Code-specific (`.claude/commands/` directory). In other tools, invoke by description:
 
 > "Write a spec for the auth system"
 > "Implement the spec at .agent-workspace/specs/260310-auth-system/SPEC.md"
@@ -72,7 +72,7 @@ See the tool-specific guides for exact paths and any additional steps.
 | Skill | Type | Description |
 |-------|------|-------------|
 | interview | Interactive | Structured discovery interviews for any topic |
-| spec-workflow | Interactive | Two-phase specification → implementation workflow |
+| spex | Interactive | Two-phase specification → implementation workflow |
 | report-writer | Interactive | Timestamped technical analysis reports |
 | rigorous-debug | Interactive | Scientific hypothesis-driven debugging |
 | skill-writer | Interactive | Guidance for creating SKILL.md files |

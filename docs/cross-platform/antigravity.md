@@ -19,7 +19,7 @@ cp /tmp/shared/plugins/interview/skills/interview/* .antigravity/skills/intervie
 Repeat for any other skills you want:
 
 ```bash
-for skill in spec-workflow report-writer rigorous-debug; do
+for skill in spex report-writer rigorous-debug; do
   mkdir -p .antigravity/skills/$skill
   cp /tmp/shared/plugins/$skill/skills/$skill/* .antigravity/skills/$skill/
 done
@@ -32,7 +32,7 @@ Describe what you want naturally. Antigravity matches your request against insta
 | What to say | Skill activated |
 |-------------|----------------|
 | "Interview me about the auth system" | interview |
-| "Write a spec for the payment flow" | spec-workflow |
+| "Write a spec for the payment flow" | spex |
 | "Debug this — use the rigorous method" | rigorous-debug |
 | "Write a technical report on the outage" | report-writer |
 

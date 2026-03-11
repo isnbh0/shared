@@ -1,5 +1,5 @@
 {
-  "name": "spec-workflow",
+  "name": "spex",
   "description": "Two-phase specification and implementation workflow",
   "version": "1.0.0",
   "author": { "name": "isnbh0" }

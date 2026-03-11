@@ -18,8 +18,8 @@ mkdir -p .codex/skills/interview
 cp /tmp/shared/plugins/interview/skills/interview/* .codex/skills/interview/
 
 # Install another
-mkdir -p .codex/skills/spec-workflow
-cp /tmp/shared/plugins/spec-workflow/skills/spec-workflow/* .codex/skills/spec-workflow/
+mkdir -p .codex/skills/spex
+cp /tmp/shared/plugins/spex/skills/spex/* .codex/skills/spex/
 ```
 
 ### User-level
@@ -36,8 +36,8 @@ Codex uses semantic triggering. Describe what you want naturally:
 | Instead of (Claude Code) | Say this |
 |--------------------------|----------|
 | `/interview auth-system` | "Interview me about the auth system" |
-| `/spec-workflow write auth-refactor` | "Write a spec for the auth refactor" |
-| `/spec-workflow implement ./spec.md` | "Implement the spec at ./spec.md" |
+| `/spex write auth-refactor` | "Write a spec for the auth refactor" |
+| `/spex implement ./spec.md` | "Implement the spec at ./spec.md" |
 | `/report-writer perf-analysis` | "Write a report on the performance analysis" |
 | `/rigorous-debug` | "Debug this using the rigorous debugging protocol" |
 
