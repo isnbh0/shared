@@ -23,6 +23,7 @@
 /plugin install rigorous-debug@isnbh0
 /plugin install skill-writer@isnbh0
 /plugin install phaser@isnbh0
+/plugin install codex-critique@isnbh0
 ```
 
 ### 옵션 B: 심볼릭 링크 / 복사
@@ -40,7 +41,19 @@ cp -r ~/shared/plugins/spex/skills/spex /path/to/project/.claude/skills/
 
 ## 스킬
 
-6개의 독립적인 스킬이 각각 Claude Code 플러그인으로 제공됩니다:
+7개의 독립적인 스킬이 각각 Claude Code 플러그인으로 제공됩니다:
+
+### codex-critique
+
+OpenAI Codex CLI(GPT 5.4)를 통한 외부 AI 코드 리뷰 도구입니다.
+
+```
+/codex-critique [file-path] [focus]
+```
+
+- 명세, 코드, 최근 변경사항에 대한 독립적인 세컨드 오피니언 제공
+- 심층 분석을 위한 추론 노력 수준 지원 (기본, high, xhigh)
+- 읽기 전용 샌드박스에서 실행 — 파일 수정 없음
 
 ### interview
 

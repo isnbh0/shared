@@ -7,6 +7,7 @@
     { "name": "report-writer", "source": "./plugins/report-writer" },
     { "name": "rigorous-debug", "source": "./plugins/rigorous-debug" },
     { "name": "skill-writer", "source": "./plugins/skill-writer" },
-    { "name": "phaser", "source": "./plugins/phaser" }
+    { "name": "phaser", "source": "./plugins/phaser" },
+    { "name": "codex-critique", "source": "./plugins/codex-critique" }
   ]
 }
