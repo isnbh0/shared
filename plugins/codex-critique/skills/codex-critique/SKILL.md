@@ -1,7 +1,6 @@
 ---
 name: codex-critique
 description: Runs OpenAI Codex CLI (GPT 5.4) to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "codex critique".
-argument-hint: "[file-path] [focus]"
 ---
 
 # Codex Critique
@@ -18,6 +17,16 @@ Run OpenAI's Codex CLI with GPT 5.4 to get an independent critique of a file (sp
 - `focus` — optional focus area (e.g., "security", "performance", "UX gaps")
 
 All arguments are optional. When no file is given, infer the target from conversation context.
+
+### Reasoning Effort
+
+The user can request higher reasoning effort by saying things like "xhigh", "high effort", "think harder", or "deep review". Map these to the `--config model_reasoning_effort` flag:
+
+| User says | Flag value |
+|-----------|-----------|
+| (default) | *(omit flag — uses codex default "medium")* |
+| "high" | `high` |
+| "xhigh", "maximum", "think hard" | `xhigh` |
 
 ## How It Works
 
@@ -39,6 +48,7 @@ codex exec \
   -m gpt-5.4 \
   -s read-only \
   -C <project-root> \
+  --config model_reasoning_effort="<effort>" \
   "<review-prompt>"
 ```
 
@@ -46,8 +56,9 @@ codex exec \
 - `-m gpt-5.4` — use GPT 5.4 model
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
+- `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, or `xhigh`. Omit for default. Higher effort = slower but more thorough analysis.
 
-**Timeout:** 300 seconds (codex may read multiple files and reason)
+**Timeout:** 300 seconds at default effort, 600 seconds at high/xhigh (codex does more reasoning passes)
 
 ## Prompt Templates
 
