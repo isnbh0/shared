@@ -1,13 +1,13 @@
 ---
 name: codex-critique
-description: Runs OpenAI Codex CLI (GPT 5.4) to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "codex critique".
-argument-hint: "[file-path] [focus]"
+description: Runs OpenAI Codex CLI to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "codex critique".
+argument-hint: "[file-path] [focus] [--model <model>]"
 disable-model-invocation: true
 ---
 
 # Codex Critique
 
-Run OpenAI's Codex CLI with GPT 5.4 to get an independent critique of a file (spec, code, etc.).
+Run OpenAI's Codex CLI to get an independent critique of a file (spec, code, etc.).
 
 ## Pre-flight
 
@@ -23,8 +23,33 @@ If codex is not found, tell the user to install and authenticate (`codex login`)
 
 - `$0` — optional file path to critique (relative or absolute)
 - `$1` — optional focus area (e.g., "security", "performance", "UX gaps")
+- `--model <model>` — override the codex model for this invocation
 
 All arguments are optional. When no file is given, infer the target from conversation context.
+
+## Configuration
+
+Config is resolved with the following precedence (first match wins):
+
+1. **CLI flag** (`--model`) — one-off override
+2. **Local config** (`.claude/skill-configs/codex-critique/config.local.yaml`) — personal/local scope, gitignored
+3. **Project config** (`.claude/skill-configs/codex-critique/config.yaml`) — project scope, committed to repo
+4. **Default** — `gpt-5.4`
+
+```yaml
+model: gpt-5.4  # model to use with codex exec
+```
+
+See `config.example.yaml` in the codex-critique plugin for reference.
+
+## Setup
+
+1. Check if `$ARGUMENTS` contains `--model <model>`. If so, use that model and skip config lookup.
+2. Check for config files (first match wins):
+   - `.claude/skill-configs/codex-critique/config.local.yaml` (local scope, gitignored)
+   - `.claude/skill-configs/codex-critique/config.yaml` (project scope, committed to repo)
+3. If no config found, use `gpt-5.4` as the default.
+4. Set `${MODEL}` to the resolved model name.
 
 ### Reasoning Effort
 
@@ -56,7 +81,7 @@ The user can request higher reasoning effort by saying things like "xhigh", "hig
 
 ```bash
 codex exec \
-  -m gpt-5.4 \
+  -m ${MODEL} \
   -s read-only \
   -C <project-root> \
   --config model_reasoning_effort="<effort>" \
@@ -64,7 +89,7 @@ codex exec \
 ```
 
 **Flags:**
-- `-m gpt-5.4` — use GPT 5.4 model
+- `-m ${MODEL}` — the resolved model (default: `gpt-5.4`)
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
 - `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, or `xhigh`. Omit for default. Higher effort = slower but more thorough analysis.
@@ -79,5 +104,4 @@ codex exec \
 
 ## Notes
 
-- The ChatGPT-tier account does not support `o3` — use `gpt-5.4` as the default model
 - If codex errors, check `codex --version` and suggest `codex login` if auth fails
