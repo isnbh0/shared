@@ -1,0 +1,6 @@
+# Gemini critique configuration
+# Copy this file to .claude/skill-configs/gemini/config.yaml (project scope)
+# or .claude/skill-configs/gemini/config.local.yaml (local/personal scope)
+
+# Model to use with gemini CLI
+model: gemini-3.1-pro-preview

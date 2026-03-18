@@ -23,7 +23,7 @@ Then install individual skills:
 /plugin install rigorous-debug@isnbh0
 /plugin install skill-writer@isnbh0
 /plugin install phaser@isnbh0
-/plugin install codex-critique@isnbh0
+/plugin install critique@isnbh0
 ```
 
 ### Option B: Symlink / Copy
@@ -43,17 +43,18 @@ cp -r ~/shared/plugins/spex/skills/spex /path/to/project/.claude/skills/
 
 Seven independent skills, each available as a Claude Code plugin:
 
-### codex-critique
+### critique
 
-External AI critique via OpenAI Codex CLI (GPT 5.4).
+External AI critique via CLI tools (Codex, Gemini).
 
 ```
-/codex-critique [file-path] [focus]
+/critique:codex [file-path] [focus]
+/critique:gemini [file-path] [focus]
 ```
 
 - Gets an independent second opinion on specs, code, or recent changes
-- Supports reasoning effort levels (default, high, xhigh) for deeper analysis
-- Runs in a read-only sandbox — no file modifications
+- **Codex backend:** Runs in a read-only sandbox, supports reasoning effort levels (default, high, xhigh)
+- **Gemini backend:** Sandboxed with write and network restrictions
 
 ### interview
 

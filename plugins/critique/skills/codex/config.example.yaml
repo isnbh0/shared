@@ -1,0 +1,6 @@
+# Codex critique configuration
+# Copy this file to .claude/skill-configs/codex/config.yaml (project scope)
+# or .claude/skill-configs/codex/config.local.yaml (local/personal scope)
+
+# Model to use with codex exec
+model: gpt-5.4

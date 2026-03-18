@@ -1,5 +1,5 @@
 ---
-name: codex-critique
+name: codex
 description: Runs OpenAI Codex CLI to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "codex critique".
 argument-hint: "[file-path] [focus] [--model <model>]"
 disable-model-invocation: true
@@ -18,7 +18,7 @@ If codex is not found, tell the user to install and authenticate (`codex login`)
 ## Usage
 
 ```
-/codex-critique $ARGUMENTS
+/critique:codex $ARGUMENTS
 ```
 
 - `$0` — optional file path to critique (relative or absolute)
@@ -32,22 +32,22 @@ All arguments are optional. When no file is given, infer the target from convers
 Config is resolved with the following precedence (first match wins):
 
 1. **CLI flag** (`--model`) — one-off override
-2. **Local config** (`.claude/skill-configs/codex-critique/config.local.yaml`) — personal/local scope, gitignored
-3. **Project config** (`.claude/skill-configs/codex-critique/config.yaml`) — project scope, committed to repo
+2. **Local config** (`.claude/skill-configs/codex/config.local.yaml`) — personal/local scope, gitignored
+3. **Project config** (`.claude/skill-configs/codex/config.yaml`) — project scope, committed to repo
 4. **Default** — `gpt-5.4`
 
 ```yaml
 model: gpt-5.4  # model to use with codex exec
 ```
 
-See `config.example.yaml` in the codex-critique plugin for reference.
+See `config.example.yaml` in the critique plugin's codex skill for reference.
 
 ## Setup
 
 1. Check if `$ARGUMENTS` contains `--model <model>`. If so, use that model and skip config lookup.
 2. Check for config files (first match wins):
-   - `.claude/skill-configs/codex-critique/config.local.yaml` (local scope, gitignored)
-   - `.claude/skill-configs/codex-critique/config.yaml` (project scope, committed to repo)
+   - `.claude/skill-configs/codex/config.local.yaml` (local scope, gitignored)
+   - `.claude/skill-configs/codex/config.yaml` (project scope, committed to repo)
 3. If no config found, use `gpt-5.4` as the default.
 4. Set `${MODEL}` to the resolved model name.
 

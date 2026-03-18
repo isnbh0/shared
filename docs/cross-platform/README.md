@@ -76,4 +76,5 @@ See the tool-specific guides for exact paths and any additional steps.
 | report-writer | Interactive | Timestamped technical analysis reports |
 | rigorous-debug | Interactive | Scientific hypothesis-driven debugging |
 | skill-writer | Interactive | Guidance for creating SKILL.md files |
+| critique | Interactive | External AI critique via Codex or Gemini CLI |
 | phaser | Passive | Phaser 3 game development knowledgebase (18 files) |
