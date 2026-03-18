@@ -59,4 +59,4 @@ The `workspace_dir` setting works as-is — it specifies where output files are 
 
 - Codex also supports `AGENTS.md` for always-on project instructions — this is separate from skills
 - The `phaser` skill (passive knowledgebase) works well with Codex since semantic triggering naturally activates it when you're writing Phaser code
-- Command aliases (`/write-spec`, etc.) don't apply — use natural language instead
+- Command aliases (`/write`, `/implement`, etc.) don't apply — use natural language instead

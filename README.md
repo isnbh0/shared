@@ -72,9 +72,9 @@ Two-phase specification and implementation workflow that separates planning from
 
 Three self-contained commands:
 
-- `/spex__write-spec` — Create a spec, commit it, and stop — no implementation
-- `/spex__write-spec-phased` — Create a multi-phase spec for complex features
-- `/spex__implement-spec` — Follow an existing spec, implement, update status, and commit
+- `/spex__write` — Create a spec, commit it, and stop — no implementation
+- `/spex__write-phased` — Create a multi-phase spec for complex features
+- `/spex__implement` — Follow an existing spec, implement, update status, and commit
 
 ### Other (copy / symlink)
 

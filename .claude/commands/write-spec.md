@@ -1,1 +1,0 @@
-../../plugins/spex/commands/write-spec.md

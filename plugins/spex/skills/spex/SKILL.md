@@ -1,6 +1,6 @@
 ---
 name: Spec Workflow (Write & Implement)
-description: Reference documentation for the spex plugin. Not used at runtime — each command file (/write, /write-phased, /implement) is self-contained.
+description: Reference documentation for the spex plugin. Not used at runtime — each command (/spex__write, /spex__write-phased, /spex__implement) is self-contained.
 disable-model-invocation: true
 ---
 

@@ -1,0 +1,1 @@
+../../plugins/spex/commands/write.md

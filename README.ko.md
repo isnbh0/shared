@@ -72,9 +72,9 @@ CLI 도구(Codex, Gemini)를 통한 외부 AI 코드 리뷰 도구입니다.
 
 독립적인 3개의 커맨드:
 
-- `/spex__write-spec` — 명세를 작성하고 커밋한 뒤 중단 — 구현하지 않음
-- `/spex__write-spec-phased` — 복잡한 기능을 위한 다단계 명세 작성
-- `/spex__implement-spec` — 기존 명세를 따라 구현하고 상태를 업데이트한 뒤 커밋
+- `/spex__write` — 명세를 작성하고 커밋한 뒤 중단 — 구현하지 않음
+- `/spex__write-phased` — 복잡한 기능을 위한 다단계 명세 작성
+- `/spex__implement` — 기존 명세를 따라 구현하고 상태를 업데이트한 뒤 커밋
 
 ### 기타 (복사 / 심볼릭 링크)
 

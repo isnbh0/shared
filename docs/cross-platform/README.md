@@ -43,7 +43,7 @@ Most tools don't have a layered config system. The simplest approach: edit `conf
 
 ### Command Aliases
 
-The spex skill includes command aliases (`/write-spec`, `/implement-spec`). These are Claude Code-specific (`.claude/commands/` directory). In other tools, invoke by description:
+The spex skill includes command aliases (`/write`, `/write-phased`, `/implement`). These are Claude Code-specific (`.claude/commands/` directory). In other tools, invoke by description:
 
 > "Write a spec for the auth system"
 > "Implement the spec at .agent-workspace/specs/260310-auth-system/SPEC.md"

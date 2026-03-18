@@ -43,9 +43,9 @@ Place in `.gemini/commands/` (project-level) or `~/.gemini/commands/` (global).
 ### Example commands for other skills
 
 ```toml
-# .gemini/commands/write-spec.toml
+# .gemini/commands/write.toml
 [command]
-name = "write-spec"
+name = "write"
 description = "Write a specification document"
 
 [command.prompt]
@@ -62,7 +62,7 @@ With custom commands:
 
 ```
 /interview auth-system
-/write-spec auth-refactor
+/write auth-refactor
 ```
 
 Without custom commands, use natural language:
