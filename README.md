@@ -19,10 +19,6 @@ Then install individual skills:
 ```bash
 /plugin install interview@isnbh0
 /plugin install spex@isnbh0
-/plugin install report-writer@isnbh0
-/plugin install rigorous-debug@isnbh0
-/plugin install skill-writer@isnbh0
-/plugin install phaser@isnbh0
 /plugin install critique@isnbh0
 ```
 
@@ -41,9 +37,11 @@ cp -r ~/shared/plugins/spex/skills/spex /path/to/project/.claude/skills/
 
 ## Skills
 
-Seven independent skills, each available as a Claude Code plugin:
+### Published (marketplace)
 
-### critique
+Installable via `/plugin install <name>@isnbh0`:
+
+#### critique
 
 External AI critique via CLI tools (Codex, Gemini).
 
@@ -56,7 +54,7 @@ External AI critique via CLI tools (Codex, Gemini).
 - **Codex backend:** Runs in a read-only sandbox, supports reasoning effort levels (default, high, xhigh)
 - **Gemini backend:** Sandboxed with write and network restrictions
 
-### interview
+#### interview
 
 Structured requirements discovery through conversational interviews.
 
@@ -68,7 +66,25 @@ Structured requirements discovery through conversational interviews.
 - Supports reference files to anchor discussion around existing artifacts
 - Produces timestamped synthesis documents in the workspace
 
-### phaser
+#### spex
+
+Two-phase specification and implementation workflow that separates planning from execution.
+
+Three self-contained commands:
+
+- `/spex__write-spec` — Create a spec, commit it, and stop — no implementation
+- `/spex__write-spec-phased` — Create a multi-phase spec for complex features
+- `/spex__implement-spec` — Follow an existing spec, implement, update status, and commit
+
+### Other (copy / symlink)
+
+Available in the repo but not published to the marketplace. Install via symlink or copy:
+
+```bash
+cp -r ~/shared/plugins/<name>/skills/<skill> /path/to/project/.claude/skills/
+```
+
+#### phaser
 
 Battle-tested patterns and best practices for Phaser 3 game development.
 
@@ -78,7 +94,7 @@ Passive knowledgebase — automatically consulted when writing Phaser code.
 - Performance optimization and common pitfall avoidance
 - Architecture guidance for game projects
 
-### report-writer
+#### report-writer
 
 Structured technical analysis and debugging reports with standardized sections.
 
@@ -90,7 +106,7 @@ Structured technical analysis and debugging reports with standardized sections.
 - Standardized sections: Executive Summary, Key Findings, Root Cause Analysis, Recommendations
 - Evidence-based documentation with code references
 
-### rigorous-debug
+#### rigorous-debug
 
 Evidence-based debugging protocol using the scientific method.
 
@@ -102,7 +118,7 @@ Evidence-based debugging protocol using the scientific method.
 - Enforces hypothesis → experiment → conclusion cycles
 - Prevents assumption-driven debugging with structured evidence gathering
 
-### skill-writer
+#### skill-writer
 
 Tools for creating effective Claude Code skills.
 
@@ -113,16 +129,6 @@ Tools for creating effective Claude Code skills.
 - Step-by-step workflow from pattern identification to polished SKILL.md
 - Covers frontmatter, instruction structure, and best practices
 - Helps extract reusable patterns into shareable skills
-
-### spex
-
-Two-phase specification and implementation workflow that separates planning from execution.
-
-Three self-contained commands:
-
-- `/spex__write-spec` — Create a spec, commit it, and stop — no implementation
-- `/spex__write-spec-phased` — Create a multi-phase spec for complex features
-- `/spex__implement-spec` — Follow an existing spec, implement, update status, and commit
 
 ## Workspace Configuration
 

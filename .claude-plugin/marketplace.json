@@ -4,10 +4,6 @@
   "plugins": [
     { "name": "interview", "source": "./plugins/interview" },
     { "name": "spex", "source": "./plugins/spex" },
-    { "name": "report-writer", "source": "./plugins/report-writer" },
-    { "name": "rigorous-debug", "source": "./plugins/rigorous-debug" },
-    { "name": "skill-writer", "source": "./plugins/skill-writer" },
-    { "name": "phaser", "source": "./plugins/phaser" },
     { "name": "critique", "source": "./plugins/critique" }
   ]
 }
