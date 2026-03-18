@@ -32,15 +32,15 @@ Write the spec, commit it, and STOP. Do not implement. Implementation is handled
 
 ## Workflow
 
-**Step 1: Create timestamped spec file**
+**Step 1: Create timestamped spec directory**
 
 ```bash
-# Generate timestamp and create spec
+# Generate timestamp and create spec directory
 TIMESTAMP=$(date +"%y%m%d-%H%M%S")
-touch ${SPECS_DIR}/${TIMESTAMP}-descriptive-name.md
+mkdir -p ${SPECS_DIR}/${TIMESTAMP}-descriptive-name
 ```
 
-**File naming**: `{YYMMDD-HHMMSS}-{kebab-case-description}.md`
+**Directory naming**: `{YYMMDD-HHMMSS}-{kebab-case-description}/`
 **Location**: `${SPECS_DIR}/` directory
 
 **Step 2: Investigate thoroughly**
@@ -52,83 +52,132 @@ touch ${SPECS_DIR}/${TIMESTAMP}-descriptive-name.md
 3. **Confirm the problem**: Ensure issue exists where suspected
 4. **Never assume missing**: Always verify before claiming something doesn't exist
 
-**Step 3: Write complete phased spec**
+**Step 3: Write spec files**
 
-Use the spec template (see below) with these additional required sections for phased specs:
+Write a `README.md` (overview) and one `PN-{name}.md` file per phase inside the spec directory.
 
-- **Design Principles** section (5-7 guiding principles)
-- **Key Design Decisions** table (Decision | Choice | Rationale)
-- **Multiple phases** following the strict phase template (see Strict Phase Template below)
-- **Phase Summary** table
-- **Progress Tracking** section
-
-**Step 4: Git commit and STOP**
-
-```bash
-# Add the spec file only
-git add ${SPECS_DIR}/${TIMESTAMP}-descriptive-name.md
-
-# Commit with descriptive message
-git commit -m "spec: add specification for [brief description]
-
-Created spec: ${TIMESTAMP}-descriptive-name.md
-Status: Requires Implementation"
-```
-
-**STOP HERE** - Your work is done. Implementation will be handled by a different agent.
-
-## Spec Template
+#### README.md template
 
 ```markdown
-# [Component/Feature] - [Brief Issue]
+# [Feature Name]
 
 **Date:** YYYY-MM-DD HH:MM:SS
 **Issue:** One-line problem description
-**Priority:** [High/Medium/Low]
+**Priority:** High/Medium/Low
 **Status:** Requires Implementation
 
 ## Problem Statement
 
-- Current behavior (what's broken)
-- Expected behavior (what should happen)
-- Impact on users/system
+- Current state (what exists now)
+- Target state (what should exist)
+- Impact (why this matters)
 
-## Root Cause Analysis
+## Design Principles
 
-- Technical investigation with code examples
-- Why the problem exists
-- Comparison with working implementations if available
+1. **Principle name** - Brief explanation
+2. **Incremental implementation** - Each phase leaves system working
+3. **Test-driven phases** - Each phase requires tests before completion
 
-## Technical Approach
+## Key Design Decisions
 
-- Proposed solution methodology
-- High-level implementation strategy
-- Rationale for chosen approach
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Example  | Option A | Reason    |
 
-## Implementation Details
+## Deferred Features
 
-- Specific code changes with file paths
-- Step-by-step implementation plan
-- Testing strategy
-- All commands and dependencies needed
+The following are explicitly out of scope for this spec:
+1. **Feature X** - Will be addressed in separate spec
+
+## Phase Summary
+
+| Phase | Name | Tests Required | Backward Compatible |
+|-------|------|----------------|---------------------|
+| 1 | [Title] | [Tests] | Yes |
+| 2 | [Title] | [Tests] | Yes |
+
+## Phase Documents
+
+1. [P1-{name}.md](./P1-{name}.md) — [Brief description]
+2. [P2-{name}.md](./P2-{name}.md) — [Brief description]
+
+## Progress Tracking
+
+| Phase | Commit | Status |
+|-------|--------|--------|
+| 1 | — | Pending |
+| 2 | — | Pending |
 ```
+
+#### Phase file template (`PN-{name}.md`)
+
+Each phase file follows the strict phase template:
+
+```markdown
+## Phase N: [Descriptive Title]
+
+**Goal:** [1-2 sentences describing what this phase accomplishes]
+
+**Entry state:** [What must be true before starting - typically "Phase N-1 complete"]
+**Exit state:** [What will be true after completion - specific, verifiable outcomes]
+
+### Implementation Checklist
+
+- [ ] [Specific task with file path if applicable]
+- [ ] [Another task]
+- [ ] Add unit tests (see Required Tests below)
+- [ ] Run `[test command]` - all tests pass
+- [ ] Run example workflow (see below)
+- [ ] Commit: `[commit message following repo conventions]`
+
+### Code
+
+[Complete implementations, not snippets. Include file paths and line context.]
+
+### Required Tests
+
+**File:** `tests/path/to/test_file.py` (NEW or UPDATE)
+
+[Complete test files, not snippets.]
+
+### Example Workflow
+
+[Commands to verify this phase works]
+```
+
+**Step 4: Git commit and STOP**
+
+```bash
+# Add the entire spec directory
+git add ${SPECS_DIR}/${TIMESTAMP}-descriptive-name/
+
+# Commit with descriptive message
+git commit -m "spec: add phased spec for [brief description]
+
+Created: ${TIMESTAMP}-descriptive-name/
+Phases: N
+Status: Requires Implementation"
+```
+
+**STOP HERE** - Your work is done. Implementation will be handled by a different agent.
 
 ## Writing Quality Checklist
 
 Before committing, verify:
 
 - [ ] Timestamp formatted correctly (YYMMDD-HHMMSS)
-- [ ] File in `${SPECS_DIR}/` directory
+- [ ] Spec directory created in `${SPECS_DIR}/`
+- [ ] `README.md` contains header, problem, principles, decisions, phase summary, progress tracking
+- [ ] Each phase has its own `PN-{name}.md` file
 - [ ] Status is "Requires Implementation"
-- [ ] All required sections present
 - [ ] Investigated existing code before proposing changes
 - [ ] Problem statement is specific
 - [ ] Root cause includes technical investigation
 - [ ] Solution fixes only stated problem
-- [ ] Implementation details are actionable with full file paths
+- [ ] Phase files contain actionable details with full file paths
 - [ ] Code examples properly formatted with file:line references
 - [ ] No meta-commentary or self-notes
-- [ ] Self-contained for fresh agent to implement
+- [ ] Self-contained for fresh agent to implement phase by phase
 
 Run through the checklist once. If the spec covers the problem, root cause, approach, and implementation details, commit it. Do not iterate.
 
@@ -181,9 +230,9 @@ Every phase must satisfy these seven properties:
 | **Test-required** | Unit tests for all new code |
 | **Workflow-verified** | Reproducible example workflow to verify phase works |
 
-## Strict Phase Template
+## Strict Phase Template (PN-{name}.md)
 
-Each phase MUST follow this structure. Omit sections only when user explicitly requests.
+Each phase lives in its own `PN-{name}.md` file and MUST follow this structure. Omit sections only when user explicitly requests.
 
 ```markdown
 ## Phase N: [Descriptive Title]
@@ -252,9 +301,9 @@ uv run pytest
 ```
 ```
 
-## Spec-Level Scaffolding
+## Spec-Level Scaffolding (README.md)
 
-Beyond individual phases, the full spec should include these sections:
+These sections go in the spec directory's `README.md`:
 
 ### Header
 
@@ -382,7 +431,7 @@ When architecture changes fundamentally, fork the spec rather than rewriting:
 # Feature Name v2
 
 **Date:** YYYY-MM-DD
-**Forked from:** `${SPECS_DIR}/archive/superseded/YYMMDD-original.md` at Phase 3.7
+**Forked from:** `${SPECS_DIR}/archive/superseded/YYMMDD-original/` at Phase 3.7
 
 **Why forked:** [Brief explanation of what changed]
 
@@ -431,12 +480,13 @@ This prevents forgetting wrap-up steps after long implementations.
 
 Based on repository conventions:
 
-**Spec creation:**
+**Spec creation (phased):**
 ```bash
-git add ${SPECS_DIR}/YYMMDD-HHMMSS-name.md
-git commit -m "spec: add specification for [brief description]
+git add ${SPECS_DIR}/YYMMDD-HHMMSS-name/
+git commit -m "spec: add phased spec for [brief description]
 
-Created spec: YYMMDD-HHMMSS-name.md
+Created: YYMMDD-HHMMSS-name/
+Phases: N
 Status: Requires Implementation"
 ```
 
@@ -602,7 +652,12 @@ Write spec → commit → stop. Later: implement spec → update status → comm
 
 ```
 ${SPECS_DIR}/
-├── {timestamp}-name.md           # New specs (Status: Requires Implementation)
+├── {timestamp}-name.md            # Single-phase specs (flat file)
+├── {timestamp}-name/              # Phased specs (directory)
+│   ├── README.md                  #   Overview, principles, decisions, progress
+│   ├── P1-{name}.md              #   Phase 1 detail
+│   ├── P2-{name}.md              #   Phase 2 detail
+│   └── ...
 ├── active/                        # In progress (Status: In Progress)
 ├── archive/
 │   ├── implemented/              # Completed (Status: Completed)
@@ -613,13 +668,11 @@ ${SPECS_DIR}/
 ## Quick Reference
 
 ### Writing a phased spec:
-1. Create timestamped file in `${SPECS_DIR}/`
-2. Add header with status "Requires Implementation"
-3. Write Design Principles and Key Design Decisions
-4. Define phases following strict template
-5. Add Phase Summary table
-6. Git commit spec only
-7. **STOP** - Don't implement
+1. Create timestamped directory in `${SPECS_DIR}/`
+2. Write `README.md` with header, problem, principles, decisions, phase summary, progress tracking
+3. Write `PN-{name}.md` files following strict phase template
+4. `git add ${SPECS_DIR}/{timestamp}-{name}/` and commit
+5. **STOP** - Don't implement
 
 ## Notes
 

@@ -34,9 +34,9 @@ Every phase must satisfy these seven properties:
 
 ---
 
-## Strict Phase Template
+## Strict Phase Template (PN-{name}.md)
 
-Each phase MUST follow this structure. Omit sections only when user explicitly requests.
+Each phase lives in its own `PN-{name}.md` file within the spec directory. Each file MUST follow this structure. Omit sections only when user explicitly requests.
 
 ```markdown
 ## Phase N: [Descriptive Title]
@@ -107,9 +107,9 @@ uv run pytest
 
 ---
 
-## Spec-Level Scaffolding
+## Spec-Level Scaffolding (README.md)
 
-Beyond individual phases, the full spec should include these sections:
+These sections go in the spec directory's `README.md` (not in individual phase files):
 
 ### Header
 
@@ -292,12 +292,13 @@ This prevents forgetting wrap-up steps after long implementations.
 
 Based on repository conventions:
 
-**Spec creation:**
+**Spec creation (phased):**
 ```bash
-git add ${SPECS_DIR}/YYMMDD-HHMMSS-name.md
-git commit -m "spec: add specification for [brief description]
+git add ${SPECS_DIR}/YYMMDD-HHMMSS-name/
+git commit -m "spec: add phased spec for [brief description]
 
-Created spec: YYMMDD-HHMMSS-name.md
+Created: YYMMDD-HHMMSS-name/
+Phases: N
 Status: Requires Implementation"
 ```
 
@@ -355,21 +356,19 @@ Example:
 ## Quick Reference
 
 ### Writing a phased spec:
-1. Create timestamped file in `${SPECS_DIR}/`
-2. Add header with status "Requires Implementation"
-3. Write Design Principles and Key Design Decisions
-4. Define phases following strict template
-5. Add Phase Summary table
-6. Git commit spec only
-7. **STOP** - Don't implement
+1. Create timestamped directory in `${SPECS_DIR}/`
+2. Write `README.md` with header, problem, principles, decisions, phase summary, progress tracking
+3. Write `PN-{name}.md` files following strict phase template
+4. `git add ${SPECS_DIR}/{timestamp}-{name}/` and commit
+5. **STOP** - Don't implement
 
 ### Implementing a phased spec:
-1. Read entire spec including all phases
+1. Read `README.md` for overview, then read each `PN-*.md` for phase details
 2. Create TodoWrite with current phase + wrap-up steps
-3. Update spec status to "In Progress"
-4. Implement current phase following template exactly
-5. Update checklist items to `[x]` as completed
+3. Update status in `README.md` to "In Progress"
+4. Implement current phase following its `PN-*.md` file exactly
+5. Update checklist items to `[x]` in the phase file as completed
 6. Run tests and example workflow
 7. Commit implementation with phase reference
 8. If more phases remain, repeat from step 2
-9. When all phases done: update status, archive spec, final commit
+9. When all phases done: update `README.md` status, `git mv` entire directory to archive, final commit

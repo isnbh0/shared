@@ -47,13 +47,16 @@ from datetime import datetime
 
 specs_dir = sys.argv[1]
 now = datetime.now()
-pattern = re.compile(r'^(\d{6})-(\d{6})-.*\.md$')
+pattern = re.compile(r'^(\d{6})-(\d{6})-(.*)')
 
 valid_specs = []
-for filename in os.listdir(specs_dir):
-    match = pattern.match(filename)
+for entry in os.listdir(specs_dir):
+    full_path = os.path.join(specs_dir, entry)
+    if not (os.path.isfile(full_path) or os.path.isdir(full_path)):
+        continue
+    match = pattern.match(entry)
     if match:
-        date_part, time_part = match.groups()
+        date_part, time_part, _ = match.groups()
         year = int('20' + date_part[0:2])
         month = int(date_part[2:4])
         day = int(date_part[4:6])
@@ -63,7 +66,7 @@ for filename in os.listdir(specs_dir):
         try:
             spec_dt = datetime(year, month, day, hour, minute, second)
             if spec_dt <= now:
-                valid_specs.append((spec_dt, filename))
+                valid_specs.append((spec_dt, entry))
         except ValueError:
             continue
 
@@ -73,7 +76,12 @@ if valid_specs:
 " "${SPECS_DIR}"
 ```
 
-The script outputs the filename of the latest spec. Construct the full path as `${SPECS_DIR}/{filename}` and read it completely.
+The script outputs the name of the latest spec (file or directory). Construct the full path as `${SPECS_DIR}/{name}`.
+
+**Reading the spec** depends on whether it's a file or directory:
+
+- **File** (single-phase spec): Read the `.md` file directly.
+- **Directory** (phased spec): Read `{dir}/README.md` for the overview, then read each `PN-*.md` file for phase details.
 
 Understand:
 - Problem statement
@@ -106,7 +114,7 @@ TodoWrite:
 
 **Step 3: Update spec status to "In Progress"**
 
-Edit the spec file:
+Edit the spec's status field (in the `.md` file for single-phase specs, or in `README.md` for directory specs):
 
 ```markdown
 **Status:** In Progress
@@ -116,8 +124,11 @@ Edit the spec file:
 Optional: Move to active directory
 
 ```bash
+# Single-phase spec (file)
 git mv ${SPECS_DIR}/{spec}.md ${SPECS_DIR}/active/{spec}.md
-git add ${SPECS_DIR}/active/{spec}.md
+
+# Phased spec (directory)
+git mv ${SPECS_DIR}/{spec}/ ${SPECS_DIR}/active/{spec}/
 ```
 
 **Step 4: Implement according to spec**
@@ -148,7 +159,7 @@ npm run dev  # or appropriate test command
 
 **Step 6: Update spec status to "Completed"**
 
-Edit the spec file:
+Edit the spec's status field (the `.md` file for single-phase specs, or `README.md` for directory specs):
 
 ```markdown
 **Status:** Completed
@@ -163,11 +174,16 @@ Edit the spec file:
 ```bash
 # Move to implemented archive
 mkdir -p ${SPECS_DIR}/archive/implemented
-git mv ${SPECS_DIR}/active/{spec}.md ${SPECS_DIR}/archive/implemented/{spec}.md
-git add ${SPECS_DIR}/archive/implemented/{spec}.md
-# OR if not in active/
+
+# Single-phase spec (file)
 git mv ${SPECS_DIR}/{spec}.md ${SPECS_DIR}/archive/implemented/{spec}.md
-git add ${SPECS_DIR}/archive/implemented/{spec}.md
+# OR from active/
+git mv ${SPECS_DIR}/active/{spec}.md ${SPECS_DIR}/archive/implemented/{spec}.md
+
+# Phased spec (directory)
+git mv ${SPECS_DIR}/{spec}/ ${SPECS_DIR}/archive/implemented/{spec}/
+# OR from active/
+git mv ${SPECS_DIR}/active/{spec}/ ${SPECS_DIR}/archive/implemented/{spec}/
 ```
 
 **Step 8: Git add and commit everything**
@@ -258,7 +274,12 @@ const corrected = () => { /* ... */ };
 
 ```
 ${SPECS_DIR}/
-├── {timestamp}-name.md           # New specs (Status: Requires Implementation)
+├── {timestamp}-name.md            # Single-phase specs (flat file)
+├── {timestamp}-name/              # Phased specs (directory)
+│   ├── README.md                  #   Overview, principles, decisions, progress
+│   ├── P1-{name}.md              #   Phase 1 detail
+│   ├── P2-{name}.md              #   Phase 2 detail
+│   └── ...
 ├── active/                        # In progress (Status: In Progress)
 ├── archive/
 │   ├── implemented/              # Completed (Status: Completed)
@@ -279,16 +300,16 @@ ${SPECS_DIR}/
 8. `git add [all-files] && git commit`
 9. Done
 
-### Implementing a phased spec:
-1. Read entire spec including all phases
+### Implementing a phased spec (directory):
+1. Read `README.md` for overview, then read each `PN-*.md` for phase details
 2. Create TodoWrite with current phase + wrap-up steps
-3. Update spec status to "In Progress"
-4. Implement current phase following template exactly
-5. Update checklist items to `[x]` as completed
+3. Update status in `README.md` to "In Progress"
+4. Implement current phase following its `PN-*.md` file exactly
+5. Update checklist items to `[x]` in the phase file as completed
 6. Run tests and example workflow
 7. Commit implementation with phase reference
 8. If more phases remain, repeat from step 2
-9. When all phases done: update status, archive spec, final commit
+9. When all phases done: update `README.md` status, `git mv` entire directory to archive, final commit
 
 ## Notes
 
