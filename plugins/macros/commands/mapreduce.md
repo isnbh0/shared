@@ -12,10 +12,11 @@ Execute the workflow below once, then stop.
 You are orchestrating a **map-reduce** execution of the user's task. Your `$ARGUMENTS` contain the task description from the user.
 
 Your job is to:
-1. Analyze the task and split it into 2+ independent chunks
-2. (Optional) Build shared context that all chunks need — terminology, conventions, reference material
-3. Dispatch parallel subagents to work on each chunk (map phase)
-4. Dispatch a final subagent to consolidate all results (reduce phase)
+1. Analyze the task and determine whether it can be safely parallelized
+2. If yes: split into 2+ independent chunks
+3. (Optional) Build shared context that all chunks need — terminology, conventions, reference material
+4. Dispatch parallel subagents to work on each chunk (map phase)
+5. Dispatch a final subagent to consolidate all results (reduce phase)
 
 ## Setup
 
@@ -48,7 +49,15 @@ Use a kebab-case name that describes the overall task.
 
 ### Step 2: Analyze and plan chunks (MAP planning)
 
-Read `$ARGUMENTS` carefully and determine how to split the work into **2 or more independent chunks**. Each chunk must be:
+Read `$ARGUMENTS` carefully. First, determine whether the task is parallelizable at all.
+
+**Bail out if the task is not safely splittable.** Tell the user and execute the task sequentially instead. Signs a task should NOT be parallelized:
+- Work centers on a single file or tightly coupled set of files (e.g., a migration, a lockfile, a shared schema)
+- Steps have serial dependencies where each step's output is the next step's input
+- The task involves a single logical change that would be incoherent if split (e.g., rename a function and all its call sites)
+- Splitting would require multiple chunks to modify the same files
+
+If the task IS parallelizable, determine how to split into **2 or more independent chunks**. Each chunk must be:
 
 - **Self-contained** — completable without knowledge of other chunks' results
 - **Non-overlapping** — no two chunks modify the same files or produce conflicting outputs
@@ -99,7 +108,13 @@ Write a brief plan to the user explaining your chunking strategy before proceedi
 [Pointers to existing files, patterns, or examples that chunks should conform to. Include file paths or inline snippets as needed.]
 ```
 
-3. Keep it concise — this file is injected into every subagent's prompt, so avoid bloat. Aim for the minimum context needed for consistency. If it exceeds ~200 lines, consider splitting into `_context.md` (always included) and `_reference.md` (included only for chunks that need it).
+3. Keep it concise — every subagent will read this file, so avoid bloat. Aim for the minimum context needed for consistency. If it exceeds ~200 lines, split into:
+   - `_context.md` — core conventions every chunk must read (glossary, style rules, overview)
+   - `_reference.md` — supplementary material (full examples, data structures). Only instruct chunks to read this if their assignment specifically needs it.
+
+**Context delivery model**: Subagents read context files from disk. Do NOT paste context file contents into subagent prompts. Instead, instruct each subagent to read `${RUN_DIR}/_context.md` as its first action. You MAY quote 1-2 critical constraints inline (e.g., "all function names must use snake_case") as a guard, but the file is the source of truth.
+
+**Repository files are authoritative**. If `_context.md` summarizes or quotes code, and the actual repo differs, the repo wins. Context files capture conventions and decisions, not frozen snapshots of code.
 
 **IMPORTANT**: This step runs synchronously before the map phase. Do NOT parallelize context-building with chunk dispatch — the context must be complete before any subagent starts.
 
@@ -111,7 +126,7 @@ Each subagent prompt MUST include:
 
 1. **The chunk assignment** — exactly what this subagent is responsible for
 2. **The full task context** — enough background so the subagent can work independently
-3. **Shared context** (if Step 3 was performed) — instruct the subagent to read `${RUN_DIR}/_context.md` **before starting work** and follow its conventions. Quote the key constraints inline in the prompt as well, so the subagent doesn't skip the file read.
+3. **Shared context** (if Step 3 was performed) — instruct the subagent: "Before starting work, read `${RUN_DIR}/_context.md` and follow its conventions." You may quote 1-2 critical constraints inline as a guard, but do NOT paste the full context file into the prompt.
 4. **Report instructions** — the subagent MUST write a report file when done:
 
 ```
@@ -137,39 +152,67 @@ The report must include:
 
 ### Step 5: Wait for all MAP subagents to complete
 
-All subagents must finish before proceeding. Verify each chunk report exists:
+All subagents must finish before proceeding.
+
+During Step 4, you launched N subagents with known report filenames (e.g., `chunk-1-frontend.md`, `chunk-2-backend.md`). Check each expected file individually — do NOT rely on glob matching:
 
 ```bash
-ls -la "${RUN_DIR}"/chunk-*.md
+# Check each expected report by name
+test -f "${RUN_DIR}/chunk-1-frontend.md" && echo "chunk-1: OK" || echo "chunk-1: MISSING"
+test -f "${RUN_DIR}/chunk-2-backend.md" && echo "chunk-2: OK" || echo "chunk-2: MISSING"
+# ... repeat for each expected chunk
 ```
 
-If any report is missing, note this for the reduce phase.
+If any reports are missing, this is NOT a fatal error — proceed to the reduce phase but include the missing chunk names in the reducer's prompt so it can account for gaps.
 
 ### Step 6: Dispatch REDUCE subagent
 
 Launch a single subagent to consolidate all chunk results. Its prompt MUST include:
 
 1. **The original task** — full context of what was being accomplished
-2. **The chunking strategy** — how work was divided
-3. **Report locations** — paths to all chunk reports to read
-4. **Consolidation instructions**:
+2. **The chunking strategy** — how work was divided and which chunks were expected
+3. **Missing chunks** (if any) — which reports were not found in Step 5
+4. **Shared context** (if Step 3 was performed) — instruct the reducer to read `${RUN_DIR}/_context.md` as the authoritative source for conventions and decisions
+5. **Report locations** — paths to all chunk reports to read
+6. **Consolidation instructions**:
 
 ```
 You are the consolidation agent for a map-reduce execution.
 
-1. Read ALL chunk reports in {RUN_DIR}/chunk-*.md
-2. If any chunks produced code changes, verify they integrate correctly:
-   - No conflicting modifications to the same files
-   - Imports/dependencies are consistent
-   - No duplicated work
-   - Fix any integration issues you find
-3. Write a consolidated report to: {RUN_DIR}/consolidated-report.md
+## Phase 1: Read and understand
 
-The consolidated report must include:
+1. Read the shared context file (if it exists): {RUN_DIR}/_context.md
+2. Read ALL chunk reports: {list each expected report path}
+3. Note which chunks reported Complete vs Partial vs Blocked
+
+## Phase 2: Verify integration
+
+If any chunks produced code or file changes:
+
+1. Read the actual modified files (don't just trust the reports — verify the repo state)
+2. Check for conflicts:
+   - No conflicting modifications to the same files
+   - Imports/dependencies are consistent across chunks
+   - No duplicated work
+   - Naming and style consistent with shared context (if present)
+3. If chunks made conflicting decisions, shared context is authoritative. If shared context doesn't cover the conflict, prefer the approach that is more consistent with existing code patterns.
+4. Fix any integration issues you find
+
+If the project has a test/build/lint command, run it to verify nothing is broken.
+
+## Phase 3: Handle incomplete chunks
+
+For Partial chunks: assess whether the completed portion integrates cleanly. Note what remains.
+For Blocked chunks: document the blocker. Do NOT attempt the blocked work unless the blocker is trivially resolvable.
+For Missing chunks (report never written): check if the subagent made any file changes anyway (look for uncommitted modifications in that chunk's territory). Document findings.
+
+## Phase 4: Write consolidated report
+
+Write to: {RUN_DIR}/consolidated-report.md
 
 # Consolidated Report: {task-name}
 **Date:** YYYY-MM-DD HH:MM:SS
-**Chunks:** {N} subagents
+**Chunks:** {N} dispatched, {M} complete, {P} partial/blocked/missing
 
 ## Summary
 [High-level summary of what was accomplished across all chunks]
@@ -178,16 +221,19 @@ The consolidated report must include:
 [Combined description organized by logical area, not by chunk]
 
 ## Files Modified
-[Deduplicated list of all files created/modified/deleted]
+[Deduplicated list of all files created/modified/deleted — verified against actual repo state]
 
 ## Key Decisions
 [Consolidated decisions from all chunks]
 
 ## Integration Notes
-[Any issues found during consolidation and how they were resolved]
+[Any conflicts found, how they were resolved, and which source of truth was used]
 
-## Issues or Concerns
-[Anything unresolved or needing follow-up]
+## Verification
+[What verification was performed: tests run, builds checked, files inspected]
+
+## Incomplete Work
+[What remains from partial/blocked/missing chunks, if any]
 
 ## Status
 [Overall status: Complete / Partial — with explanation]

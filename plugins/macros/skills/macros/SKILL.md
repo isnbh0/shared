@@ -38,8 +38,8 @@ workspace_dir: .agent-workspace/macros  # where reports and artifacts are stored
 ${WORKSPACE_DIR}/
 ├── {timestamp}-{task-name}/
 │   ├── _context.md               # Shared context (optional, built before map phase)
-│   ├── chunk-1-report.md         # Map subagent 1 report
-│   ├── chunk-2-report.md         # Map subagent 2 report
-│   ├── chunk-N-report.md         # Map subagent N report
+│   ├── chunk-1-{name}.md          # Map subagent 1 report
+│   ├── chunk-2-{name}.md          # Map subagent 2 report
+│   ├── chunk-N-{name}.md          # Map subagent N report
 │   └── consolidated-report.md    # Reduce subagent final report
 ```
