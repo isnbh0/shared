@@ -114,7 +114,7 @@ Write a brief plan to the user explaining your chunking strategy before proceedi
 
 **Context delivery model**: Subagents read context files from disk. Do NOT paste context file contents into subagent prompts. Instead, instruct each subagent to read `${RUN_DIR}/_context.md` as its first action. You MAY quote 1-2 critical constraints inline (e.g., "all function names must use snake_case") as a guard, but the file is the source of truth.
 
-**Repository files are authoritative**. If `_context.md` summarizes or quotes code, and the actual repo differs, the repo wins. Context files capture conventions and decisions, not frozen snapshots of code.
+**Source-of-truth rule**: `_context.md` is authoritative for **decisions and conventions** (naming, style, design choices agreed upon during planning). The **repository** is authoritative for **current code state** (what exists, what imports what, actual implementations). If `_context.md` summarizes or quotes code and the actual repo differs, the repo wins for code facts — but conventions in `_context.md` still govern new work.
 
 **IMPORTANT**: This step runs synchronously before the map phase. Do NOT parallelize context-building with chunk dispatch — the context must be complete before any subagent starts.
 
@@ -195,7 +195,7 @@ If any chunks produced code or file changes:
    - Imports/dependencies are consistent across chunks
    - No duplicated work
    - Naming and style consistent with shared context (if present)
-3. If chunks made conflicting decisions, shared context is authoritative. If shared context doesn't cover the conflict, prefer the approach that is more consistent with existing code patterns.
+3. If chunks made conflicting decisions, shared context is authoritative for conventions and design choices. If shared context doesn't cover the conflict, prefer the approach that is more consistent with existing code patterns.
 4. Fix any integration issues you find
 
 If the project has a test/build/lint command, run it to verify nothing is broken.
@@ -246,6 +246,8 @@ After the reduce subagent completes:
 1. Read `${RUN_DIR}/consolidated-report.md`
 2. Present a concise summary to the user
 3. Note the report location for their reference
+
+If the consolidated report is missing or the reducer failed: tell the user the reduce phase did not complete, point them to the individual chunk reports in `${RUN_DIR}/` for partial results, and report the run as incomplete.
 
 ## Anti-patterns to Avoid
 
