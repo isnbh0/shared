@@ -20,6 +20,7 @@ Then install individual skills:
 /plugin install interview@isnbh0
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
+/plugin install macros@isnbh0
 ```
 
 ### Option B: Symlink / Copy
@@ -75,6 +76,18 @@ Three self-contained commands:
 - `/spex__write` — Create a spec, commit it, and stop — no implementation
 - `/spex__write-phased` — Create a multi-phase spec for complex features
 - `/spex__implement` — Follow an existing spec, implement, update status, and commit
+
+#### macros
+
+Parallel task orchestration with a map-reduce pattern.
+
+```
+/macros__mapreduce <task> [--workspace <dir>]
+```
+
+- Splits a task into independent chunks and dispatches parallel subagents
+- Builds optional shared context before the map phase
+- A final reducer subagent consolidates all chunk reports into a single output
 
 ### Other (copy / symlink)
 
@@ -132,13 +145,13 @@ Tools for creating effective Claude Code skills.
 
 ## Workspace Configuration
 
-All file-producing skills (interview, spex, report-writer) support configurable workspace directories with layered precedence:
+File-producing skills (interview, spex, report-writer, macros) support configurable workspace directories with layered precedence (first match wins):
 
-1. **Project config** (`.claude/skill-configs/<skill>/config.yaml`)
-2. **User config** (`~/.claude/skills/<skill>/config.yaml`)
-3. **CLI flag** (`--workspace <dir>`)
+1. **CLI flag** (`--workspace <dir>`) — one-off override
+2. **Local config** (`.claude/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
+3. **Project config** (`.claude/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
 
-Defaults follow the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`).
+There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`).
 
 ## Other Agentic Tools
 

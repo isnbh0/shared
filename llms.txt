@@ -19,11 +19,11 @@ Then install individual skills:
 ```
 /plugin install interview@isnbh0
 /plugin install spex@isnbh0
-/plugin install report-writer@isnbh0
-/plugin install rigorous-debug@isnbh0
-/plugin install skill-writer@isnbh0
-/plugin install phaser@isnbh0
+/plugin install critique@isnbh0
+/plugin install macros@isnbh0
 ```
+
+> **Note:** Only the four skills above are published to the marketplace. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
 
 ### Option B: Install individual skills (copy)
 
@@ -64,6 +64,8 @@ ln -s ~/shared/plugins/spex/commands/implement.md /path/to/project/.claude/comma
 
 ## Available Skills
 
+### Published (marketplace)
+
 ### interview
 Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
 
@@ -73,6 +75,18 @@ Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
 
 Commands: `/spex__write`, `/spex__write-phased`, `/spex__implement`
+
+### critique
+External AI critique via CLI tools (Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using sandboxed execution.
+
+Invocation: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path] [focus]`
+
+### macros
+Parallel task orchestration with a map-reduce pattern. Splits tasks into independent chunks, dispatches parallel subagents, then consolidates results into a single report.
+
+Invocation: `/macros__mapreduce <task> [--workspace <dir>]`
+
+### Other (copy / symlink only)
 
 ### report-writer
 Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
@@ -123,6 +137,12 @@ shared/
 │   ├── skill-writer/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/skill-writer/
+│   ├── critique/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/critique/
+│   ├── macros/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/macros/
 │   └── phaser/
 │       ├── .claude-plugin/plugin.json
 │       └── skills/phaser/
@@ -133,23 +153,24 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer) write to configurable workspace directories. Defaults:
+Skills that produce files (interview, spex, report-writer, macros) write to configurable workspace directories. There are no built-in defaults — each skill prompts for setup on first use. Typical values:
 
 | Skill | Default workspace |
 |-------|-------------------|
 | interview | `.agent-workspace/interviews` |
 | spex | `.agent-workspace/specs` |
 | report-writer | `.agent-workspace/reports` |
+| macros | `.agent-workspace/macros` |
 
-Override precedence (highest to lowest):
+Override precedence (first match wins):
 
-1. CLI flag: `--workspace <dir>`
-2. User config: `~/.claude/skills/<skill>/config.yaml`
-3. Project config: `.claude/skill-configs/<skill>/config.yaml`
+1. CLI flag: `--workspace <dir>` — one-off override
+2. Local config: `.claude/skill-configs/<skill>/config.local.yaml` — gitignored, personal overrides
+3. Project config: `.claude/skill-configs/<skill>/config.yaml` — committed to repo, shared with team
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (plugin) unless they specifically want copy/symlink.
+- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace skills (interview, spex, critique, macros). The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.
