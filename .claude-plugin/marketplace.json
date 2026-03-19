@@ -4,6 +4,7 @@
   "plugins": [
     { "name": "interview", "source": "./plugins/interview" },
     { "name": "spex", "source": "./plugins/spex" },
-    { "name": "critique", "source": "./plugins/critique" }
+    { "name": "critique", "source": "./plugins/critique" },
+    { "name": "macros", "source": "./plugins/macros" }
   ]
 }
