@@ -1,0 +1,17 @@
+# Study skill configuration
+# Copy to config.yaml (project-wide) or config.local.yaml (personal, gitignored)
+
+# Directory where session files are stored.
+# Relative paths are resolved from the current working directory.
+sessions_dir: .agent-workspace/study/sessions
+
+# Optional: freeform instructions to steer the study assistant's behavior.
+# Anything you write here is passed as additional context to the AI.
+# Examples:
+#   - "Be more challenging — push back on vague answers before confirming understanding."
+#   - "Use concrete analogies and real-world examples whenever possible."
+#   - "Conduct sessions in Korean."
+#   - "Assume I'm an experienced engineer; skip foundational explanations."
+#
+# instructions: |
+#   Your style here.

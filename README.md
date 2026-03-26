@@ -21,6 +21,7 @@ Then install individual skills:
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
 /plugin install macros@isnbh0
+/plugin install study@isnbh0
 ```
 
 ### Option B: Symlink / Copy
@@ -66,6 +67,18 @@ Structured requirements discovery through conversational interviews.
 - Extracts requirements, constraints, and design decisions through guided Q&A
 - Supports reference files to anchor discussion around existing artifacts
 - Produces timestamped synthesis documents in the workspace
+
+#### study
+
+Document-grounded Socratic study sessions on any URL or local file.
+
+```
+/study <uri>
+```
+
+- Calibrates to user familiarity (full study, guided study, or gap check)
+- Persists session notes to markdown files with resumption across sittings
+- Configurable sessions directory and optional freeform `instructions` for persona/behavior customization
 
 #### spex
 
@@ -145,7 +158,7 @@ Tools for creating effective Claude Code skills.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study) support configurable workspace directories with layered precedence (first match wins):
 
 1. **CLI flag** (`--workspace <dir>`) — one-off override
 2. **Local config** (`.claude/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
