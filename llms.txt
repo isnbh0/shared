@@ -21,9 +21,10 @@ Then install individual skills:
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
 /plugin install macros@isnbh0
+/plugin install study@isnbh0
 ```
 
-> **Note:** Only the four skills above are published to the marketplace. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
+> **Note:** Only the five skills above are published to the marketplace. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
 
 ### Option B: Install individual skills (copy)
 
@@ -86,6 +87,11 @@ Parallel task orchestration with a map-reduce pattern. Splits tasks into indepen
 
 Invocation: `/macros__mapreduce <task> [--workspace <dir>]`
 
+### study
+Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
+
+Invocation: `/study <uri>`
+
 ### Other (copy / symlink only)
 
 ### report-writer
@@ -143,9 +149,12 @@ shared/
 │   ├── macros/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/macros/
-│   └── phaser/
+│   ├── phaser/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/phaser/
+│   └── study/
 │       ├── .claude-plugin/plugin.json
-│       └── skills/phaser/
+│       └── skills/study/
 └── .claude/
     ├── skills/       # Symlinks to plugins/*/skills/* (backward compat)
     └── commands/     # Symlinks to plugins/spex/commands/* (backward compat)
@@ -153,7 +162,7 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros) write to configurable workspace directories. There are no built-in defaults — each skill prompts for setup on first use. Typical values:
+Skills that produce files (interview, spex, report-writer, macros, study) write to configurable workspace directories. There are no built-in defaults — each skill prompts for setup on first use. Typical values:
 
 | Skill | Default workspace |
 |-------|-------------------|
@@ -161,6 +170,7 @@ Skills that produce files (interview, spex, report-writer, macros) write to conf
 | spex | `.agent-workspace/specs` |
 | report-writer | `.agent-workspace/reports` |
 | macros | `.agent-workspace/macros` |
+| study | `.agent-workspace/study/sessions` |
 
 Override precedence (first match wins):
 
@@ -170,7 +180,7 @@ Override precedence (first match wins):
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace skills (interview, spex, critique, macros). The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
+- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace skills (interview, spex, critique, macros, study). The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.

@@ -1,0 +1,6 @@
+{
+  "name": "study",
+  "description": "Document-grounded Socratic study sessions on any URL or local file",
+  "version": "1.0.0",
+  "author": { "name": "isnbh0" }
+}

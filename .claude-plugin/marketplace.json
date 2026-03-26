@@ -5,6 +5,7 @@
     { "name": "interview", "source": "./plugins/interview" },
     { "name": "spex", "source": "./plugins/spex" },
     { "name": "critique", "source": "./plugins/critique" },
-    { "name": "macros", "source": "./plugins/macros" }
+    { "name": "macros", "source": "./plugins/macros" },
+    { "name": "study", "source": "./plugins/study" }
   ]
 }
