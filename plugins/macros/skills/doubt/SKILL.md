@@ -111,9 +111,11 @@ Direct answer first, then supporting evidence as a bullet list with citations.
 
 Run N serial passes. Each pass is a **blind, independent critique** of the current code state. The agent critiques AND applies fixes.
 
+Before starting, capture the base reference: `BASE_SHA=$(git rev-parse HEAD)`. All passes diff against this anchor so each agent reviews the full body of work, not just the previous pass's patch.
+
 For each pass (1 through N):
 
-1. **Resolve scope fresh** — re-run `git diff` or read files as they are now (not cached from a prior pass).
+1. **Resolve scope fresh** — run `git diff ${BASE_SHA}` to get the cumulative diff from the original state, plus read touched files as they are now.
 2. **Launch subagent** with the agent prompt template, plus this preamble:
    ```
    This is pass ${PASS_NUMBER} of ${TOTAL_PASSES} in a sequential review.
