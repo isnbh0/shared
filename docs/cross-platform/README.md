@@ -77,5 +77,5 @@ See the tool-specific guides for exact paths and any additional steps.
 | rigorous-debug | Interactive | Scientific hypothesis-driven debugging |
 | skill-writer | Interactive | Guidance for creating SKILL.md files |
 | critique | Interactive | External AI critique via Codex or Gemini CLI |
-| macros | Interactive | Parallel task orchestration with map-reduce pattern |
+| macros | Interactive | Subagent orchestration: map-reduce and research-backed critique |
 | phaser | Passive | Phaser 3 game development knowledgebase (18 files) |

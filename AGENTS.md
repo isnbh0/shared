@@ -33,8 +33,8 @@ A plugin can contain multiple skills (e.g., macros has mapreduce, doubt; spex ha
 
 When publishing a plugin to the marketplace, update all of the following:
 
-- [ ] `plugins/<name>/skills/<name>/SKILL.md` — the skill
-- [ ] `plugins/<name>/skills/<name>/config.example.yaml` — if the skill uses config
+- [ ] `plugins/<name>/skills/<skill-name>/SKILL.md` — the skill
+- [ ] `plugins/<name>/skills/<skill-name>/config.example.yaml` — if the skill uses config
 - [ ] `plugins/<name>/.claude-plugin/plugin.json` — plugin metadata
 - [ ] `.claude-plugin/marketplace.json` — add entry to `plugins` array
 - [ ] `llms.txt` — update in 5 places:
