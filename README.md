@@ -92,15 +92,15 @@ Three self-contained commands:
 
 #### macros
 
-Parallel task orchestration with a map-reduce pattern.
+Subagent orchestration workflows: map-reduce and research-backed critique.
 
 ```
 /macros__mapreduce <task> [--workspace <dir>]
+/macros__doubt [count | --seq N | "freeform question"]
 ```
 
-- Splits a task into independent chunks and dispatches parallel subagents
-- Builds optional shared context before the map phase
-- A final reducer subagent consolidates all chunk reports into a single output
+- **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
+- **doubt** — Spawns blind subagents that read code, verify assumptions against web sources, and apply fixes. Parallel mode for independent coverage; sequential mode with auto-applied fixes and commits between passes
 
 ### Other (copy / symlink)
 

@@ -1,6 +1,6 @@
 {
   "name": "macros",
-  "description": "Meta-commands that orchestrate parallel subagent workflows",
+  "description": "Subagent orchestration workflows: map-reduce and research-backed critique",
   "version": "1.0.0",
   "author": { "name": "isnbh0" }
 }

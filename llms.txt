@@ -24,7 +24,7 @@ Then install individual skills:
 /plugin install study@isnbh0
 ```
 
-> **Note:** Only the five skills above are published to the marketplace. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
+> **Note:** Only the five skills above are published to the marketplace. The `doubt` skill is included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
 
 ### Option B: Install individual skills (copy)
 
@@ -83,9 +83,11 @@ External AI critique via CLI tools (Codex, Gemini). Gets an independent second o
 Invocation: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path] [focus]`
 
 ### macros
-Parallel task orchestration with a map-reduce pattern. Splits tasks into independent chunks, dispatches parallel subagents, then consolidates results into a single report.
+Subagent orchestration workflows. Includes map-reduce for parallel task splitting and doubt for independent, research-backed code critique.
 
-Invocation: `/macros__mapreduce <task> [--workspace <dir>]`
+Invocations:
+- `/macros__mapreduce <task> [--workspace <dir>]` — split tasks into chunks, dispatch parallel subagents, consolidate results
+- `/macros__doubt [count | --seq N | "freeform question"]` — spawn blind subagents that read code, verify assumptions against web sources, apply fixes, and report concerns ranked by severity
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
@@ -148,7 +150,8 @@ shared/
 │   │   └── skills/critique/
 │   ├── macros/
 │   │   ├── .claude-plugin/plugin.json
-│   │   └── skills/macros/
+│   │   ├── skills/macros/
+│   │   └── skills/doubt/
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
@@ -180,7 +183,7 @@ Override precedence (first match wins):
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace skills (interview, spex, critique, macros, study). The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
+- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace skills (interview, spex, critique, macros, study). The `doubt` skill is included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.

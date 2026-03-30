@@ -10,11 +10,15 @@ disable-model-invocation: true
 
 ## Overview
 
-Macros provide meta-commands that wrap other work patterns with parallel execution strategies. Instead of doing work sequentially, macros split tasks into chunks and dispatch subagents to work on them concurrently.
+Macros provide meta-commands that orchestrate subagent workflows. Each command is self-contained in its own command file.
 
 ### mapreduce
 
-The `mapreduce` command takes a task, splits it into 2+ independent chunks, optionally builds shared context (terminology, conventions, reference material), dispatches parallel subagents (the "map" phase), then deploys a final subagent to consolidate results (the "reduce" phase). Each subagent writes an explicit report to the workspace directory, and the reducer produces a single consolidated report.
+Splits a task into 2+ independent chunks, optionally builds shared context (terminology, conventions, reference material), dispatches parallel subagents (the "map" phase), then deploys a final subagent to consolidate results (the "reduce" phase). Each subagent writes a report to the workspace directory, and the reducer produces a single consolidated report.
+
+### doubt
+
+Spawns independent subagent(s) to critique recent work with web research. Agents read code, verify assumptions against web sources, apply fixes, and report concerns ranked by severity. Three modes: single agent (default), parallel blind agents (report-only, merged findings), and sequential passes (auto-applied fixes with commits between rounds). Does not use the workspace directory — outputs go to the conversation and git history.
 
 ## Configuration
 
