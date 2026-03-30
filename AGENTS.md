@@ -10,10 +10,13 @@ Each plugin lives under `plugins/<name>/` and has this layout:
 plugins/<name>/
 ├── .claude-plugin/
 │   └── plugin.json        # Plugin metadata
-└── skills/<name>/
-    ├── SKILL.md            # The skill itself
-    └── config.example.yaml # Config reference (if the skill uses config)
+└── skills/
+    └── <skill-name>/
+        ├── SKILL.md            # The skill itself
+        └── config.example.yaml # Config reference (if the skill uses config)
 ```
+
+A plugin can contain multiple skills (e.g., macros has mapreduce, doubt; spex has write, write-phased, implement). Each skill gets its own directory under `skills/`.
 
 `plugin.json` format:
 

@@ -1,8 +1,9 @@
 ---
+name: mapreduce
 description: Split a task into parallel chunks, dispatch subagents, and consolidate results
 ---
 
-Do NOT invoke the macros skill via the Skill tool.
+Do NOT re-invoke this skill via the Skill tool.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.
 Execute the workflow below once, then stop.

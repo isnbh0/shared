@@ -46,22 +46,6 @@ Symlink individual skills for automatic updates when the source repo is pulled.
 ln -s ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude/skills/<skill-name>
 ```
 
-### Installing command aliases
-
-The spex plugin includes command files.
-
-⚠️ **NOTE:** Manual copy/symlink creates generic command names (`/write`, `/implement`) which may clash with other commands. Plugin installation (`/plugin install spex@isnbh0`) automatically namespaces them (e.g., `/spex__write`) and is strongly preferred.
-
-```bash
-# Copy
-mkdir -p /path/to/project/.claude/commands
-cp ~/shared/plugins/spex/commands/*.md /path/to/project/.claude/commands/
-
-# Or symlink individual commands
-ln -s ~/shared/plugins/spex/commands/write.md /path/to/project/.claude/commands/
-ln -s ~/shared/plugins/spex/commands/write-phased.md /path/to/project/.claude/commands/
-ln -s ~/shared/plugins/spex/commands/implement.md /path/to/project/.claude/commands/
-```
 
 ## Available Skills
 
@@ -75,7 +59,7 @@ Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
 ### spex
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
 
-Commands: `/spex__write`, `/spex__write-phased`, `/spex__implement`
+Skills: `/spex:write`, `/spex:write-phased`, `/spex:implement`
 
 ### critique
 External AI critique via CLI tools (Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using sandboxed execution.
@@ -86,8 +70,8 @@ Invocation: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path]
 Subagent orchestration workflows. Includes map-reduce for parallel task splitting and doubt for independent, research-backed code critique.
 
 Invocations:
-- `/macros__mapreduce <task> [--workspace <dir>]` — split tasks into chunks, dispatch parallel subagents, consolidate results
-- `/macros__doubt [count | --seq N | "freeform question"]` — spawn blind subagents that read code, verify assumptions against web sources, apply fixes, and report concerns ranked by severity
+- `/macros:mapreduce <task> [--workspace <dir>]` — split tasks into chunks, dispatch parallel subagents, consolidate results
+- `/macros:doubt [count | --seq N | "freeform question"]` — spawn blind subagents that read code, verify assumptions against web sources, apply fixes, and report concerns ranked by severity
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
@@ -134,8 +118,11 @@ shared/
 │   │   └── skills/interview/
 │   ├── spex/
 │   │   ├── .claude-plugin/plugin.json
-│   │   ├── skills/spex/
-│   │   └── commands/
+│   │   └── skills/
+│   │       ├── spex/
+│   │       ├── write/
+│   │       ├── write-phased/
+│   │       └── implement/
 │   ├── report-writer/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/report-writer/
@@ -150,8 +137,10 @@ shared/
 │   │   └── skills/critique/
 │   ├── macros/
 │   │   ├── .claude-plugin/plugin.json
-│   │   ├── skills/macros/
-│   │   └── skills/doubt/
+│   │   └── skills/
+│   │       ├── macros/
+│   │       ├── mapreduce/
+│   │       └── doubt/
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
@@ -159,8 +148,7 @@ shared/
 │       ├── .claude-plugin/plugin.json
 │       └── skills/study/
 └── .claude/
-    ├── skills/       # Symlinks to plugins/*/skills/* (backward compat)
-    └── commands/     # Symlinks to plugins/spex/commands/* (backward compat)
+    └── skills/       # Symlinks to plugins/*/skills/* (backward compat)
 ```
 
 ## Workspace Configuration

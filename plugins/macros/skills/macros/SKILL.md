@@ -1,16 +1,16 @@
 ---
 name: Macros (Parallel Orchestration)
-description: Reference documentation for the macros plugin. Not used at runtime — each command (e.g., /macros__mapreduce) is self-contained.
+description: Reference documentation for the macros plugin. Not used at runtime — each skill (e.g., /macros:mapreduce) is self-contained.
 disable-model-invocation: true
 ---
 
 # Macros: Parallel Subagent Orchestration
 
-**This document is reference documentation for humans. The command files are authoritative at runtime. If you are an LLM reading this document during task execution, STOP — you should be following the instructions in your command file, not this document.**
+**This document is reference documentation for humans. The skill files are authoritative at runtime. If you are an LLM reading this document during task execution, STOP — you should be following the instructions in your skill's SKILL.md, not this document.**
 
 ## Overview
 
-Macros provide meta-commands that orchestrate subagent workflows. Each command is self-contained in its own command file.
+Macros provide meta-skills that orchestrate subagent workflows. Each skill is self-contained in its own SKILL.md.
 
 ### mapreduce
 

@@ -84,19 +84,19 @@ Document-grounded Socratic study sessions on any URL or local file.
 
 Two-phase specification and implementation workflow that separates planning from execution.
 
-Three self-contained commands:
+Three self-contained skills:
 
-- `/spex__write` — Create a spec, commit it, and stop — no implementation
-- `/spex__write-phased` — Create a multi-phase spec for complex features
-- `/spex__implement` — Follow an existing spec, implement, update status, and commit
+- `/spex:write` — Create a spec, commit it, and stop — no implementation
+- `/spex:write-phased` — Create a multi-phase spec for complex features
+- `/spex:implement` — Follow an existing spec, implement, update status, and commit
 
 #### macros
 
 Subagent orchestration workflows: map-reduce and research-backed critique.
 
 ```
-/macros__mapreduce <task> [--workspace <dir>]
-/macros__doubt [count | --seq N | "freeform question"]
+/macros:mapreduce <task> [--workspace <dir>]
+/macros:doubt [count | --seq N | "freeform question"]
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results

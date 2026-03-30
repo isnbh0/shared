@@ -41,9 +41,9 @@ Skills reference Claude Code-specific config paths for layered configuration:
 
 Most tools don't have a layered config system. The simplest approach: edit `config.yaml` directly in the skill's install directory.
 
-### Command Aliases
+### Spex Sub-Skills
 
-The spex skill includes command aliases (`/write`, `/write-phased`, `/implement`). These are Claude Code-specific (`.claude/commands/` directory). In other tools, invoke by description:
+The spex plugin includes three sub-skills (`/spex:write`, `/spex:write-phased`, `/spex:implement`). In Claude Code, these are invoked via plugin namespace. In other tools, invoke by description:
 
 > "Write a spec for the auth system"
 > "Implement the spec at .agent-workspace/specs/260310-auth-system/SPEC.md"

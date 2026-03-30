@@ -1,8 +1,9 @@
 ---
+name: write-phased
 description: Write a phased specification document
 ---
 
-Do NOT invoke the spex skill via the Skill tool.
+Do NOT re-invoke this skill via the Skill tool.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.
 Execute the workflow below once, then stop.
