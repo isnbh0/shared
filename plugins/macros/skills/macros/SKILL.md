@@ -20,6 +20,10 @@ Splits a task into 2+ independent chunks, optionally builds shared context (term
 
 Spawns independent subagent(s) to critique recent work with web research. Agents read code, verify assumptions against web sources, apply fixes, and report concerns ranked by severity. Three modes: single agent (default), parallel blind agents (report-only, merged findings), and sequential passes (auto-applied fixes with commits between rounds). Does not use the workspace directory — outputs go to the conversation and git history.
 
+### rigor
+
+Activates Rigor Mode for the current session — prioritizes correctness, thoroughness, and web-grounded verification over minimalism. Shifts the agent's operating identity to a careful senior developer who owns the code they touch: thorough investigation before acting, error handling at real boundaries, proactive web research for non-trivial decisions, and communication scaled to complexity. Does not use the workspace directory — it is a session-level behavior modifier.
+
 ## Configuration
 
 Config is resolved with the following precedence (first match wins):
