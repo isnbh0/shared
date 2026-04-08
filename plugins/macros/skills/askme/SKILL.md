@@ -1,5 +1,5 @@
 ---
-name: ask
+name: askme
 description: Shorthand that tells the agent to ask clarifying questions instead of making decisions on its own
 ---
 
