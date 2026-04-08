@@ -102,6 +102,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 /macros:rigor
 /macros:askme
 /macros:delegate
+/macros:tmi
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
@@ -111,6 +112,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 - **rigor** — Activates Rigor Mode for the session: prioritizes correctness, thorough investigation, and web-grounded verification over minimalism
 - **askme** — Shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
 - **delegate** — Shorthand: prefer subagents to save context space and parallelize independent subtasks
+- **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
 
 ### Other (copy / symlink)
 

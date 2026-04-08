@@ -1,6 +1,6 @@
 {
   "name": "macros",
-  "description": "Subagent orchestration workflows, session modes, and command shorthands: map-reduce, research-backed critique, consensus review, sequential passes, rigor mode, askme, and delegate",
-  "version": "3.2.0",
+  "description": "Subagent orchestration workflows, session modes, and command shorthands: map-reduce, research-backed critique, consensus review, sequential passes, rigor mode, askme, delegate, and tmi",
+  "version": "3.3.0",
   "author": { "name": "isnbh0" }
 }
