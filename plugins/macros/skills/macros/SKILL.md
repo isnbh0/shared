@@ -18,7 +18,15 @@ Splits a task into 2+ independent chunks, optionally builds shared context (term
 
 ### doubt
 
-Spawns independent subagent(s) to critique recent work with web research. Agents read code, verify assumptions against web sources, apply fixes, and report concerns ranked by severity. Three modes: single agent (default), parallel blind agents (report-only, merged findings), and sequential passes (auto-applied fixes with commits between rounds). Does not use the workspace directory — outputs go to the conversation and git history.
+Spawns an independent subagent to critique recent work with web research. The agent reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity. Does not use the workspace directory — outputs go to the conversation and git history.
+
+### consensus
+
+Runs N blind agents on the same job in parallel, then merges findings into consensus/unique/conflicts. Agents report only — no edits for concurrent safety. Compose with other skills to define the job (e.g., `/doubt /consensus 3`).
+
+### seq
+
+Runs N serial blind passes on the same job with commits between rounds. Requires a clean worktree. Each pass diffs against the original BASE_SHA so every agent reviews the full body of work with fresh eyes. Compose with other skills to define the job (e.g., `/doubt /seq 3`).
 
 ### rigor
 

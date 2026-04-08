@@ -92,17 +92,21 @@ Three self-contained skills:
 
 #### macros
 
-Subagent orchestration workflows and session modes: map-reduce, research-backed critique, and rigor mode.
+Subagent orchestration workflows and session modes: map-reduce, research-backed critique, consensus review, sequential passes, and rigor mode.
 
 ```
 /macros:mapreduce <task> [--workspace <dir>]
-/macros:doubt [count | --seq N | "freeform question"]
+/macros:doubt ["freeform question"]
+/macros:consensus <count>
+/macros:seq <count>
 /macros:rigor
 /macros:ask
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
-- **doubt** — Spawns blind subagents that read code, verify assumptions against web sources, and apply fixes. Parallel mode for independent coverage; sequential mode with auto-applied fixes and commits between passes
+- **doubt** — Spawns a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
+- **consensus** — Runs N blind agents on the same job in parallel, merges findings into consensus/unique/conflicts (no edits for concurrent safety)
+- **seq** — Runs N serial blind passes with commits between rounds; requires clean worktree
 - **rigor** — Activates Rigor Mode for the session: prioritizes correctness, thorough investigation, and web-grounded verification over minimalism
 - **ask** — Shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
 
