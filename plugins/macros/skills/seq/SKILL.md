@@ -4,6 +4,8 @@ description: Run N serial blind passes on the same job with commits between. Eac
 argument-hint: "<count>"
 ---
 
+If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+
 Do NOT re-invoke this skill via the Skill tool.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.

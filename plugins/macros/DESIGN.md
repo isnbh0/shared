@@ -21,3 +21,11 @@ As models improve, any meta-instructions for composition become liability rather
 ## Loading
 
 The only infrastructure needed is a mechanism to get N skill files into the agent's context when N `/slash` tokens appear in an invocation. No interpretation, no routing — just read N files and concatenate.
+
+Claude Code's Skill tool invokes one skill at a time. When a user writes `/delegate /rigor /consensus 2 <task>`, only the first `/command` is reliably detected and invoked — the rest become inert text inside the arguments. To bridge this gap, every macros skill includes a **composition line** immediately after the frontmatter:
+
+```
+If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+```
+
+This ensures whichever skill loads first will trigger loading the rest. It adds no composition machinery — just a one-line forwarding directive that gets all N files into context, after which the agent synthesizes from their combined content as intended.
