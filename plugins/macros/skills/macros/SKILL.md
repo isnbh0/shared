@@ -24,6 +24,10 @@ Spawns independent subagent(s) to critique recent work with web research. Agents
 
 Activates Rigor Mode for the current session — prioritizes correctness, thoroughness, and web-grounded verification over minimalism. Shifts the agent's operating identity to a careful senior developer who owns the code they touch: thorough investigation before acting, error handling at real boundaries, proactive web research for non-trivial decisions, and communication scaled to complexity. Does not use the workspace directory — it is a session-level behavior modifier.
 
+### ask
+
+Shorthand that tells the agent to ask clarifying questions instead of making decisions on its own. Useful as a prefix when a request has known ambiguities.
+
 ## Configuration
 
 Config is resolved with the following precedence (first match wins):

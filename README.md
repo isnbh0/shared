@@ -98,11 +98,13 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 /macros:mapreduce <task> [--workspace <dir>]
 /macros:doubt [count | --seq N | "freeform question"]
 /macros:rigor
+/macros:ask
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
 - **doubt** — Spawns blind subagents that read code, verify assumptions against web sources, and apply fixes. Parallel mode for independent coverage; sequential mode with auto-applied fixes and commits between passes
 - **rigor** — Activates Rigor Mode for the session: prioritizes correctness, thorough investigation, and web-grounded verification over minimalism
+- **ask** — Shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
 
 ### Other (copy / symlink)
 
