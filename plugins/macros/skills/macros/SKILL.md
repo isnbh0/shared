@@ -36,6 +36,10 @@ Activates Rigor Mode for the current session — prioritizes correctness, thorou
 
 Shorthand that tells the agent to ask clarifying questions instead of making decisions on its own. Useful as a prefix when a request has known ambiguities.
 
+### delegate
+
+Instructs the agent to prefer subagents for saving context space and parallelizing independent subtasks. Research, exploration, and large reads are offloaded; only trivial or sequential work stays inline.
+
 ## Configuration
 
 Config is resolved with the following precedence (first match wins):
