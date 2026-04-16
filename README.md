@@ -103,6 +103,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 /macros:askme
 /macros:delegate
 /macros:tmi
+/macros:dry-run
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
@@ -113,6 +114,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 - **askme** — Shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
 - **delegate** — Shorthand: prefer subagents to save context space and parallelize independent subtasks
 - **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
+- **dry-run** — One-shot failsafe: describes what it would do for the next request instead of doing it, then waits for confirmation
 
 ### Other (copy / symlink)
 
