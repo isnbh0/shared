@@ -22,6 +22,7 @@ Then install individual skills:
 /plugin install critique@isnbh0
 /plugin install macros@isnbh0
 /plugin install study@isnbh0
+/plugin install gimme@isnbh0
 ```
 
 ### Option B: Symlink / Copy
@@ -116,6 +117,19 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 - **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
 - **dry-run** — One-shot failsafe: describes what it would do for the next request instead of doing it, then waits for confirmation
 
+#### gimme
+
+User-invoked inversion of delegation — hand Claude a request and get back a filesystem bundle you can act on.
+
+```
+/gimme
+```
+
+- Writes a timestamped bundle with `checklist.md`, `notes.md` (template with pre-labeled paste slots), and an empty `dropbox/` directory for file artifacts
+- Each checklist item has action / why-it's-on-you / drop-path so results land somewhere Claude can pick up without further direction
+- Optional `launch_command` config (e.g. `cursor {path}`, `code {path}`, `open {path}`) opens the bundle in your editor immediately
+- Never self-invoked — only runs when you explicitly call `/gimme`
+
 ### Other (copy / symlink)
 
 Available in the repo but not published to the marketplace. Install via symlink or copy:
@@ -172,7 +186,7 @@ Tools for creating effective Claude Code skills.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros, study) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study, gimme) support configurable workspace directories with layered precedence (first match wins):
 
 1. **CLI flag** (`--workspace <dir>`) — one-off override
 2. **Local config** (`.claude/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides

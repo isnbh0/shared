@@ -22,9 +22,10 @@ Then install individual skills:
 /plugin install critique@isnbh0
 /plugin install macros@isnbh0
 /plugin install study@isnbh0
+/plugin install gimme@isnbh0
 ```
 
-> **Note:** Only the five skills above are published to the marketplace. The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, and `dry-run` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
+> **Note:** Only the six plugins above are published to the marketplace. The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, and `dry-run` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
 
 ### Option B: Install individual skills (copy)
 
@@ -84,6 +85,11 @@ Invocations:
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
 
 Invocation: `/study <uri>`
+
+### gimme
+User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress — a checklist document, a drop-bin directory, and a notes template — then launches the user's configured editor/command on it.
+
+Invocation: `/gimme`
 
 ### Other (copy / symlink only)
 
@@ -158,16 +164,19 @@ shared/
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
-│   └── study/
+│   ├── study/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/study/
+│   └── gimme/
 │       ├── .claude-plugin/plugin.json
-│       └── skills/study/
+│       └── skills/gimme/
 └── .claude/
     └── skills/       # Symlinks to plugins/*/skills/* (backward compat)
 ```
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study) write to configurable workspace directories. There are no built-in defaults — each skill prompts for setup on first use. Typical values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme) write to configurable workspace directories. There are no built-in defaults — each skill prompts for setup on first use. Typical values:
 
 | Skill | Default workspace |
 |-------|-------------------|
@@ -176,6 +185,7 @@ Skills that produce files (interview, spex, report-writer, macros, study) write 
 | report-writer | `.agent-workspace/reports` |
 | macros | `.agent-workspace/macros` |
 | study | `.agent-workspace/study/sessions` |
+| gimme | `.agent-workspace/gimme` |
 
 Override precedence (first match wins):
 
@@ -185,7 +195,7 @@ Override precedence (first match wins):
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace skills (interview, spex, critique, macros, study). The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, and `dry-run` skills are included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
+- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace plugins (interview, spex, critique, macros, study, gimme). The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, and `dry-run` skills are included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.

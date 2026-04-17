@@ -6,6 +6,7 @@
     { "name": "spex", "source": "./plugins/spex" },
     { "name": "critique", "source": "./plugins/critique" },
     { "name": "macros", "source": "./plugins/macros" },
-    { "name": "study", "source": "./plugins/study" }
+    { "name": "study", "source": "./plugins/study" },
+    { "name": "gimme", "source": "./plugins/gimme" }
   ]
 }
