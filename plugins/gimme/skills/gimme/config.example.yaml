@@ -1,0 +1,18 @@
+# .claude/skill-configs/gimme/config.yaml
+#
+# Directory where /gimme bundles are written. Each invocation creates a
+# timestamped subdirectory containing checklist.md, notes.md, and dropbox/.
+workspace_dir: .agent-workspace/gimme
+
+# Command to launch after the bundle is created, so you can immediately
+# start filling it in. The literal token `{path}` is replaced with the
+# absolute path to the new bundle directory.
+#
+# Examples:
+#   launch_command: "cursor {path}"    # open the bundle in Cursor
+#   launch_command: "code {path}"      # open in VS Code
+#   launch_command: "open {path}"      # macOS Finder
+#   launch_command: "xdg-open {path}"  # Linux file manager
+#
+# Omit or set to null/empty to skip launching anything.
+launch_command: "cursor {path}"
