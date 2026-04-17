@@ -1,6 +1,6 @@
 {
   "name": "gimme",
   "description": "User-invoked inversion: produce a bundle of human-only actions blocking progress — a checklist document, a drop-bin directory, and a notes template — then launch your editor on it so you can hit the ground running",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": { "name": "isnbh0" }
 }

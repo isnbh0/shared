@@ -9,10 +9,11 @@ workspace_dir: .agent-workspace/gimme
 # absolute path to the new bundle directory.
 #
 # Examples:
-#   launch_command: "cursor {path}"    # open the bundle in Cursor
-#   launch_command: "code {path}"      # open in VS Code
-#   launch_command: "open {path}"      # macOS Finder
-#   launch_command: "xdg-open {path}"  # Linux file manager
+#   launch_command: "cursor . {path}/checklist.md"  # open repo root as workspace, checklist.md as a tab
+#   launch_command: "cursor {path}"                 # open the bundle dir as workspace
+#   launch_command: "code . {path}/checklist.md"    # same, in VS Code
+#   launch_command: "open {path}"                   # macOS Finder
+#   launch_command: "xdg-open {path}"               # Linux file manager
 #
 # Omit or set to null/empty to skip launching anything.
-launch_command: "cursor {path}"
+launch_command: "cursor . {path}/checklist.md"
