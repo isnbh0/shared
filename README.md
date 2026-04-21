@@ -105,6 +105,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 /macros:delegate
 /macros:tmi
 /macros:dry-run
+/macros:timeless
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
@@ -116,6 +117,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 - **delegate** — Shorthand: prefer subagents to save context space and parallelize independent subtasks
 - **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
 - **dry-run** — One-shot failsafe: describes what it would do for the next request instead of doing it, then waits for confirmation
+- **timeless** — Shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
 
 #### gimme
 

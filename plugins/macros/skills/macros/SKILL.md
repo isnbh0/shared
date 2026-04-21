@@ -40,6 +40,10 @@ Shorthand that tells the agent to ask clarifying questions instead of making dec
 
 Instructs the agent to prefer subagents for saving context space and parallelizing independent subtasks. Research, exploration, and large reads are offloaded; only trivial or sequential work stays inline.
 
+### timeless
+
+Tells the agent to avoid time estimates — hours, days, calendar dates, or size buckets that implicitly map to time — and describe work by complexity, concrete scope, risk, and ordering instead.
+
 ## Configuration
 
 Config is resolved with the following precedence (first match wins):
