@@ -37,18 +37,18 @@ When publishing a plugin to the marketplace, update all of the following:
 - [ ] `plugins/<name>/skills/<skill-name>/config.example.yaml` — if the skill uses config
 - [ ] `plugins/<name>/.claude-plugin/plugin.json` — plugin metadata (bump version if updating)
 - [ ] `.claude-plugin/marketplace.json` — add entry to `plugins` array
-- [ ] `llms.txt` — update in 5 places:
+- [ ] `llms.txt` — update these sections (skip any that don't apply):
   - Install command block
-  - "Only the N skills above" note (update the count)
+  - The "published to the marketplace" note (keep plugin list and skill enumeration current)
   - Available Skills → Published section (add skill entry)
-  - File Structure Reference (add plugin to tree)
+  - File Structure Reference (add plugin/skill to tree)
   - Workspace Configuration table (if file-producing)
-  - Notes for LLMs (add to marketplace skill list)
-- [ ] `README.md` — update in 3 places:
+  - Notes for LLMs (keep skill enumeration current)
+- [ ] `README.md` — update these sections (skip any that don't apply):
   - Install command block
   - Published skills section (add entry)
   - Workspace Configuration note (if file-producing)
-- [ ] `README.ko.md` — same 3 places as README.md
+- [ ] `README.ko.md` — same sections as README.md
 
 ### Versioning
 
