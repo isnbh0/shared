@@ -85,7 +85,7 @@ codex exec \
   -s read-only \
   -C <project-root> \
   --config model_reasoning_effort="<effort>" \
-  "<review-prompt>"
+  "<review-prompt>" </dev/null
 ```
 
 **Flags:**
@@ -93,6 +93,8 @@ codex exec \
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
 - `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, or `xhigh`. Omit for default. Higher effort = slower but more thorough analysis.
+
+**Stdin redirect (`</dev/null`) is required.** When `codex exec` is given a positional prompt, it still tries to read additional context from stdin if stdin is not a TTY (see openai/codex#15917, #15830). Under Claude Code's spawn environment stdin is non-TTY but never closes, so codex blocks forever on `Reading additional input from stdin...`. Redirecting from `/dev/null` gives an immediate EOF; codex sees an empty append buffer and proceeds with just the positional prompt.
 
 **Timeout:** 300 seconds at default effort, 600 seconds at high/xhigh (codex does more reasoning passes)
 
