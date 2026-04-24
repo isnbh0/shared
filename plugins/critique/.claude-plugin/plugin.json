@@ -1,7 +1,7 @@
 {
   "name": "critique",
   "description": "External AI critique via CLI tools (Codex, Gemini)",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": { "name": "isnbh0" },
   "keywords": ["review", "critique", "codex", "gemini", "openai", "google", "second-opinion"]
 }

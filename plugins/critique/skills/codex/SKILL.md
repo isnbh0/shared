@@ -34,10 +34,10 @@ Config is resolved with the following precedence (first match wins):
 1. **CLI flag** (`--model`) — one-off override
 2. **Local config** (`.claude/skill-configs/codex/config.local.yaml`) — personal/local scope, gitignored
 3. **Project config** (`.claude/skill-configs/codex/config.yaml`) — project scope, committed to repo
-4. **Default** — `gpt-5.4`
+4. **Default** — `gpt-5.5`
 
 ```yaml
-model: gpt-5.4  # model to use with codex exec
+model: gpt-5.5  # model to use with codex exec
 ```
 
 See `config.example.yaml` in the critique plugin's codex skill for reference.
@@ -48,7 +48,7 @@ See `config.example.yaml` in the critique plugin's codex skill for reference.
 2. Check for config files (first match wins):
    - `.claude/skill-configs/codex/config.local.yaml` (local scope, gitignored)
    - `.claude/skill-configs/codex/config.yaml` (project scope, committed to repo)
-3. If no config found, use `gpt-5.4` as the default.
+3. If no config found, use `gpt-5.5` as the default.
 4. Set `${MODEL}` to the resolved model name.
 
 ### Reasoning Effort
@@ -89,7 +89,7 @@ codex exec \
 ```
 
 **Flags:**
-- `-m ${MODEL}` — the resolved model (default: `gpt-5.4`)
+- `-m ${MODEL}` — the resolved model (default: `gpt-5.5`)
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
 - `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, or `xhigh`. Omit for default. Higher effort = slower but more thorough analysis.
