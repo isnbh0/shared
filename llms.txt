@@ -25,7 +25,7 @@ Then install individual skills:
 /plugin install gimme@isnbh0
 ```
 
-> **Note:** Only the six plugins above are published to the marketplace. The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, and `dredge` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
+> **Note:** Only the six plugins above are published to the marketplace. The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
 
 ### Option B: Install individual skills (copy)
 
@@ -82,6 +82,7 @@ Invocations:
 - `/macros:dry-run` — one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
 - `/macros:timeless` — shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
 - `/macros:dredge ["freeform query"]` — search prior Claude Code chat transcripts under `~/.claude/projects` for context; defaults to current project, widens scope and time window from natural-language hints in the query
+- `/macros:timestamp` — shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
@@ -164,7 +165,8 @@ shared/
 │   │       ├── tmi/
 │   │       ├── dry-run/
 │   │       ├── timeless/
-│   │       └── dredge/
+│   │       ├── dredge/
+│   │       └── timestamp/
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
@@ -199,7 +201,7 @@ Override precedence (first match wins):
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace plugins (interview, spex, critique, macros, study, gimme). The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, and `dredge` skills are included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
+- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace plugins (interview, spex, critique, macros, study, gimme). The `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
 - If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.

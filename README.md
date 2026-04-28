@@ -107,6 +107,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 /macros:dry-run
 /macros:timeless
 /macros:dredge ["freeform query"]
+/macros:timestamp
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
@@ -120,6 +121,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 - **dry-run** — One-shot failsafe: describes what it would do for the next request instead of doing it, then waits for confirmation
 - **timeless** — Shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
 - **dredge** — Searches prior Claude Code chat transcripts under `~/.claude/projects` for context; defaults to the current project, widens scope and time window from natural-language hints in the query (e.g. "across all projects", "in the craken repo", "yesterday")
+- **timestamp** — Shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
 
 #### gimme
 
