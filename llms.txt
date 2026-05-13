@@ -55,6 +55,14 @@ ln -s ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude
 ### interview
 Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
 
+**Try it without installing:**
+
+```bash
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-v1.0.0/interview.zip
+```
+
+Like it? Install with the marketplace commands above.
+
 Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
 
 ### spex
