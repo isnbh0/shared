@@ -44,3 +44,6 @@ temp/
 .nfs*
 Desktop.ini
 $RECYCLE.BIN/
+
+# Plugin pack artifacts (root-level only; pack-plugin.sh writes here)
+/*.zip

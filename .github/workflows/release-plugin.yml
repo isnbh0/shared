@@ -1,0 +1,90 @@
+name: Release plugin
+
+on:
+  push:
+    tags:
+      # Scoped to interview for now. When another plugin opts in, widen this
+      # glob (e.g. add "gimme-v*") and the rest of the workflow already works.
+      - "interview-v*"
+  workflow_dispatch:
+    inputs:
+      plugin_name:
+        description: "Plugin name (e.g. interview)"
+        required: true
+        type: string
+      version:
+        description: "Version (e.g. 1.0.1) — must match plugin.json"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse inputs
+        id: parse
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            name="${{ inputs.plugin_name }}"
+            version="${{ inputs.version }}"
+            tag="${name}-v${version}"
+          else
+            tag="${GITHUB_REF_NAME}"
+            name="${tag%%-v*}"
+            version="${tag#*-v}"
+          fi
+          {
+            echo "name=$name"
+            echo "version=$version"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Validate plugin exists and version matches
+        env:
+          NAME: ${{ steps.parse.outputs.name }}
+          VERSION: ${{ steps.parse.outputs.version }}
+        run: |
+          test -d "plugins/${NAME}" || { echo "::error::no plugin: plugins/${NAME}"; exit 1; }
+          actual=$(jq -r .version "plugins/${NAME}/.claude-plugin/plugin.json")
+          [ "$actual" = "$VERSION" ] || { echo "::error::tag version ${VERSION} != plugin.json version ${actual}"; exit 1; }
+
+      - name: Pack
+        run: bash scripts/pack-plugin.sh "${{ steps.parse.outputs.name }}"
+
+      - name: Publish versioned release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ steps.parse.outputs.name }}
+          VERSION: ${{ steps.parse.outputs.version }}
+          TAG: ${{ steps.parse.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${NAME}.zip" --clobber
+          else
+            gh release create "$TAG" "${NAME}.zip" \
+              --title "${NAME} v${VERSION}" \
+              --notes "Trial zip for the ${NAME} plugin. See README."
+          fi
+
+      - name: Update `<plugin>-latest` release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ steps.parse.outputs.name }}
+          VERSION: ${{ steps.parse.outputs.version }}
+        run: |
+          latest="${NAME}-latest"
+          notes="Always points to the most recent ${NAME} release. Currently: v${VERSION}."
+          if gh release view "$latest" >/dev/null 2>&1; then
+            gh release upload "$latest" "${NAME}.zip" --clobber
+            gh release edit "$latest" --notes "$notes"
+          else
+            gh release create "$latest" "${NAME}.zip" \
+              --title "${NAME} (latest)" \
+              --notes "$notes" \
+              --target "$GITHUB_SHA"
+          fi
