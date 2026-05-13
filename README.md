@@ -64,7 +64,7 @@ Structured requirements discovery through conversational interviews.
 **Try it without installing:**
 
 ```bash
-claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-v1.0.0/interview.zip
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-latest/interview.zip
 ```
 
 Like it? Install with the marketplace commands above.

@@ -64,7 +64,7 @@ CLI 도구(Codex, Gemini)를 통한 외부 AI 코드 리뷰 도구입니다.
 **설치 없이 바로 사용:**
 
 ```bash
-claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-v1.0.0/interview.zip
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-latest/interview.zip
 ```
 
 마음에 드신다면, 위의 마켓플레이스 명령어로 설치하세요.
