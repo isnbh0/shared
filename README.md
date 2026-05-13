@@ -101,10 +101,11 @@ Three self-contained skills:
 
 #### macros
 
-Subagent orchestration workflows and session modes: map-reduce, research-backed critique, consensus review, sequential passes, and rigor mode.
+Subagent orchestration workflows and session modes: map-reduce, chunked sequencing, research-backed critique, consensus review, sequential passes, and rigor mode.
 
 ```
 /macros:mapreduce <task> [--workspace <dir>]
+/macros:chunked <task>
 /macros:doubt ["freeform question"]
 /macros:consensus <count>
 /macros:seq <count>
@@ -119,6 +120,7 @@ Subagent orchestration workflows and session modes: map-reduce, research-backed 
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
+- **chunked** — Runs a task as an ordered partition where each iteration may read prior iterations' outputs
 - **doubt** — Spawns a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
 - **consensus** — Runs N blind agents on the same job in parallel, merges findings into consensus/unique/conflicts (no edits for concurrent safety)
 - **seq** — Runs N serial blind passes with commits between rounds; requires clean worktree
