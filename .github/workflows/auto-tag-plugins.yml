@@ -1,0 +1,53 @@
+name: Auto-tag plugin version bumps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Scoped to interview for now. When another plugin opts in, widen these
+      # paths and add it to the script's plugin list below.
+      - "plugins/interview/.claude-plugin/plugin.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag-and-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag and dispatch release if version is unreleased
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for name in interview; do
+            file="plugins/${name}/.claude-plugin/plugin.json"
+            [ -f "$file" ] || { echo "::warning::missing $file, skipping ${name}"; continue; }
+
+            version=$(jq -r .version "$file")
+            tag="${name}-v${version}"
+
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "::notice::${tag} already released, nothing to do"
+              continue
+            fi
+
+            if ! git rev-parse "refs/tags/$tag" >/dev/null 2>&1; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git tag -a "$tag" -m "${name} v${version}" "$GITHUB_SHA"
+              git push origin "$tag"
+              echo "::notice::tagged ${tag} at ${GITHUB_SHA}"
+            fi
+
+            # Tag-pushes from GITHUB_TOKEN don't trigger other workflows, so
+            # dispatch release-plugin.yml directly. --ref pins the run to the
+            # tagged commit, so validation matches even if main has moved on.
+            gh workflow run release-plugin.yml --ref "$tag" \
+              -f plugin_name="$name" \
+              -f version="$version"
+            echo "::notice::dispatched release-plugin.yml for ${tag}"
+          done
