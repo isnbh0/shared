@@ -90,7 +90,7 @@ Invocations:
 - `/macros:tmi` — flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
 - `/macros:dry-run` — one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
 - `/macros:timeless` — shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- `/macros:dredge ["freeform query"]` — search prior Claude Code chat transcripts under `~/.claude/projects` for context; defaults to current project, widens scope and time window from natural-language hints in the query
+- `/macros:dredge ["freeform query"]` — search prior Claude Code chat transcripts under `~/.claude/projects` for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.claude/skill-configs/dredge/`); falls back to grep otherwise
 - `/macros:timestamp` — shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
 
 ### study

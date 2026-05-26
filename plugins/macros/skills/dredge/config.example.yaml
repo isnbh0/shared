@@ -1,0 +1,27 @@
+# dredge configuration
+#
+# dredge is a cross-project, machine-level tool, so it reads USER-SCOPE config:
+#   ~/.claude/skill-configs/dredge/config.local.yaml  (personal override)
+#   ~/.claude/skill-configs/dredge/config.yaml         (primary)
+# An optional per-repo override may also live at:
+#   .claude/skill-configs/dredge/config.yaml           (e.g. force grep in one repo)
+# Precedence (first existing wins per key): per-repo > user-local > user.
+# With no config present, dredge behaves as backend: auto with the defaults below.
+
+# Search backend.
+#   auto       — use agentsview if on PATH, else grep   (default)
+#   agentsview — prefer agentsview; warn + fall back to grep if missing
+#   grep       — always raw grep; ignore agentsview
+backend: auto
+
+agentsview:
+  # Run an incremental sync before searching so recent chats are indexed.
+  # Warm syncs are sub-second; the first-ever sync of a large archive can take ~30s.
+  sync_before_search: true
+  # Content to search. Trim to "messages" to cut tool-output noise.
+  search_in: messages,tool_input,tool_result
+  # Search beyond Claude Code (cursor, codex, copilot, gemini, ...).
+  # Off keeps dredge Claude-only and preserves the `claude --resume` citation.
+  include_other_agents: false
+  # Include subagent / automated / one-shot sessions (noisy). Off by default.
+  include_children: false
