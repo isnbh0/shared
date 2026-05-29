@@ -20,8 +20,9 @@ agentsview:
   sync_before_search: true
   # Content to search. Trim to "messages" to cut tool-output noise.
   search_in: messages,tool_input,tool_result
-  # Search beyond Claude Code (cursor, codex, copilot, gemini, ...).
-  # Off keeps dredge Claude-only and preserves the `claude --resume` citation.
-  include_other_agents: false
+  # Which coding agents to search. Default `all` covers every agent AgentsView has
+  # indexed (Claude Code, Codex, Cursor, Copilot, Gemini, ...). Restrict to a subset
+  # by listing names, e.g. [claude, codex].
+  agents: all
   # Include subagent / automated / one-shot sessions (noisy). Off by default.
   include_children: false

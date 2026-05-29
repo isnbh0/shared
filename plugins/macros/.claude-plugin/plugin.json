@@ -1,6 +1,6 @@
 {
   "name": "macros",
   "description": "Subagent orchestration workflows, session modes, and command shorthands: map-reduce, chunked (sequence a task as ordered parts that add up to the whole), research-backed critique, consensus review, sequential passes, rigor mode, askme, delegate, tmi, dry-run, timeless, dredge (search prior chats), and timestamp (prefix new files/folders with a date-CLI stamp)",
-  "version": "3.9.0",
+  "version": "4.0.0",
   "author": { "name": "isnbh0" }
 }

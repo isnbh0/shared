@@ -1,6 +1,6 @@
 ---
 name: dredge
-description: Search prior Claude Code chat transcripts under ~/.claude/projects for context. Use when the user invokes /dredge or asks to recall or dig up something from past chats.
+description: Search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context. Use when the user invokes /dredge or asks to recall or dig up something from past chats.
 argument-hint: "[\"freeform query\"]"
 ---
 
@@ -11,12 +11,14 @@ Execute the workflow below once, then stop.
 
 ## Task
 
-Find and surface context from prior Claude Code chat transcripts relevant to the user's query.
+Find and surface context from prior coding-agent chat transcripts relevant to the user's query.
 
 ## Where transcripts live
 
-- Path: `~/.claude/projects/<project-slug>/*.jsonl`
-- `<project-slug>` is the absolute project path with `/` replaced by `-` (e.g. `/Users/x/repo` → `-Users-x-repo`). The current project's slug can be derived from `pwd`.
+Each coding agent keeps its own transcript store.
+
+- **Claude Code** — `~/.claude/projects/<project-slug>/*.jsonl`, where `<project-slug>` is the absolute project path with `/` replaced by `-` (e.g. `/Users/x/repo` → `-Users-x-repo`). The current project's slug can be derived from `pwd`.
+- **Codex and other agents** — each has its own layout, indexed by AgentsView. The grep fallback only knows Claude Code's layout.
 - Each `.jsonl` file is one session; each line is a JSON message event with fields like `role`, `content`, `timestamp`.
 - On the grep backend, use file mtime for time-window filtering. (The AgentsView backend filters on per-message timestamps instead — see "Search backend".)
 
@@ -73,8 +75,9 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 - **Named repo** → match its basename against `projects --json` (same collision rule).
 - **Time hints** ("yesterday", "last week", "earlier today") → `--date-from` / `--date-to` /
   `--date <YYYY-MM-DD>` / `--active-since <RFC3339>` (per-message timestamps, not file mtime).
-- `--agent claude` unless `include_other_agents` is true; `--include-children` only if
-  `include_children` is true.
+- Filter to specific agents with `--agent <name>` per the `agents` config (e.g.
+  `--agent claude --agent codex`); omit `--agent` entirely when `agents: all` (the default)
+  to search every indexed coding agent. `--include-children` only if `include_children` is true.
 - **Concept recall** → `--fts` (fast tokenized search over messages); **exact string / error
   message** → `--regex` or the default substring match.
 
@@ -88,6 +91,6 @@ The grep fallback (also the AgentsView path's last resort):
 ## Output
 
 - Answer the query directly.
-- Cite the sessions you drew from by `<session-id>` so the user can resume them with `claude --resume <session-id>` (the AgentsView `session_id` is the Claude session UUID; the grep path cites `<project-slug>/<session-id>.jsonl`).
-- For non-claude agents (only possible when `include_other_agents` is on), cite the agent name + session id without the `claude --resume` hint.
+- Cite each session you drew from by agent + `<session-id>`, with that agent's resume command when you know it (e.g. `claude --resume <session-id>` for Claude Code, `codex resume <session-id>` for Codex). The AgentsView `session_id` is the agent's native session id; the grep path cites `<project-slug>/<session-id>.jsonl`.
+- If you don't know an agent's resume command, cite the agent name + session id alone.
 - If nothing relevant turns up, say so plainly — don't fabricate.
