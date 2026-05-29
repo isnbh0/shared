@@ -16,7 +16,7 @@ Verify gemini is available: !`which gemini`
 If gemini is not found, tell the user to install it:
 
 ```bash
-npm install -g @anthropic-ai/gemini-cli  # or see https://github.com/anthropics/gemini-cli
+npm install -g @google/gemini-cli  # or see https://github.com/google-gemini/gemini-cli
 ```
 
 ## Usage
