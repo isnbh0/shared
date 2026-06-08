@@ -1,7 +1,7 @@
 ---
 name: mapreduce
 description: Split a task into parallel chunks, dispatch subagents, and consolidate results
-argument-hint: "<task> [--workspace <dir>]"
+argument-hint: "<task>"
 ---
 
 If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.

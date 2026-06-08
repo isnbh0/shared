@@ -1,7 +1,7 @@
 ---
 name: Writing Technical Reports
 description: Creates timestamped technical analysis and debugging reports following a standardized structure. Use when documenting completed work, analyzing technical issues, investigating bugs, or when the user requests a report.
-argument-hint: "[topic] [--workspace <dir>]"
+argument-hint: "[topic]"
 ---
 
 # Writing Technical Reports
