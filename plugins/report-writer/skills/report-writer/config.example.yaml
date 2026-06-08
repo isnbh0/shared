@@ -1,6 +1,6 @@
 # Report writer configuration
-# Copy this file to .claude/skill-configs/report-writer/config.yaml (project scope)
-# or .claude/skill-configs/report-writer/config.local.yaml (local/personal scope)
+# Copy this file to .agents/skill-configs/report-writer/config.yaml (project scope)
+# or .agents/skill-configs/report-writer/config.local.yaml (local/personal scope)
 
 # Directory where report files are created
 # Relative paths are resolved from the current working directory
