@@ -13,9 +13,10 @@ When the user invokes `/gimme`, stop implementing and produce a **filesystem del
 
 Resolve config with the following precedence (first match wins):
 
-1. Local: `.claude/skill-configs/gimme/config.local.yaml`
-2. Project: `.claude/skill-configs/gimme/config.yaml`
-3. No config → **stop and ask the user to set one up** using `config.example.yaml` from this skill as a reference. Required: `workspace_dir`. Optional: `launch_command`.
+1. Local: `.agents/skill-configs/gimme/config.local.yaml`
+2. Project: `.agents/skill-configs/gimme/config.yaml`
+3. Legacy fallback (older installs): `.claude/skill-configs/gimme/config.local.yaml`, then `.claude/skill-configs/gimme/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
+4. No config → **stop and ask the user to set one up** using `config.example.yaml` from this skill as a reference. Required: `workspace_dir`. Optional: `launch_command`.
 
 ## Bundle layout
 

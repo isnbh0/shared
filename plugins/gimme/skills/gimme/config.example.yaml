@@ -1,4 +1,4 @@
-# .claude/skill-configs/gimme/config.yaml
+# .agents/skill-configs/gimme/config.yaml
 #
 # Directory where /gimme bundles are written. Each invocation creates a
 # timestamped subdirectory containing checklist.md, notes.md, and dropbox/.
