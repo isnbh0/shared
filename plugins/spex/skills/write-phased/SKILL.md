@@ -461,12 +461,12 @@ For changes that affect existing data or APIs:
 
 ## Tooling Integration
 
-### TodoWrite for Phase Tracking
+### Task Tracking for Phases
 
-At the start of implementing a phase, create todos including wrap-up steps:
+At the start of implementing a phase, track these steps including wrap-up (use your agent's task/todo facility if it has one, otherwise keep the checklist inline):
 
 ```
-TodoWrite:
+Track these steps:
 - Implement [feature] according to spec
 - Add unit tests for new code
 - Run full test suite

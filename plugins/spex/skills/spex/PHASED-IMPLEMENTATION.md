@@ -272,12 +272,12 @@ For changes that affect existing data or APIs:
 
 ## Tooling Integration
 
-### TodoWrite for Phase Tracking
+### Task Tracking for Phases
 
-At the start of implementing a phase, create todos including wrap-up steps:
+At the start of implementing a phase, track these steps including wrap-up (use your agent's task/todo facility if it has one, otherwise keep the checklist inline):
 
 ```
-TodoWrite:
+Track these steps:
 - Implement [feature] according to spec
 - Add unit tests for new code
 - Run full test suite
@@ -364,7 +364,7 @@ Example:
 
 ### Implementing a phased spec:
 1. Read `README.md` for overview, then read each `PN-*.md` for phase details
-2. Create TodoWrite with current phase + wrap-up steps
+2. Track a checklist with current phase + wrap-up steps
 3. Update status in `README.md` to "In Progress"
 4. Implement current phase following its `PN-*.md` file exactly
 5. Update checklist items to `[x]` in the phase file as completed

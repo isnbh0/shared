@@ -93,7 +93,7 @@ Understand:
 
 **Step 2: Create implementation todo list**
 
-**RECOMMENDED**: Use TodoWrite to create a todo list with ALL steps, including wrap-up. This prevents forgetting to update/archive the spec after long implementations.
+**RECOMMENDED**: If your agent has a task/todo facility, use it to track ALL steps, including wrap-up (otherwise keep the checklist inline). This prevents forgetting to update/archive the spec after long implementations.
 
 Create todos for:
 1. Implementation tasks (from spec's Implementation Details)
@@ -105,7 +105,7 @@ Create todos for:
 
 Example:
 ```
-TodoWrite:
+Track these steps:
 - Implement feature X according to spec
 - Run tests to verify requirements
 - Update spec status to "Completed" with commit hash
@@ -292,7 +292,7 @@ ${SPECS_DIR}/
 
 ### Implementing a spec:
 1. Read spec completely
-2. **Create TodoWrite list with all steps including wrap-up**
+2. **Track a checklist with all steps including wrap-up**
 3. Update status to "In Progress"
 4. Implement according to spec + best practices
 5. Test thoroughly
@@ -303,7 +303,7 @@ ${SPECS_DIR}/
 
 ### Implementing a phased spec (directory):
 1. Read `README.md` for overview, then read each `PN-*.md` for phase details
-2. Create TodoWrite with current phase + wrap-up steps
+2. Track a checklist with current phase + wrap-up steps
 3. Update status in `README.md` to "In Progress"
 4. Implement current phase following its `PN-*.md` file exactly
 5. Update checklist items to `[x]` in the phase file as completed

@@ -280,7 +280,7 @@ Understand:
 
 **Step 2: Create implementation todo list**
 
-**RECOMMENDED**: Use TodoWrite to create a todo list with ALL steps, including wrap-up. This prevents forgetting to update/archive the spec after long implementations.
+**RECOMMENDED**: If your agent has a task/todo facility, use it to track ALL steps, including wrap-up (otherwise keep the checklist inline). This prevents forgetting to update/archive the spec after long implementations.
 
 Create todos for:
 1. Implementation tasks (from spec's Implementation Details)
@@ -292,7 +292,7 @@ Create todos for:
 
 Example:
 ```
-TodoWrite:
+Track these steps:
 - Implement feature X according to spec
 - Run tests to verify requirements
 - Update spec status to "Completed" with commit hash
@@ -591,7 +591,7 @@ Write spec → commit → stop. Later: implement spec → update status → comm
 
 ### I'm IMPLEMENTING a spec:
 1. Read spec completely
-2. **Create TodoWrite list with all steps including wrap-up**
+2. **Track a checklist with all steps including wrap-up**
 3. Update status to "In Progress"
 4. Implement according to spec + best practices
 5. Test thoroughly
