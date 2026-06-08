@@ -22,7 +22,6 @@ Thumbs.db
 
 # Agent scratch and local skill usage config (not part of the published plugins)
 .agent-workspace/
-.agents/skill-configs/
 .claude/skill-configs/
 
 # Local/private configurations
