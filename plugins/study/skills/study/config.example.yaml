@@ -1,5 +1,6 @@
 # Study skill configuration
-# Copy to config.yaml (project-wide) or config.local.yaml (personal, gitignored)
+# Copy this file to .agents/skill-configs/study/config.yaml (project scope)
+# or .agents/skill-configs/study/config.local.yaml (local/personal scope)
 
 # Directory where session files are stored.
 # Relative paths are resolved from the current working directory.

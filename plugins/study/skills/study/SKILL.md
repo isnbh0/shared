@@ -21,14 +21,15 @@ Lead Socratic study sessions grounded in a document or URL, persisting all progr
 
 Load config with the following precedence (first match wins):
 
-1. `.claude/skill-configs/study/config.local.yaml` — personal/local scope, gitignored
-2. `.claude/skill-configs/study/config.yaml` — project scope, committed to repo
+1. `.agents/skill-configs/study/config.local.yaml` — personal/local scope, gitignored
+2. `.agents/skill-configs/study/config.yaml` — project scope, committed to repo
+3. Legacy fallback (older installs): `.claude/skill-configs/study/config.local.yaml`, then `.claude/skill-configs/study/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 
 If no config is found, stop and ask the user:
 
 > "No study config found. Where should I store session files?
 > You can specify a custom path or use the default `.agent-workspace/study/sessions`.
-> I'll create `.claude/skill-configs/study/config.yaml` with your choice."
+> I'll create `.agents/skill-configs/study/config.yaml` with your choice."
 
 Wait for the user's response, then create the config file before continuing.
 
