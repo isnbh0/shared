@@ -21,24 +21,19 @@ npm install -g @google/gemini-cli  # or see https://github.com/google-gemini/gem
 
 ## Usage
 
-```
-/critique:gemini $ARGUMENTS
-```
+Invoke with an optional file path to critique (relative or absolute) and an optional focus area (e.g., "security", "performance", "UX gaps"). To use a specific gemini model for this run, say so in the request.
 
-- `$0` — optional file path to critique (relative or absolute)
-- `$1` — optional focus area (e.g., "security", "performance", "UX gaps")
-- `--model <model>` — override the gemini model for this invocation
-
-All arguments are optional. When no file is given, infer the target from conversation context.
+All inputs are optional. When no file is given, infer the target from conversation context.
 
 ## Configuration
 
 Config is resolved with the following precedence (first match wins):
 
-1. **CLI flag** (`--model`) — one-off override
-2. **Local config** (`.claude/skill-configs/gemini/config.local.yaml`) — personal/local scope, gitignored
-3. **Project config** (`.claude/skill-configs/gemini/config.yaml`) — project scope, committed to repo
-4. **Default** — `gemini-3.1-pro-preview`
+1. **Explicit override** — the user asks to use a specific model for this run
+2. **Local config** (`.agents/skill-configs/gemini/config.local.yaml`) — personal/local scope, gitignored
+3. **Project config** (`.agents/skill-configs/gemini/config.yaml`) — project scope, committed to repo
+4. **Legacy fallback** (`.claude/skill-configs/gemini/config.local.yaml`, then `config.yaml`) — older installs
+5. **Default** — `gemini-3.1-pro-preview`
 
 ```yaml
 model: gemini-3.1-pro-preview  # model to use with gemini CLI
@@ -48,10 +43,11 @@ See `config.example.yaml` in the critique plugin's gemini skill for reference.
 
 ## Setup
 
-1. Check if `$ARGUMENTS` contains `--model <model>`. If so, use that model and skip config lookup.
+1. If the user explicitly asks to use a specific model, use it and skip config lookup.
 2. Check for config files (first match wins):
-   - `.claude/skill-configs/gemini/config.local.yaml` (local scope, gitignored)
-   - `.claude/skill-configs/gemini/config.yaml` (project scope, committed to repo)
+   - `.agents/skill-configs/gemini/config.local.yaml` (local scope, gitignored)
+   - `.agents/skill-configs/gemini/config.yaml` (project scope, committed to repo)
+   - Legacy fallback (older installs): `.claude/skill-configs/gemini/config.local.yaml`, then `.claude/skill-configs/gemini/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 3. If no config found, use `gemini-3.1-pro-preview` as the default.
 4. Set `${MODEL}` to the resolved model name.
 

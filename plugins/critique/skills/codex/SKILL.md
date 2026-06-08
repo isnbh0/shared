@@ -17,24 +17,19 @@ If codex is not found, tell the user to install and authenticate (`codex login`)
 
 ## Usage
 
-```
-/critique:codex $ARGUMENTS
-```
+Invoke with an optional file path to critique (relative or absolute) and an optional focus area (e.g., "security", "performance", "UX gaps"). To use a specific codex model for this run, say so in the request.
 
-- `$0` — optional file path to critique (relative or absolute)
-- `$1` — optional focus area (e.g., "security", "performance", "UX gaps")
-- `--model <model>` — override the codex model for this invocation
-
-All arguments are optional. When no file is given, infer the target from conversation context.
+All inputs are optional. When no file is given, infer the target from conversation context.
 
 ## Configuration
 
 Config is resolved with the following precedence (first match wins):
 
-1. **CLI flag** (`--model`) — one-off override
-2. **Local config** (`.claude/skill-configs/codex/config.local.yaml`) — personal/local scope, gitignored
-3. **Project config** (`.claude/skill-configs/codex/config.yaml`) — project scope, committed to repo
-4. **Default** — `gpt-5.5`
+1. **Explicit override** — the user asks to use a specific model for this run
+2. **Local config** (`.agents/skill-configs/codex/config.local.yaml`) — personal/local scope, gitignored
+3. **Project config** (`.agents/skill-configs/codex/config.yaml`) — project scope, committed to repo
+4. **Legacy fallback** (`.claude/skill-configs/codex/config.local.yaml`, then `config.yaml`) — older installs
+5. **Default** — `gpt-5.5`
 
 ```yaml
 model: gpt-5.5  # model to use with codex exec
@@ -44,10 +39,11 @@ See `config.example.yaml` in the critique plugin's codex skill for reference.
 
 ## Setup
 
-1. Check if `$ARGUMENTS` contains `--model <model>`. If so, use that model and skip config lookup.
+1. If the user explicitly asks to use a specific model, use it and skip config lookup.
 2. Check for config files (first match wins):
-   - `.claude/skill-configs/codex/config.local.yaml` (local scope, gitignored)
-   - `.claude/skill-configs/codex/config.yaml` (project scope, committed to repo)
+   - `.agents/skill-configs/codex/config.local.yaml` (local scope, gitignored)
+   - `.agents/skill-configs/codex/config.yaml` (project scope, committed to repo)
+   - Legacy fallback (older installs): `.claude/skill-configs/codex/config.local.yaml`, then `.claude/skill-configs/codex/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 3. If no config found, use `gpt-5.5` as the default.
 4. Set `${MODEL}` to the resolved model name.
 
