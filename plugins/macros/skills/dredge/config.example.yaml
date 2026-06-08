@@ -1,11 +1,13 @@
 # dredge configuration
 #
 # dredge is a cross-project, machine-level tool, so it reads USER-SCOPE config:
-#   ~/.claude/skill-configs/dredge/config.local.yaml  (personal override)
-#   ~/.claude/skill-configs/dredge/config.yaml         (primary)
+#   ~/.agents/skill-configs/dredge/config.local.yaml  (personal override)
+#   ~/.agents/skill-configs/dredge/config.yaml         (primary)
 # An optional per-repo override may also live at:
-#   .claude/skill-configs/dredge/config.yaml           (e.g. force grep in one repo)
+#   .agents/skill-configs/dredge/config.yaml           (e.g. force grep in one repo)
 # Precedence (first existing wins per key): per-repo > user-local > user.
+# Legacy fallback (older installs): the same files under ~/.claude/skill-configs/dredge/
+# and .claude/skill-configs/dredge/.
 # With no config present, dredge behaves as backend: auto with the defaults below.
 
 # Search backend.

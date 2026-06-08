@@ -6,7 +6,7 @@ argument-hint: "<task>"
 
 If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
 
-Do NOT re-invoke this skill via the Skill tool.
+Do NOT re-invoke this skill recursively.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.
 Execute the workflow below once, then stop.
@@ -26,15 +26,16 @@ Identify what to partition:
 ## Setup
 
 1. Check for config files (first match wins):
-   - `.claude/skill-configs/macros/config.local.yaml` (local scope, gitignored)
-   - `.claude/skill-configs/macros/config.yaml` (project scope, committed to repo)
+   - `.agents/skill-configs/macros/config.local.yaml` (local scope, gitignored)
+   - `.agents/skill-configs/macros/config.yaml` (project scope, committed to repo)
+   - Legacy fallback (older installs): `.claude/skill-configs/macros/config.local.yaml`, then `.claude/skill-configs/macros/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 2. **If no config found**: STOP and tell the user:
    > "No macros config found. I need a workspace directory to store reports.
    > You can either:
    > 1. Specify a custom path
    > 2. Use the default `.agent-workspace/macros`
    >
-   > I'll create `.claude/skill-configs/macros/config.yaml` with your choice.
+   > I'll create `.agents/skill-configs/macros/config.yaml` with your choice.
    > (See `config.example.yaml` in the macros plugin for reference.)"
    Wait for the user's response, then create the config file before continuing.
 3. Set `${WORKSPACE_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
@@ -77,7 +78,7 @@ For K from 1 to N (where N is the number of partition slices):
 
 2. **Tell iteration K about prior chunks.** Instruct iteration K (in natural language inside its prompt) to first read the contents of `${OUTER_RUN_DIR}/chunk-*/` for all K' < K, and use them to deduplicate against, build on, or react to prior work. Don't mandate a literal sentence — describe the intent and let the synthesizing agent phrase it for the actual prompt.
 
-3. **Composition handoff.** If another orchestrator skill (e.g., `/macros:mapreduce`) is composed in this invocation, run its full workflow once per partition slice, with the slice's scoped sub-task as that skill's `$ARGUMENTS`. If the composed orchestrator accepts a `--workspace <dir>` argument, prepend `--workspace ${OUTER_RUN_DIR}/chunk-${K}-{slug}` so the orchestrator's nested run directory lands inside the chunk's directory and prior chunks remain readable. Complete one iteration's full workflow before starting the next.
+3. **Composition handoff.** If another orchestrator skill (e.g., `/macros:mapreduce`) is composed in this invocation, run its full workflow once per partition slice, with the slice's scoped sub-task as that skill's input. If the composed orchestrator supports a workspace override, direct it to use `${OUTER_RUN_DIR}/chunk-${K}-{slug}` as its workspace so its nested run directory lands inside the chunk's directory and prior chunks remain readable. Complete one iteration's full workflow before starting the next.
 
    When no orchestrator is composed, dispatch a single subagent for iteration K and tell it to write its outputs under `${OUTER_RUN_DIR}/chunk-${K}-{slug}/`.
 

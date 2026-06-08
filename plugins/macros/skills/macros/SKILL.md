@@ -48,15 +48,16 @@ Tells the agent to avoid time estimates — hours, days, calendar dates, or size
 
 Config is resolved with the following precedence (first match wins):
 
-1. **CLI flag** (`--workspace <dir>`) — one-off override
-2. **Local config** (`.claude/skill-configs/macros/config.local.yaml`) — gitignored, personal overrides
-3. **Project config** (`.claude/skill-configs/macros/config.yaml`) — committed to repo, shared with team
-4. **No config found** → STOP and ask the user
+1. **Explicit override** — the user asks to use a specific workspace directory for this run
+2. **Local config** (`.agents/skill-configs/macros/config.local.yaml`) — gitignored, personal overrides
+3. **Project config** (`.agents/skill-configs/macros/config.yaml`) — committed to repo, shared with team
+4. **Legacy fallback** (`.claude/skill-configs/macros/config.local.yaml`, then `config.yaml`) — older installs
+5. **No config found** → STOP and ask the user
 
 There are no built-in defaults. See `config.example.yaml` in the plugin for reference.
 
 ```yaml
-# .claude/skill-configs/macros/config.yaml
+# .agents/skill-configs/macros/config.yaml
 workspace_dir: .agent-workspace/macros  # where reports and artifacts are stored
 ```
 

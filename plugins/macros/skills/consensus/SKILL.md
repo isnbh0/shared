@@ -6,7 +6,7 @@ argument-hint: "<count>"
 
 If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
 
-Do NOT re-invoke this skill via the Skill tool.
+Do NOT re-invoke this skill recursively.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.
 Execute the workflow below once, then stop.
@@ -17,7 +17,7 @@ You are dispatching N independent, blind agents to work on the same job in paral
 
 ## Argument Parsing
 
-Parse `$ARGUMENTS` for a number:
+Parse the user's request for a number:
 
 - **Bare number** (`2`, `3`, `4`, `5`) → agent count. Cap at 5.
 - **Empty or non-numeric** → STOP and tell the user: "Usage: `/consensus <count>`. Provide the number of parallel agents (2–5)."

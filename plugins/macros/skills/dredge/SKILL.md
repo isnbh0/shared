@@ -6,7 +6,7 @@ argument-hint: "[\"freeform query\"]"
 
 If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
 
-Do NOT re-invoke this skill via the Skill tool.
+Do NOT re-invoke this skill recursively.
 Execute the workflow below once, then stop.
 
 ## Task
@@ -40,9 +40,11 @@ Default to the **current project's** transcripts (slug derived from `pwd`). Wide
 dredge has two backends. Resolve config from these files (first existing wins per
 key; precedence: project override > user-local > user):
 
-1. `~/.claude/skill-configs/dredge/config.local.yaml`
-2. `~/.claude/skill-configs/dredge/config.yaml`
-3. `.claude/skill-configs/dredge/config.yaml` (optional per-repo override)
+1. `~/.agents/skill-configs/dredge/config.local.yaml`
+2. `~/.agents/skill-configs/dredge/config.yaml`
+3. `.agents/skill-configs/dredge/config.yaml` (optional per-repo override)
+
+Legacy fallback (older installs): the same files under `~/.claude/skill-configs/dredge/` and `.claude/skill-configs/dredge/`. If config is found only at a legacy path, use it and offer to move it to the new location.
 
 With no config, behave as `backend: auto`. See `config.example.yaml` for all keys.
 

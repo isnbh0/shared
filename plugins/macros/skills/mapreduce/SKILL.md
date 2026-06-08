@@ -6,14 +6,14 @@ argument-hint: "<task> [--workspace <dir>]"
 
 If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
 
-Do NOT re-invoke this skill via the Skill tool.
+Do NOT re-invoke this skill recursively.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.
 Execute the workflow below once, then stop.
 
 ## Task
 
-You are orchestrating a **map-reduce** execution of the user's task. Your `$ARGUMENTS` contain the task description from the user.
+You are orchestrating a **map-reduce** execution of the user's task. The user's request contains the task description.
 
 Your job is to:
 1. Analyze the task and determine whether it can be safely parallelized
@@ -24,17 +24,18 @@ Your job is to:
 
 ## Setup
 
-1. Check if `$ARGUMENTS` contains `--workspace <dir>`. If so, use that directory and skip config lookup.
+1. If the user explicitly asks to override the workspace location, use the directory they specify and skip config lookup.
 2. Check for config files (first match wins):
-   - `.claude/skill-configs/macros/config.local.yaml` (local scope, gitignored)
-   - `.claude/skill-configs/macros/config.yaml` (project scope, committed to repo)
+   - `.agents/skill-configs/macros/config.local.yaml` (local scope, gitignored)
+   - `.agents/skill-configs/macros/config.yaml` (project scope, committed to repo)
+   - Legacy fallback (older installs): `.claude/skill-configs/macros/config.local.yaml`, then `.claude/skill-configs/macros/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 3. **If no config found**: STOP and tell the user:
    > "No macros config found. I need a workspace directory to store reports.
    > You can either:
    > 1. Specify a custom path
    > 2. Use the default `.agent-workspace/macros`
    >
-   > I'll create `.claude/skill-configs/macros/config.yaml` with your choice.
+   > I'll create `.agents/skill-configs/macros/config.yaml` with your choice.
    > (See `config.example.yaml` in the macros plugin for reference.)"
    Wait for the user's response, then create the config file before continuing.
 4. Set `${WORKSPACE_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
@@ -53,7 +54,7 @@ Use a kebab-case name that describes the overall task.
 
 ### Step 2: Analyze and plan chunks (MAP planning)
 
-Read `$ARGUMENTS` carefully. First, determine whether the task is parallelizable at all.
+Read the user's request carefully. First, determine whether the task is parallelizable at all.
 
 **Bail out if the task is not safely splittable.** Tell the user and execute the task sequentially instead. Signs a task should NOT be parallelized:
 - Work centers on a single file or tightly coupled set of files (e.g., a migration, a lockfile, a shared schema)

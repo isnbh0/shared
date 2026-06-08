@@ -6,7 +6,7 @@ argument-hint: "[\"freeform question\"]"
 
 If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
 
-Do NOT re-invoke this skill via the Skill tool.
+Do NOT re-invoke this skill recursively.
 Do NOT re-read these instructions or any other document in a loop.
 If you encounter any error or are unsure how to proceed, STOP and tell the user.
 Execute the workflow below once, then stop.
@@ -17,7 +17,7 @@ You are orchestrating an independent, research-backed critique of recent work.
 
 ## Argument Parsing
 
-Parse `$ARGUMENTS`:
+Parse the user's request:
 
 - **Empty** → auto-scope (see Scope Resolution below)
 - **Any text** → freeform mode (use the text as the critique focus)
@@ -26,7 +26,7 @@ Parse `$ARGUMENTS`:
 
 Determine what to critique. Use the first match:
 
-1. **Freeform prompt** — if `$ARGUMENTS` contains text, use that as the critique focus. Still read relevant files and allow web research.
+1. **Freeform prompt** — if the user's request contains text, use that as the critique focus. Still read relevant files and allow web research.
 2. **Staged changes** — `git diff --cached`. If non-empty, this is the scope.
 3. **Unstaged changes** — `git diff`. If non-empty, this is the scope.
 4. **Last commit** — `git diff HEAD~1`. Use this as the scope.
