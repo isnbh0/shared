@@ -21,7 +21,7 @@ This skill supports a **two-phase workflow** where specification writing and imp
 
 Config is resolved with the following precedence (first match wins):
 
-1. **CLI flag** (`--workspace <dir>`) — one-off override
+1. **Explicit override** — the user asks to use a specific workspace directory for this run
 2. **Local config** (`.claude/skill-configs/spex/config.local.yaml`) — gitignored, personal overrides
 3. **Project config** (`.claude/skill-configs/spex/config.yaml`) — committed to repo, shared with team
 4. **No config found** → STOP and ask the user
@@ -35,7 +35,7 @@ workspace_dir: .agent-workspace/specs  # where spec files are created and manage
 
 ## Setup
 
-1. If `--workspace` flag provided: use it directly, skip config lookup.
+1. If the user explicitly asks to override the workspace location: use it directly, skip config lookup.
 2. Check for config files (first match wins):
    - `.claude/skill-configs/spex/config.local.yaml` (local scope)
    - `.claude/skill-configs/spex/config.yaml` (project scope)
@@ -223,7 +223,7 @@ Each phase must be:
 
 **Step 1: Read the spec**
 
-If a spec file path was provided in `$ARGUMENTS` (after the `implement` keyword), use that path directly.
+If the user provided a spec file path, use it directly.
 
 Otherwise, find the latest non-future spec automatically:
 

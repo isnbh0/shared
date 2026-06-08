@@ -10,13 +10,13 @@ Execute the workflow below once, then stop.
 
 ## Task
 
-You are implementing an existing specification. Your `$ARGUMENTS` contain the spec file path (if provided by the user).
+You are implementing an existing specification. The user's request may include the spec file path.
 
 Implement according to the spec. Do not write new specs in this session.
 
 ## Setup
 
-1. Check if `$ARGUMENTS` contains `--workspace <dir>`. If so, use that directory and skip config lookup.
+1. If the user explicitly asks to override the workspace location, use the directory they specify and skip config lookup.
 2. Check for config files (first match wins):
    - `.claude/skill-configs/spex/config.local.yaml` (local scope, gitignored)
    - `.claude/skill-configs/spex/config.yaml` (project scope, committed to repo)
@@ -35,7 +35,7 @@ Implement according to the spec. Do not write new specs in this session.
 
 **Step 1: Read the spec**
 
-If a spec file path was provided in `$ARGUMENTS`, use that path directly.
+If the user provided a spec file path, use it directly.
 
 Otherwise, find the latest non-future spec automatically:
 

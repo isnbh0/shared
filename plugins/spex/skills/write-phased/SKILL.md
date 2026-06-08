@@ -10,13 +10,13 @@ Execute the workflow below once, then stop.
 
 ## Task
 
-You are writing a phased specification document. Your `$ARGUMENTS` contain the context/requirements from the user.
+You are writing a phased specification document. The user's request contains the context/requirements for the spec.
 
 Write the spec, commit it, and STOP. Do not implement. Implementation is handled by a separate agent in a separate session.
 
 ## Setup
 
-1. Check if `$ARGUMENTS` contains `--workspace <dir>`. If so, use that directory and skip config lookup.
+1. If the user explicitly asks to override the workspace location, use the directory they specify and skip config lookup.
 2. Check for config files (first match wins):
    - `.claude/skill-configs/spex/config.local.yaml` (local scope, gitignored)
    - `.claude/skill-configs/spex/config.yaml` (project scope, committed to repo)
