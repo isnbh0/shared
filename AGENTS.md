@@ -62,9 +62,9 @@ Bump `version` in `plugin.json` using semver. Decide based on what changed **for
 
 Skills that produce files use a layered config pattern. The skill prompts for setup on first use if no config is found. Config files:
 
-- `.claude/skill-configs/<skill>/config.local.yaml` — local/personal, gitignored
-- `.claude/skill-configs/<skill>/config.yaml` — project-wide, committed
-- Cross-project skills (e.g. `dredge`, which operates over machine-level coding-agent transcript stores regardless of cwd) read **user-scope** config under `~/.claude/skill-configs/<skill>/` instead of project-relative paths, since cwd is incidental and the config is machine-level.
-- Agent-agnostic skills (e.g. `spex`, designed to run under any coding agent — Claude, Codex, ...) read config from the neutral `.agent-workspace/<skill>/` location instead of `.claude/skill-configs/<skill>/`, falling back to the latter for older installs.
+- `.agents/skill-configs/<skill>/config.local.yaml` — local/personal, gitignored
+- `.agents/skill-configs/<skill>/config.yaml` — project-wide, committed
+- Cross-project skills (e.g. `dredge`, which operates over machine-level coding-agent transcript stores regardless of cwd) read **user-scope** config under `~/.agents/skill-configs/<skill>/` instead of project-relative paths, since cwd is incidental and the config is machine-level (an optional per-repo override may live at `.agents/skill-configs/<skill>/`).
+- The `.agents/skill-configs/` convention is agent-neutral, so skills run identically under any coding agent (Claude, Codex, ...). Older installs still resolve from the legacy `.claude/skill-configs/<skill>/` (and `~/.claude/skill-configs/<skill>/` for cross-project skills) location as a fallback; spex additionally falls back to its former `.agent-workspace/spex/` path. When config is found only at a legacy path, the skill uses it and offers to move it to the new location.
 
 Always ship a `config.example.yaml` alongside `SKILL.md` documenting all supported fields.

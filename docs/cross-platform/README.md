@@ -6,12 +6,12 @@ These skills use the **SKILL.md** format — markdown files with YAML frontmatte
 
 | Tool | Install Location | Invocation | Config Paths | Notes |
 |------|-----------------|------------|-------------|-------|
-| [Claude Code](https://claude.com/claude-code) | `.claude/skills/<name>/` | `/skill-name` (slash command) | `.claude/skill-configs/` | Native support via plugin marketplace |
-| [Codex CLI](codex-cli.md) | `.codex/skills/<name>/` | Semantic triggering | Adapt config paths | Full SKILL.md support |
-| [Gemini CLI](gemini-cli.md) | `.gemini/skills/<name>/` | Semantic triggering or `.toml` commands | Adapt config paths | Extensions ecosystem |
-| [Antigravity](antigravity.md) | `.antigravity/skills/<name>/` | Semantic triggering | Adapt config paths | Native SKILL.md support |
-| [Amp](amp.md) | Project-level skills directory | Semantic triggering | Adapt config paths | SKILL.md compatible |
-| [Cursor](cursor.md) | `.cursor/skills/<name>/` | Semantic triggering | Adapt config paths | Plugin marketplace |
+| [Claude Code](https://claude.com/claude-code) | `.claude/skills/<name>/` | `/skill-name` (slash command) | `.agents/skill-configs/` | Native support via plugin marketplace |
+| [Codex CLI](codex-cli.md) | `.codex/skills/<name>/` | Semantic triggering | `.agents/skill-configs/` | Full SKILL.md support |
+| [Gemini CLI](gemini-cli.md) | `.gemini/skills/<name>/` | Semantic triggering or `.toml` commands | `.agents/skill-configs/` | Extensions ecosystem |
+| [Antigravity](antigravity.md) | `.antigravity/skills/<name>/` | Semantic triggering | `.agents/skill-configs/` | Native SKILL.md support |
+| [Amp](amp.md) | Project-level skills directory | Semantic triggering | `.agents/skill-configs/` | SKILL.md compatible |
+| [Cursor](cursor.md) | `.cursor/skills/<name>/` | Semantic triggering | `.agents/skill-configs/` | Plugin marketplace |
 
 ## What Works Everywhere
 
@@ -32,14 +32,14 @@ The agent matches this to the skill's description and follows its instructions.
 
 ### Configuration Paths
 
-Skills reference Claude Code-specific config paths for layered configuration:
+Skills read layered configuration from an agent-neutral location:
 
-| Claude Code Path | Generic Equivalent |
-|-----------------|-------------------|
-| `.claude/skill-configs/<skill>/config.yaml` | Project-level config in the skill's install directory |
-| `~/.claude/skills/<skill>/config.yaml` | User-level config in the tool's global skills directory |
+| Config Path | Scope |
+|-------------|-------|
+| `.agents/skill-configs/<skill>/config.yaml` | Project-level config, committed to the repo |
+| `~/.agents/skill-configs/<skill>/config.yaml` | User-level config (machine-wide, e.g. `dredge`) |
 
-Most tools don't have a layered config system. The simplest approach: edit `config.yaml` directly in the skill's install directory.
+These are plain filesystem paths in your project (or home directory), so any tool reads them directly — no per-tool adaptation needed. Older installs are still resolved from the legacy `.claude/skill-configs/` (and `~/.claude/skill-configs/`) location as a fallback.
 
 ### Spex Sub-Skills
 

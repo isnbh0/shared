@@ -130,7 +130,7 @@ Subagent orchestration workflows and session modes: map-reduce, chunked sequenci
 - **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
 - **dry-run** — One-shot failsafe: describes what it would do for the next request instead of doing it, then waits for confirmation
 - **timeless** — Shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- **dredge** — Searches prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to the current project, widens scope and time window from natural-language hints in the query (e.g. "across all projects", "in the craken repo", "yesterday"). Uses an optional AgentsView backend when the `agentsview` CLI is installed (configured at user scope under `~/.claude/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
+- **dredge** — Searches prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to the current project, widens scope and time window from natural-language hints in the query (e.g. "across all projects", "in the craken repo", "yesterday"). Uses an optional AgentsView backend when the `agentsview` CLI is installed (configured at user scope under `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
 - **timestamp** — Shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
 
 #### gimme
@@ -204,13 +204,14 @@ Tools for creating effective Claude Code skills.
 
 File-producing skills (interview, spex, report-writer, macros, study, gimme) support configurable workspace directories with layered precedence (first match wins):
 
-1. **CLI flag** (`--workspace <dir>`) — one-off override
-2. **Local config** (`.claude/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
-3. **Project config** (`.claude/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
+1. **Explicit override** — ask to use a specific workspace directory for this run
+2. **Local config** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
+3. **Project config** (`.agents/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
+4. **Legacy fallback** (`.claude/skill-configs/<skill>/`) — older installs
 
 There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`).
 
-**spex** is agent-agnostic: it reads config from `.agent-workspace/spex/config.yaml` (falling back to `.claude/skill-configs/spex/` for older installs) so the spec workflow runs identically under any coding agent (Claude, Codex, ...).
+The `.agents/skill-configs/` convention is agent-neutral, so every skill runs identically under any coding agent (Claude, Codex, ...). When config is found only at a legacy path, the skill uses it and offers to move it to the new location. spex additionally falls back to its former `.agent-workspace/spex/` path.
 
 ## Other Agentic Tools
 
