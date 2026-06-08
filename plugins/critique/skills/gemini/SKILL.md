@@ -54,13 +54,13 @@ See `config.example.yaml` in the critique plugin's gemini skill for reference.
 ## How It Works
 
 1. **Determine what to critique** — use one of these strategies, in priority order:
-   - If `$0` is provided, use it as the file path
+   - If the user provided a file path, use it
    - If the user mentions a file by name or path (e.g., `@games/foo/bar.js`), use that
    - If changes were made during the current conversation (specs written, code edited, etc.), critique those — use `git diff` against the state before the conversation's changes to identify the affected files and pass them to gemini
    - If the user says something like "critique this" or "get a second opinion", look at the most recent substantive work product in the conversation
    - If nothing can be inferred, ask the user what to critique
 2. Resolve the working directory (project root)
-3. Build a review prompt tailored to the content type — use the templates in `${CLAUDE_SKILL_DIR}/templates/`:
+3. Build a review prompt tailored to the content type — use the templates in the `templates/` directory next to this skill (its base directory):
    - `spec-review.md` — for specification files
    - `code-review.md` — for source code files
    - `diff-review.md` — for reviewing recent changes
