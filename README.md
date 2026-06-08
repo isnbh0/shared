@@ -110,6 +110,7 @@ Subagent orchestration workflows and session modes: map-reduce, chunked sequenci
 /macros:consensus <count>
 /macros:seq <count>
 /macros:rigor
+/macros:orchestrate
 /macros:askme
 /macros:delegate
 /macros:tmi
@@ -125,6 +126,7 @@ Subagent orchestration workflows and session modes: map-reduce, chunked sequenci
 - **consensus** — Runs N blind agents on the same job in parallel, merges findings into consensus/unique/conflicts (no edits for concurrent safety)
 - **seq** — Runs N serial blind passes with commits between rounds; requires clean worktree
 - **rigor** — Activates Rigor Mode for the session: prioritizes correctness, thorough investigation, and web-grounded verification over minimalism
+- **orchestrate** — Activates Orchestrator Mode for the session: delegates execution to subagents by default and operates at the high level, conserving context for direction and synthesis; an escape hatch keeps trivial work inline
 - **askme** — Shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
 - **delegate** — Shorthand: prefer subagents to save context space and parallelize independent subtasks
 - **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
