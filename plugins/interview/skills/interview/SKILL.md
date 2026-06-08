@@ -9,13 +9,7 @@ Conduct one-on-one interviews to help the user think through any topic — extra
 
 ## Invocation
 
-```
-/interview <topic> [--ref <path>] [--workspace <dir>]
-```
-
-- `<topic>`: Short kebab-case name for the interview (e.g., `career-change`, `auth-system`, `family-dynamics`)
-- `--ref <path>`: Optional reference file to anchor discussion
-- `--workspace <dir>`: Override the workspace directory for this interview
+Provide a short kebab-case topic name for the interview (e.g., `career-change`, `auth-system`, `family-dynamics`), optionally a reference file to anchor the discussion, and optionally a specific workspace directory to use for this run.
 
 ## Configuration
 
