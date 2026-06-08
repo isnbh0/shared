@@ -209,6 +209,8 @@ Override precedence (first match wins):
 2. Local config: `.claude/skill-configs/<skill>/config.local.yaml` — gitignored, personal overrides
 3. Project config: `.claude/skill-configs/<skill>/config.yaml` — committed to repo, shared with team
 
+`spex` is agent-agnostic and instead reads config from `.agent-workspace/spex/config.yaml` (with `.agent-workspace/spex/config.local.yaml` for local scope), falling back to `.claude/skill-configs/spex/` for older installs, so the spec workflow runs identically under any coding agent.
+
 ## Notes for LLMs
 
 - When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace plugins (interview, spex, critique, macros, study, gimme). The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.

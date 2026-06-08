@@ -210,6 +210,8 @@ File-producing skills (interview, spex, report-writer, macros, study, gimme) sup
 
 There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`).
 
+**spex** is agent-agnostic: it reads config from `.agent-workspace/spex/config.yaml` (falling back to `.claude/skill-configs/spex/` for older installs) so the spec workflow runs identically under any coding agent (Claude, Codex, ...).
+
 ## Other Agentic Tools
 
 These skills use the SKILL.md format, which is supported across multiple AI coding tools. See the [cross-platform guide](docs/cross-platform/README.md) for installation instructions for:

@@ -65,5 +65,6 @@ Skills that produce files use a layered config pattern. The skill prompts for se
 - `.claude/skill-configs/<skill>/config.local.yaml` — local/personal, gitignored
 - `.claude/skill-configs/<skill>/config.yaml` — project-wide, committed
 - Cross-project skills (e.g. `dredge`, which operates over machine-level coding-agent transcript stores regardless of cwd) read **user-scope** config under `~/.claude/skill-configs/<skill>/` instead of project-relative paths, since cwd is incidental and the config is machine-level.
+- Agent-agnostic skills (e.g. `spex`, designed to run under any coding agent — Claude, Codex, ...) read config from the neutral `.agent-workspace/<skill>/` location instead of `.claude/skill-configs/<skill>/`, falling back to the latter for older installs.
 
 Always ship a `config.example.yaml` alongside `SKILL.md` documenting all supported fields.
