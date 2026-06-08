@@ -63,7 +63,7 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview
 
 Like it? Install with the marketplace commands above.
 
-Invocation: `/interview <topic> [--ref <path>] [--workspace <dir>]`
+Invocation: `/interview <topic> [--ref <path>]`
 
 ### spex
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
@@ -79,7 +79,7 @@ Invocation: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path]
 Subagent orchestration workflows and session modes. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for session-level correctness enforcement.
 
 Invocations:
-- `/macros:mapreduce <task> [--workspace <dir>]` — split tasks into chunks, dispatch parallel subagents, consolidate results
+- `/macros:mapreduce <task>` — split tasks into chunks, dispatch parallel subagents, consolidate results
 - `/macros:chunked <task>` — sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
 - `/macros:doubt ["freeform question"]` — spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
 - `/macros:consensus <count>` — run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
@@ -108,7 +108,7 @@ Invocation: `/gimme`
 ### report-writer
 Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
 
-Invocation: `/report-writer [topic] [--workspace <dir>]`
+Invocation: `/report-writer [topic]`
 
 ### rigorous-debug
 Evidence-based debugging protocol using the scientific method. Enforces hypothesis-driven investigation with controlled experiments. Requires one-time project-specific initialization before first use.

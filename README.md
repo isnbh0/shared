@@ -70,7 +70,7 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview
 Like it? Install with the marketplace commands above.
 
 ```
-/interview <topic> [--ref <path>] [--workspace <dir>]
+/interview <topic> [--ref <path>]
 ```
 
 - Extracts requirements, constraints, and design decisions through guided Q&A
@@ -104,7 +104,7 @@ Three self-contained skills:
 Subagent orchestration workflows and session modes: map-reduce, chunked sequencing, research-backed critique, consensus review, sequential passes, and rigor mode.
 
 ```
-/macros:mapreduce <task> [--workspace <dir>]
+/macros:mapreduce <task>
 /macros:chunked <task>
 /macros:doubt ["freeform question"]
 /macros:consensus <count>
@@ -169,7 +169,7 @@ Passive knowledgebase — automatically consulted when writing Phaser code.
 Structured technical analysis and debugging reports with standardized sections.
 
 ```
-/report-writer [topic] [--workspace <dir>]
+/report-writer [topic]
 ```
 
 - Generates timestamped reports (debugging, analysis, implementation)
@@ -209,7 +209,7 @@ File-producing skills (interview, spex, report-writer, macros, study, gimme) sup
 3. **Project config** (`.agents/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
 4. **Legacy fallback** (`.claude/skill-configs/<skill>/`) — older installs
 
-There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`).
+There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`).
 
 The `.agents/skill-configs/` convention is agent-neutral, so every skill runs identically under any coding agent (Claude, Codex, ...). When config is found only at a legacy path, the skill uses it and offers to move it to the new location. spex additionally falls back to its former `.agent-workspace/spex/` path.
 
