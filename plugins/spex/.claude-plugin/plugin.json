@@ -1,6 +1,6 @@
 {
   "name": "spex",
   "description": "Two-phase specification and implementation workflow",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": { "name": "isnbh0" }
 }

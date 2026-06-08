@@ -18,17 +18,17 @@ Implement according to the spec. Do not write new specs in this session.
 
 1. If the user explicitly asks to override the workspace location, use the directory they specify and skip config lookup.
 2. Check for config files (first match wins):
-   - `.agent-workspace/spex/config.local.yaml` (local scope, gitignored)
-   - `.agent-workspace/spex/config.yaml` (project scope, committed to repo)
-   - Legacy fallback (older installs): `.claude/skill-configs/spex/config.local.yaml`, then `.claude/skill-configs/spex/config.yaml`
+   - `.agents/skill-configs/spex/config.local.yaml` (local scope, gitignored)
+   - `.agents/skill-configs/spex/config.yaml` (project scope, committed to repo)
+   - Legacy fallback (older installs): `.agent-workspace/spex/config.local.yaml`, `.agent-workspace/spex/config.yaml`, then `.claude/skill-configs/spex/config.local.yaml`, `.claude/skill-configs/spex/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 3. **If no config found**: STOP and tell the user:
    > "No spex config found. I need a workspace directory to store spec files.
    > You can either:
    > 1. Specify a custom path
    > 2. Use the default `.agent-workspace/specs`
    >
-   > I'll create `.agent-workspace/spex/config.yaml` with your choice.
-   > (If you use the local scope, add `.agent-workspace/spex/config.local.yaml` to .gitignore.)
+   > I'll create `.agents/skill-configs/spex/config.yaml` with your choice.
+   > (If you use the local scope, add `.agents/skill-configs/spex/config.local.yaml` to .gitignore.)
    > (See `config.example.yaml` in the spex plugin for reference.)"
    Wait for the user's response, then create the config file before continuing.
 4. Set `${SPECS_DIR}` to the resolved `workspace_dir`. All paths below use this variable.

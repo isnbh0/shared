@@ -22,15 +22,15 @@ This skill supports a **two-phase workflow** where specification writing and imp
 Config is resolved with the following precedence (first match wins):
 
 1. **Explicit override** — the user asks to use a specific workspace directory for this run
-2. **Local config** (`.agent-workspace/spex/config.local.yaml`) — gitignored, personal overrides
-3. **Project config** (`.agent-workspace/spex/config.yaml`) — committed to repo, shared with team
-4. **Legacy fallback** (`.claude/skill-configs/spex/config.local.yaml`, then `config.yaml`) — older installs
+2. **Local config** (`.agents/skill-configs/spex/config.local.yaml`) — gitignored, personal overrides
+3. **Project config** (`.agents/skill-configs/spex/config.yaml`) — committed to repo, shared with team
+4. **Legacy fallback** (`.agent-workspace/spex/`, then `.claude/skill-configs/spex/`; `config.local.yaml` then `config.yaml`) — older installs
 5. **No config found** → STOP and ask the user
 
 There are no built-in defaults. See `config.example.yaml` in the plugin for reference.
 
 ```yaml
-# .agent-workspace/spex/config.yaml
+# .agents/skill-configs/spex/config.yaml
 workspace_dir: .agent-workspace/specs  # where spec files are created and managed
 ```
 
@@ -38,16 +38,16 @@ workspace_dir: .agent-workspace/specs  # where spec files are created and manage
 
 1. If the user explicitly asks to override the workspace location: use it directly, skip config lookup.
 2. Check for config files (first match wins):
-   - `.agent-workspace/spex/config.local.yaml` (local scope)
-   - `.agent-workspace/spex/config.yaml` (project scope)
-   - Legacy fallback (older installs): `.claude/skill-configs/spex/config.local.yaml`, then `.claude/skill-configs/spex/config.yaml`
+   - `.agents/skill-configs/spex/config.local.yaml` (local scope)
+   - `.agents/skill-configs/spex/config.yaml` (project scope)
+   - Legacy fallback (older installs): `.agent-workspace/spex/config.local.yaml`, `.agent-workspace/spex/config.yaml`, then `.claude/skill-configs/spex/config.local.yaml`, `.claude/skill-configs/spex/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
 3. **If no config found**: STOP and tell the user:
    > "No spex config found. I need a workspace directory to store spec files.
    > You can either:
    > 1. Specify a custom path
    > 2. Use the default `.agent-workspace/specs`
    >
-   > I'll create `.agent-workspace/spex/config.yaml` with your choice.
+   > I'll create `.agents/skill-configs/spex/config.yaml` with your choice.
    > (See `config.example.yaml` in the spex plugin for reference.)"
    Wait for the user's response, then create the config file before continuing.
 4. Set `${SPECS_DIR}` to the resolved `workspace_dir` value. All paths below use this variable.
