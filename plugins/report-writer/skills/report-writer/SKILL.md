@@ -10,12 +10,7 @@ Create structured technical analysis reports with timestamp-based naming and sta
 
 ## Invocation
 
-```
-/report-writer [topic] [--workspace <dir>]
-```
-
-- `[topic]`: Subject of the report
-- `--workspace <dir>`: Override the workspace directory for this report
+Provide the subject of the report, and optionally a specific workspace directory to use for this report.
 
 ## Configuration
 
