@@ -37,12 +37,12 @@ Default to the **current project's** transcripts (slug derived from `pwd`). Wide
 
 ## Search backend
 
-dredge has two backends. Resolve config from these files (first existing wins per
-key; precedence: project override > user-local > user):
+dredge has two backends. Resolve config by merging these files per key (first
+existing wins; precedence: project override > user-local > user):
 
-1. `~/.agents/skill-configs/dredge/config.local.yaml`
-2. `~/.agents/skill-configs/dredge/config.yaml`
-3. `.agents/skill-configs/dredge/config.yaml` (optional per-repo override)
+1. `.agents/skill-configs/dredge/config.yaml` — per-repo override (optional)
+2. `~/.agents/skill-configs/dredge/config.local.yaml` — user-local
+3. `~/.agents/skill-configs/dredge/config.yaml` — user (global)
 
 Legacy fallback (older installs): the same files under `~/.claude/skill-configs/dredge/` and `.claude/skill-configs/dredge/`. If config is found only at a legacy path, use it and offer to move it to the new location.
 
