@@ -2,37 +2,33 @@
 
 # Antigravity
 
-Antigravity supports Agent Skills through the shared `.agents/skills/` convention. Skills are activated by semantic matching against the skill description and available context.
+No Antigravity `SKILL.md` install root is recorded in this repository's [compatibility SSOT](README.md). Verify Antigravity's current product docs or UI before installing these skills there.
 
 ## Installation
+
+If Antigravity documents an Agent Skills-compatible directory, copy the whole skill directory there:
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-# Install a skill into your project
-mkdir -p .agents/skills
-cp -R /tmp/shared/plugins/interview/skills/interview .agents/skills/
+mkdir -p <skill-root>
+cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
 ```
 
 Repeat for any other skills you want:
 
 ```bash
-mkdir -p .agents/skills
-cp -R /tmp/shared/plugins/spex/skills/write .agents/skills/spex-write
-cp -R /tmp/shared/plugins/report-writer/skills/report-writer .agents/skills/
-cp -R /tmp/shared/plugins/rigorous-debug/skills/rigorous-debug .agents/skills/
+cp -R /tmp/shared/plugins/spex/skills/write <skill-root>/spex-write
+cp -R /tmp/shared/plugins/report-writer/skills/report-writer <skill-root>/
+cp -R /tmp/shared/plugins/rigorous-debug/skills/rigorous-debug <skill-root>/
 ```
 
 ## Usage
 
-Describe what you want naturally. Antigravity matches your request against installed skill descriptions:
+Use Antigravity's documented skill activation flow, if one exists. After installation, ask for the workflow by skill name or description, for example:
 
-| What to say | Skill activated |
-|-------------|----------------|
-| "Interview me about the auth system" | interview |
-| "Write a spec for the payment flow" | spex-write |
-| "Debug this using the rigorous method" | rigorous-debug |
-| "Write a technical report on the outage" | report-writer |
+> "Use the interview skill for the auth system."
+> "Use the spex-write skill for the payment flow."
 
 ## Configuration
 
@@ -48,5 +44,4 @@ The `workspace_dir` setting controls where output files are written, relative to
 ## Notes
 
 - Install the whole skill directory, including templates and knowledgebase files.
-- Passive skills like `phaser` activate automatically when you work on relevant code.
-- Antigravity can also consume skills provided by plugins; package layout may differ from direct `.agents/skills` installs.
+- Do not publish automation that writes Antigravity skill directories until the target path is verified against current Antigravity docs.

@@ -2,43 +2,34 @@
 
 # Cursor
 
-Cursor supports skills through its own skills directory and plugin ecosystem. Install these repository skills as complete `SKILL.md` directories.
+Use the skill roots listed in the [compatibility SSOT](README.md). This page only covers repo-specific usage patterns.
 
 ## Installation
-
-### Manual project-level install
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-mkdir -p .cursor/skills
-cp -R /tmp/shared/plugins/interview/skills/interview .cursor/skills/
-```
-
-### User-level install
-
-```bash
-mkdir -p ~/.cursor/skills
-cp -R /tmp/shared/plugins/interview/skills/interview ~/.cursor/skills/
+mkdir -p <skill-root>
+cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
 ```
 
 ### As a Cursor plugin
 
-Cursor plugins can bundle skills, rules, MCP servers, and hooks. To package these skills as a Cursor plugin, create the plugin manifest expected by Cursor and include the relevant directories from `plugins/<plugin>/skills/<skill>/`.
+For plugin packaging, follow Cursor's current plugin docs and include the relevant directories from `plugins/<plugin>/skills/<skill>/`.
 
 ## Usage
 
-Cursor discovers installed skills and activates them when relevant. Describe what you want:
+Use Cursor's documented skill activation flow. These prompt phrasings are typical for this repository's interactive skills:
 
 > "Interview me about the auth system"
 > "Write a spec for the refactor"
 
 ## Rules
 
-Cursor uses project rules for always-on instructions. For passive skills like `phaser`, reference the installed skill from your project rules if you want it always considered:
+For passive skills like `phaser`, reference the installed skill from project rules if you want it always considered:
 
 ```text
-When writing Phaser 3 code, consult .cursor/skills/phaser/SKILL.md for patterns and best practices.
+When writing Phaser 3 code, consult <skill-root>/phaser/SKILL.md for patterns and best practices.
 ```
 
 ## Configuration
@@ -53,5 +44,5 @@ vi .agents/skill-configs/interview/config.yaml
 ## Notes
 
 - Install the whole skill directory, including templates and knowledgebase files.
-- Use skills for on-demand workflows and Cursor rules for project-wide conventions.
+- Use skills for on-demand workflows and project rules for project-wide conventions.
 - Cursor plugin packaging is separate from this repository's Claude Code `.claude-plugin/` marketplace metadata.

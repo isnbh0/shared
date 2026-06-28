@@ -2,16 +2,18 @@
 
 These skills use the Agent Skills **SKILL.md** format: a directory containing a `SKILL.md` file with YAML frontmatter plus any supporting files. The skill content is portable; installation paths, command syntax, and marketplace packaging are host-specific.
 
-## Compatibility
+## Compatibility SSOT
 
-| Tool | Install Location | Invocation | Config Paths | Notes |
-|------|------------------|------------|--------------|-------|
-| [Codex CLI](codex-cli.md) | `.agents/skills/<name>/` | Semantic triggering or explicit skill mention | `.agents/skill-configs/` | Native Agent Skills support |
-| [Amp](amp.md) | `.agents/skills/<name>/` | Semantic triggering | `.agents/skill-configs/` | Also reads user-level Agent Skills locations |
-| [Antigravity](antigravity.md) | `.agents/skills/<name>/` | Semantic triggering | `.agents/skill-configs/` | Native Agent Skills support |
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) | `.claude/skills/<name>/` or marketplace plugin | Slash command / skill invocation | `.agents/skill-configs/` | Marketplace packages use `.claude-plugin/` metadata |
-| [Cursor](cursor.md) | `.cursor/skills/<name>/` | Semantic triggering or explicit skill mention | `.agents/skill-configs/` | Cursor-specific skills directory |
-| [Gemini CLI](gemini-cli.md) | `skills/<name>/` inside an extension, or explicit command/context wiring | Custom command or natural language with context | `.agents/skill-configs/` | Extension system can package skills |
+This table is the only place in this repository that should list third-party install roots. Other docs should link here or use `<skill-root>`. Verify the target tool's current docs before turning these rows into automation.
+
+| Tool | Skill Root / Status | Notes |
+|------|---------------------|-------|
+| [Codex CLI](codex-cli.md) | `.agents/skills/<name>/` | Agent Skills support |
+| [Gemini CLI](gemini-cli.md) | `.agents/skills/<name>/`, `.gemini/skills/<name>/`, or extension-local `skills/<name>/` | Agent Skills support |
+| [Amp](amp.md) | `.agents/skills/<name>/`; user roots include `~/.config/agents/skills/`, `~/.agents/skills/`, and `~/.config/amp/skills/` | Agent Skills support |
+| [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) | `.claude/skills/<name>/` or marketplace plugin | Marketplace packages use `.claude-plugin/` metadata |
+| [Cursor](cursor.md) | `.cursor/skills/<name>/`; Cursor docs also mention `.agents/skills/<name>/` | Agent Skills support |
+| [Antigravity](antigravity.md) | Not confirmed here | Verify current Antigravity docs or UI before installing |
 
 ## What Works Everywhere
 
@@ -29,19 +31,19 @@ Install the whole skill directory:
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-mkdir -p <project>/.agents/skills
-cp -R /tmp/shared/plugins/interview/skills/interview <project>/.agents/skills/
+mkdir -p <skill-root>
+cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
 ```
 
-If your host does not read `.agents/skills`, use that host's skills directory from the compatibility table. Do not copy only `SKILL.md` when the skill has templates, examples, or knowledgebase files.
+Resolve `<skill-root>` from the compatibility table or the target host's current docs. Do not copy only `SKILL.md` when the skill has templates, examples, or knowledgebase files.
 
 ### Invocation
 
-Claude Code marketplace installs expose slash-style invocations such as `/interview` or `/spex:write`. Other tools usually use semantic triggering:
+Claude Code marketplace installs expose slash-style invocations such as `/interview` or `/spex:write`. Other tools may use semantic triggering, explicit skill mentions, command files, or UI activation:
 
 > "Interview me about a career change"
 
-The agent matches this to the skill's `description` and follows its instructions. Some hosts also support explicit skill mentions or custom commands.
+The portable part is the skill name, frontmatter description, and `SKILL.md` instructions; the activation mechanism belongs to the host.
 
 ### Configuration Paths
 
@@ -71,7 +73,7 @@ The spex plugin includes `write`, `write-phased`, and `implement` skills. In Cla
 - [Amp](amp.md)
 - [Cursor](cursor.md)
 
-> **Note:** The agentic tooling ecosystem changes quickly. Paths and mechanisms in these guides were checked against public docs on 2026-06-28, but you should verify against each tool's current documentation before publishing automation around them.
+> **Maintenance note:** Keep provider-specific install roots in the compatibility table above. Use `<skill-root>` everywhere else unless a provider-specific page is explicitly documenting an exception.
 
 ## Available Skills
 

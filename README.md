@@ -10,28 +10,18 @@ The reusable source of truth is each skill directory under `plugins/<plugin>/ski
 
 ### Option A: Copy / Symlink Skills
 
-Use this for any agent that reads `SKILL.md` skills directly.
+Use this for any agent that reads `SKILL.md` skills directly. Resolve the target agent's current skill root from its own docs or from the compatibility SSOT in [docs/cross-platform/README.md](docs/cross-platform/README.md).
 
 ```bash
 # Clone to your preferred location
 git clone <repo-url> ~/shared
 
-# Agents that read .agents/skills, including Codex, Amp, and Antigravity
-mkdir -p /path/to/project/.agents/skills
-cp -R ~/shared/plugins/interview/skills/interview /path/to/project/.agents/skills/
-
-# Claude Code standalone skills
-mkdir -p /path/to/project/.claude/skills
-cp -R ~/shared/plugins/interview/skills/interview /path/to/project/.claude/skills/
-
-# Cursor skills
-mkdir -p /path/to/project/.cursor/skills
-cp -R ~/shared/plugins/interview/skills/interview /path/to/project/.cursor/skills/
+# Copy the whole skill directory, not only SKILL.md
+mkdir -p <skill-root>
+cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 ```
 
 For automatic updates, symlink the skill directory instead of copying it.
-
-Gemini CLI usually needs an extension, command, or context file that explicitly reads the installed `SKILL.md`; see the cross-platform guide for that wiring.
 
 ### Option B: Claude Code Marketplace
 
@@ -54,7 +44,7 @@ Then install individual skills:
 
 ## Skills
 
-Claude Code marketplace invocations are shown below. Other agents usually activate skills by natural-language matching, explicit skill mention, or their own command system.
+Claude Code marketplace invocations are shown below. For other hosts, use that host's documented skill activation mechanism.
 
 ### Published (marketplace)
 
@@ -70,8 +60,8 @@ External AI critique via CLI tools (Codex, Gemini).
 ```
 
 - Gets an independent second opinion on specs, code, or recent changes
-- **Codex backend:** Runs in a read-only sandbox, supports reasoning effort levels (default, high, xhigh)
-- **Gemini backend:** Sandboxed with write and network restrictions
+- **Codex backend:** Runs a configured Codex CLI review
+- **Gemini backend:** Runs a configured Gemini CLI review
 
 #### interview
 
@@ -169,7 +159,7 @@ User-invoked inversion of delegation — hand the agent a request and get back a
 Available in the repo but not published to the marketplace. Install via symlink or copy:
 
 ```bash
-cp -R ~/shared/plugins/<plugin>/skills/<skill> /path/to/project/.agents/skills/
+cp -R ~/shared/plugins/<plugin>/skills/<skill> <skill-root>/
 ```
 
 Invocation snippets below are Claude Code style; in other agents, ask for the workflow by skill name or description.
@@ -235,13 +225,7 @@ Use `.agents/skill-configs/` for new configuration. The `.claude/skill-configs/`
 
 ## Other Agentic Tools
 
-These skills use the Agent Skills `SKILL.md` format, which is supported across multiple AI coding tools. See the [cross-platform guide](docs/cross-platform/README.md) for installation instructions for:
-
-- [Codex CLI](docs/cross-platform/codex-cli.md) (OpenAI)
-- [Gemini CLI](docs/cross-platform/gemini-cli.md) (Google)
-- [Antigravity](docs/cross-platform/antigravity.md) (Google)
-- [Amp](docs/cross-platform/amp.md) (Sourcegraph)
-- [Cursor](docs/cross-platform/cursor.md)
+These skills use the Agent Skills `SKILL.md` format. Provider-specific install roots and activation notes live in the [cross-platform guide](docs/cross-platform/README.md); avoid copying those details into other docs.
 
 ## License
 

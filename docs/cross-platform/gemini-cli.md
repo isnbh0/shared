@@ -2,66 +2,45 @@
 
 # Gemini CLI
 
-Gemini CLI has an extension and custom-command system. Treat these repository skills as portable `SKILL.md` resources: package them inside a Gemini extension, or create commands/context that explicitly tell Gemini to read the relevant `SKILL.md`.
+Use the skill roots listed in the [compatibility SSOT](README.md). This page only covers repo-specific usage patterns.
 
 ## Installation
-
-### As extension resources
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-# Example extension-local layout
-mkdir -p .gemini/extensions/shared-skills/skills/interview
-cp -R /tmp/shared/plugins/interview/skills/interview/* .gemini/extensions/shared-skills/skills/interview/
+mkdir -p <skill-root>
+cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
 ```
 
-Add the extension manifest and any command wiring required by Gemini CLI's current extension format.
-
-### As plain project resources
-
-If you do not want to package an extension, keep skills in a project directory and point commands or `GEMINI.md` at them:
+For extension-bundled installs, copy the skill directory into the extension's documented skills directory:
 
 ```bash
-mkdir -p .agents/skills
-cp -R /tmp/shared/plugins/interview/skills/interview .agents/skills/
-```
-
-## Custom Slash Commands
-
-Gemini CLI supports custom slash commands via TOML files. A command can load a skill explicitly:
-
-```toml
-# .gemini/commands/interview.toml
-[command]
-name = "interview"
-description = "Conduct a structured discovery interview"
-
-[command.prompt]
-text = """
-Read .agents/skills/interview/SKILL.md and follow it.
-Topic: $ARGS
-"""
-```
-
-Place commands in `.gemini/commands/` for the project or `~/.gemini/commands/` globally.
-
-### Example command for spex write
-
-```toml
-# .gemini/commands/write.toml
-[command]
-name = "write"
-description = "Write a specification document"
-
-[command.prompt]
-text = """
-Read .agents/skills/spex-write/SKILL.md and follow it.
-Args: $ARGS
-"""
+mkdir -p <extension-skill-root>
+cp -R /tmp/shared/plugins/interview/skills/interview <extension-skill-root>/
 ```
 
 ## Usage
+
+Use Gemini CLI's documented skill activation flow. These prompt phrasings are typical for this repository's interactive skills:
+
+> "Interview me about the auth system design."
+
+## Optional Commands
+
+If you use Gemini CLI custom commands, keep the command-file schema in Gemini's docs and make the command prompt reference the installed skill:
+
+```text
+Read <skill-root>/interview/SKILL.md and follow it.
+Topic: $ARGS
+```
+
+For `spex-write`:
+
+```text
+Read <skill-root>/spex-write/SKILL.md and follow it.
+Args: $ARGS
+```
 
 With custom commands:
 
@@ -69,10 +48,6 @@ With custom commands:
 /interview auth-system
 /write auth-refactor
 ```
-
-Without custom commands, use natural language after making the skill file available as context:
-
-> "Read .agents/skills/interview/SKILL.md and interview me about the auth system design."
 
 ## Configuration
 
@@ -85,16 +60,15 @@ vi .agents/skill-configs/interview/config.yaml
 
 ## Context Files
 
-Gemini CLI loads `GEMINI.md` as project-level always-on context. For passive skills like `phaser`, reference the skill from `GEMINI.md`:
+For passive skills like `phaser`, reference the skill from your always-on Gemini CLI context file:
 
 ```markdown
 ## Skills
 
-When writing Phaser 3 code, consult `.agents/skills/phaser/SKILL.md` for patterns and best practices.
+When writing Phaser 3 code, consult `<skill-root>/phaser/SKILL.md` for patterns and best practices.
 ```
 
 ## Notes
 
-- Gemini CLI extensions can bundle MCP servers, commands, and context alongside project resources.
-- Use custom commands for interactive workflows such as `interview` and `spex`.
-- Use `GEMINI.md` for always-on project conventions and passive knowledgebases.
+- Use custom commands when you want stable slash-command aliases for interactive workflows such as `interview` and `spex`.
+- Use always-on context files for project conventions and passive knowledgebases.

@@ -10,7 +10,7 @@ First identify the user's target agent or editor. The portable source of truth i
 
 ### Option A: Direct skill install
 
-Use this for agents that read `SKILL.md` skills from the filesystem.
+Use this for agents that read `SKILL.md` skills from the filesystem. Resolve `<install-root>` from the target agent's current documentation or from this repository's compatibility SSOT: `docs/cross-platform/README.md`. Do not repeat provider-specific install roots elsewhere in this file.
 
 ```bash
 # Clone the repository if needed
@@ -20,17 +20,6 @@ git clone git@github.com:isnbh0/shared.git ~/shared
 mkdir -p <install-root>
 cp -R ~/shared/plugins/<plugin-name>/skills/<skill-name> <install-root>/
 ```
-
-Common install roots:
-
-| Target | Install root |
-|--------|--------------|
-| Codex CLI | `.agents/skills/<skill-name>/` |
-| Amp | `.agents/skills/<skill-name>/` |
-| Antigravity | `.agents/skills/<skill-name>/` |
-| Claude Code standalone skills | `.claude/skills/<skill-name>/` |
-| Cursor | `.cursor/skills/<skill-name>/` |
-| Gemini CLI | `skills/<skill-name>/` inside a Gemini extension, or a context/command setup that explicitly reads the skill file |
 
 ### Option B: Claude Code marketplace
 
@@ -63,7 +52,7 @@ mkdir -p <install-root>
 ln -s ~/shared/plugins/<plugin-name>/skills/<skill-name> <install-root>/<skill-name>
 ```
 
-Choose the install root from the table above.
+Use the same resolved `<install-root>` as Option A.
 
 ## Available Skills
 
@@ -234,7 +223,7 @@ Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is 
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only.
-- For Gemini CLI, install through a Gemini extension or a command/context setup that explicitly reads the skill; do not assume a native `.gemini/skills` directory unless the user's current Gemini CLI docs or project already use one.
+- Provider-specific install roots are centralized in `docs/cross-platform/README.md`; verify target-agent docs before automating installs.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` or otherwise ask the target agent to follow that skill before it is usable.
 - Always verify that the clone location (`~/shared` or user-specified) does not conflict with existing directories before cloning.

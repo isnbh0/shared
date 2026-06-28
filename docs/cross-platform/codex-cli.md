@@ -2,28 +2,16 @@
 
 # Codex CLI
 
-Codex supports Agent Skills natively. Install project skills under `.agents/skills/` or user-level skills under `~/.agents/skills/`. Codex can activate relevant skills automatically and can also be directed to use a specific skill by name.
+Use the skill root listed in the [compatibility SSOT](README.md). This page only covers repo-specific usage patterns.
 
 ## Installation
-
-### Project-level
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-# Install a single skill
-mkdir -p .agents/skills
-cp -R /tmp/shared/plugins/interview/skills/interview .agents/skills/
-
-# Install a spex sub-skill
-cp -R /tmp/shared/plugins/spex/skills/write .agents/skills/spex-write
-```
-
-### User-level
-
-```bash
-mkdir -p ~/.agents/skills
-cp -R /tmp/shared/plugins/interview/skills/interview ~/.agents/skills/
+mkdir -p <skill-root>
+cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
+cp -R /tmp/shared/plugins/spex/skills/write <skill-root>/spex-write
 ```
 
 ## Usage
@@ -56,6 +44,6 @@ The `workspace_dir` setting works as-is; relative paths are resolved from the pr
 
 ## Notes
 
-- Codex also supports `AGENTS.md` for always-on project instructions; that is separate from skills.
-- The `phaser` skill works as a passive knowledgebase when installed, because Codex can infer relevance from the request and code context.
+- Use `AGENTS.md` for always-on project instructions; keep task-specific workflows in skills.
+- The `phaser` skill can be installed as a passive knowledgebase for Phaser work.
 - Claude Code plugin namespace syntax such as `/spex:write` does not apply directly. Install the sub-skill you want and refer to it by its installed name or description.
