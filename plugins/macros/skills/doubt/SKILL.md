@@ -98,5 +98,5 @@ Direct answer first, then supporting evidence as a bullet list with citations.
 
 ## Notes
 
-- Permission control (whether agents can edit files, access web) is handled at the Claude Code tooling level. This skill assumes full access.
+- Permission control (whether agents can edit files or access the web) is handled by the host agent/tooling. This skill assumes full access.
 - If WebSearch/WebFetch are unavailable, agents still produce useful critique — just without external verification.

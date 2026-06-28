@@ -2,28 +2,34 @@
 
 # Gemini CLI
 
-> **Note:** The agentic tooling ecosystem is evolving rapidly. Paths and mechanisms described here are based on research as of early 2026 and may have changed. Verify against [Gemini CLI's current documentation](https://geminicli.com/docs/) before use.
-
-Google's Gemini CLI has an extensions ecosystem that supports prompts, custom commands, and MCP servers. Skills can be installed as extensions or loaded as context files.
+Gemini CLI has an extension and custom-command system. Treat these repository skills as portable `SKILL.md` resources: package them inside a Gemini extension, or create commands/context that explicitly tell Gemini to read the relevant `SKILL.md`.
 
 ## Installation
 
-### As project-level skills
+### As extension resources
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-mkdir -p .gemini/skills/interview
-cp /tmp/shared/plugins/interview/skills/interview/* .gemini/skills/interview/
+# Example extension-local layout
+mkdir -p .gemini/extensions/shared-skills/skills/interview
+cp -R /tmp/shared/plugins/interview/skills/interview/* .gemini/extensions/shared-skills/skills/interview/
 ```
 
-### As a Gemini CLI extension
+Add the extension manifest and any command wiring required by Gemini CLI's current extension format.
 
-Package skills as a Gemini extension for installation via `gemini extensions install`. See the [Gemini CLI extensions docs](https://geminicli.com/docs/extensions/) for the extension directory structure.
+### As plain project resources
+
+If you do not want to package an extension, keep skills in a project directory and point commands or `GEMINI.md` at them:
+
+```bash
+mkdir -p .agents/skills
+cp -R /tmp/shared/plugins/interview/skills/interview .agents/skills/
+```
 
 ## Custom Slash Commands
 
-Gemini CLI supports custom slash commands via `.toml` files. To create a command for a skill, add a `.toml` file to `.gemini/commands/`:
+Gemini CLI supports custom slash commands via TOML files. A command can load a skill explicitly:
 
 ```toml
 # .gemini/commands/interview.toml
@@ -33,14 +39,14 @@ description = "Conduct a structured discovery interview"
 
 [command.prompt]
 text = """
-Read the skill instructions at .gemini/skills/interview/SKILL.md and follow them.
+Read .agents/skills/interview/SKILL.md and follow it.
 Topic: $ARGS
 """
 ```
 
-Place in `.gemini/commands/` (project-level) or `~/.gemini/commands/` (global).
+Place commands in `.gemini/commands/` for the project or `~/.gemini/commands/` globally.
 
-### Example commands for other skills
+### Example command for spex write
 
 ```toml
 # .gemini/commands/write.toml
@@ -50,8 +56,7 @@ description = "Write a specification document"
 
 [command.prompt]
 text = """
-Read the skill instructions at .gemini/skills/spex/SKILL.md and follow them.
-Mode: write
+Read .agents/skills/spex-write/SKILL.md and follow it.
 Args: $ARGS
 """
 ```
@@ -60,35 +65,36 @@ Args: $ARGS
 
 With custom commands:
 
-```
+```text
 /interview auth-system
 /write auth-refactor
 ```
 
-Without custom commands, use natural language:
+Without custom commands, use natural language after making the skill file available as context:
 
-> "Interview me about the auth system design"
+> "Read .agents/skills/interview/SKILL.md and interview me about the auth system design."
 
 ## Configuration
 
-Edit `config.yaml` directly in the skill's install directory:
+Use the shared config convention:
 
 ```bash
-vi .gemini/skills/interview/config.yaml
+mkdir -p .agents/skill-configs/interview
+vi .agents/skill-configs/interview/config.yaml
 ```
 
 ## Context Files
 
-Gemini CLI loads `GEMINI.md` as always-on context. For passive skills like `phaser`, you can reference the skill from `GEMINI.md`:
+Gemini CLI loads `GEMINI.md` as project-level always-on context. For passive skills like `phaser`, reference the skill from `GEMINI.md`:
 
 ```markdown
 ## Skills
 
-When writing Phaser 3 code, consult `.gemini/skills/phaser/SKILL.md` for patterns and best practices.
+When writing Phaser 3 code, consult `.agents/skills/phaser/SKILL.md` for patterns and best practices.
 ```
 
 ## Notes
 
-- Gemini CLI extensions can bundle MCP servers, themes, and hooks alongside skills
-- The Extensions Gallery at [geminicli.com/extensions](https://geminicli.com/extensions/browse/) is the central registry for sharing extensions
-- `GEMINI.md` serves the same role as Claude Code's `CLAUDE.md` — project-level always-on instructions
+- Gemini CLI extensions can bundle MCP servers, commands, and context alongside project resources.
+- Use custom commands for interactive workflows such as `interview` and `spex`.
+- Use `GEMINI.md` for always-on project conventions and passive knowledgebases.

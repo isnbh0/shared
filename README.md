@@ -1,14 +1,41 @@
-# Shared Dotfiles & Configs
+# Shared Dotfiles & Agent Skills
 
-Personal collection of generalizable dotfiles, configurations, and Claude Code skills for reuse across projects.
+Personal collection of reusable dotfiles, configurations, and portable `SKILL.md` agent skills for coding agents.
 
 [한국어](README.ko.md)
 
 ## Installation
 
-### Option A: Plugin (recommended)
+The reusable source of truth is each skill directory under `plugins/<plugin>/skills/<skill>/`. A skill is portable when the full directory contains a `SKILL.md` file and any supporting resources.
 
-First, register the marketplace:
+### Option A: Copy / Symlink Skills
+
+Use this for any agent that reads `SKILL.md` skills directly.
+
+```bash
+# Clone to your preferred location
+git clone <repo-url> ~/shared
+
+# Agents that read .agents/skills, including Codex, Amp, and Antigravity
+mkdir -p /path/to/project/.agents/skills
+cp -R ~/shared/plugins/interview/skills/interview /path/to/project/.agents/skills/
+
+# Claude Code standalone skills
+mkdir -p /path/to/project/.claude/skills
+cp -R ~/shared/plugins/interview/skills/interview /path/to/project/.claude/skills/
+
+# Cursor skills
+mkdir -p /path/to/project/.cursor/skills
+cp -R ~/shared/plugins/interview/skills/interview /path/to/project/.cursor/skills/
+```
+
+For automatic updates, symlink the skill directory instead of copying it.
+
+Gemini CLI usually needs an extension, command, or context file that explicitly reads the installed `SKILL.md`; see the cross-platform guide for that wiring.
+
+### Option B: Claude Code Marketplace
+
+The repository also packages selected skills as Claude Code marketplace plugins. First, register the marketplace:
 
 ```bash
 /plugin marketplace add isnbh0/shared
@@ -25,24 +52,13 @@ Then install individual skills:
 /plugin install gimme@isnbh0
 ```
 
-### Option B: Symlink / Copy
-
-```bash
-# Clone to your preferred location
-git clone <repo-url> ~/shared
-
-# Symlink .claude directory into a project
-ln -s ~/shared/.claude /path/to/project/.claude
-
-# Or copy specific skills
-cp -r ~/shared/plugins/spex/skills/spex /path/to/project/.claude/skills/
-```
-
 ## Skills
+
+Claude Code marketplace invocations are shown below. Other agents usually activate skills by natural-language matching, explicit skill mention, or their own command system.
 
 ### Published (marketplace)
 
-Installable via `/plugin install <name>@isnbh0`:
+Installable in Claude Code via `/plugin install <name>@isnbh0`:
 
 #### critique
 
@@ -61,7 +77,7 @@ External AI critique via CLI tools (Codex, Gemini).
 
 Structured requirements discovery through conversational interviews.
 
-**Try it without installing:**
+**Try it without installing in Claude Code:**
 
 ```bash
 claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-latest/interview.zip
@@ -137,14 +153,14 @@ Subagent orchestration workflows and session modes: map-reduce, chunked sequenci
 
 #### gimme
 
-User-invoked inversion of delegation — hand Claude a request and get back a filesystem bundle you can act on.
+User-invoked inversion of delegation — hand the agent a request and get back a filesystem bundle you can act on.
 
 ```
 /gimme
 ```
 
 - Writes a timestamped bundle with `checklist.md`, `notes.md` (template with pre-labeled paste slots), and an empty `dropbox/` directory for file artifacts
-- Each checklist item has action / why-it's-on-you / drop-path so results land somewhere Claude can pick up without further direction
+- Each checklist item has action / why-it's-on-you / drop-path so results land somewhere the agent can pick up without further direction
 - Optional `launch_command` config (e.g. `cursor {path}`, `code {path}`, `open {path}`) opens the bundle in your editor immediately
 - Never self-invoked — only runs when you explicitly call `/gimme`
 
@@ -153,8 +169,10 @@ User-invoked inversion of delegation — hand Claude a request and get back a fi
 Available in the repo but not published to the marketplace. Install via symlink or copy:
 
 ```bash
-cp -r ~/shared/plugins/<name>/skills/<skill> /path/to/project/.claude/skills/
+cp -R ~/shared/plugins/<plugin>/skills/<skill> /path/to/project/.agents/skills/
 ```
+
+Invocation snippets below are Claude Code style; in other agents, ask for the workflow by skill name or description.
 
 #### phaser
 
@@ -192,7 +210,7 @@ Evidence-based debugging protocol using the scientific method.
 
 #### skill-writer
 
-Tools for creating effective Claude Code skills.
+Tools for creating effective `SKILL.md` agent skills.
 
 ```
 /skill-writer
@@ -213,11 +231,11 @@ File-producing skills (interview, spex, report-writer, macros, study, gimme) sup
 
 There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`).
 
-The `.agents/skill-configs/` convention is agent-neutral, so every skill runs identically under any coding agent (Claude, Codex, ...). When config is found only at a legacy path, the skill uses it and offers to move it to the new location. spex additionally falls back to its former `.agent-workspace/spex/` path.
+Use `.agents/skill-configs/` for new configuration. The `.claude/skill-configs/` path is retained only as a legacy fallback for older installs.
 
 ## Other Agentic Tools
 
-These skills use the SKILL.md format, which is supported across multiple AI coding tools. See the [cross-platform guide](docs/cross-platform/README.md) for installation instructions for:
+These skills use the Agent Skills `SKILL.md` format, which is supported across multiple AI coding tools. See the [cross-platform guide](docs/cross-platform/README.md) for installation instructions for:
 
 - [Codex CLI](docs/cross-platform/codex-cli.md) (OpenAI)
 - [Gemini CLI](docs/cross-platform/gemini-cli.md) (Google)

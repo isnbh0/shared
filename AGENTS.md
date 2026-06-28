@@ -1,22 +1,22 @@
 # Developer Guide
 
-## Publishing a New Plugin
+## Publishing a New Claude Code Marketplace Plugin
 
 ### File structure
 
-Each plugin lives under `plugins/<name>/` and has this layout:
+Each marketplace plugin lives under `plugins/<name>/` and has this layout. The `.claude-plugin/` directory is Claude Code marketplace metadata; the portable skill content lives under `skills/<skill-name>/`.
 
 ```
 plugins/<name>/
 ├── .claude-plugin/
-│   └── plugin.json        # Plugin metadata
+│   └── plugin.json        # Claude Code marketplace metadata
 └── skills/
     └── <skill-name>/
         ├── SKILL.md            # The skill itself
         └── config.example.yaml # Config reference (if the skill uses config)
 ```
 
-A plugin can contain multiple skills (e.g., macros has mapreduce, doubt; spex has write, write-phased, implement). Each skill gets its own directory under `skills/`.
+A plugin can contain multiple portable Agent Skills (e.g., macros has mapreduce, doubt; spex has write, write-phased, implement). Each skill gets its own directory under `skills/`.
 
 `plugin.json` format:
 
@@ -31,21 +31,21 @@ A plugin can contain multiple skills (e.g., macros has mapreduce, doubt; spex ha
 
 ### Publishing checklist
 
-When publishing a plugin to the marketplace, update all of the following:
+When publishing a plugin to the Claude Code marketplace, update all of the following:
 
 - [ ] `plugins/<name>/skills/<skill-name>/SKILL.md` — the skill
 - [ ] `plugins/<name>/skills/<skill-name>/config.example.yaml` — if the skill uses config
 - [ ] `plugins/<name>/.claude-plugin/plugin.json` — plugin metadata (bump version if updating)
 - [ ] `.claude-plugin/marketplace.json` — add entry to `plugins` array
 - [ ] `llms.txt` — update these sections (skip any that don't apply):
-  - Install command block
+  - Direct-install and Claude Code marketplace install blocks
   - The "published to the marketplace" note (keep plugin list and skill enumeration current)
   - Available Skills → Published section (add skill entry)
   - File Structure Reference (add plugin/skill to tree)
   - Workspace Configuration table (if file-producing)
   - Notes for LLMs (keep skill enumeration current)
 - [ ] `README.md` — update these sections (skip any that don't apply):
-  - Install command block
+  - Direct-install and Claude Code marketplace install blocks
   - Published skills section (add entry)
   - Workspace Configuration note (if file-producing)
 - [ ] `README.ko.md` — same sections as README.md

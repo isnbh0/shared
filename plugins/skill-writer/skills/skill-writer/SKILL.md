@@ -1,6 +1,6 @@
 ---
 name: Skill Writing
-description: Creates effective Claude Code skills following best practices. Use when the user asks to create a skill, write a SKILL.md, or needs help authoring agent instructions.
+description: Creates effective SKILL.md agent skills following best practices. Use when the user asks to create a skill, write a SKILL.md, or needs help authoring agent instructions.
 ---
 
 # Skill Writing
@@ -39,11 +39,11 @@ What context do you repeatedly provide? What procedural knowledge is needed?
 
 **Step 2: Draft concise instructions**
 
-Start minimal. Claude is already smart - only add what Claude doesn't know.
+Start minimal. The target agent already has general reasoning ability - only add domain knowledge, workflow constraints, and tool-specific details it would not otherwise know.
 
 Challenge each piece of information:
-- Does Claude really need this explanation?
-- Can I assume Claude knows this?
+- Does the agent really need this explanation?
+- Can I assume the target model knows this?
 - Does this paragraph justify its token cost?
 
 **Step 3: Add metadata**
@@ -56,15 +56,15 @@ Write description in third person, including:
 description: Extract text from PDFs, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.
 ```
 
-**Step 4: Test with target model(s)**
+**Step 4: Test with target agent(s) and model(s)**
 
-- Haiku: Does it provide enough guidance?
-- Sonnet: Is it clear and efficient?
-- Opus: Does it avoid over-explaining?
+- Fast/compact model: Does it provide enough guidance?
+- Default coding model: Is it clear and efficient?
+- High-reasoning model: Does it avoid over-explaining?
 
 **Step 5: Iterate based on usage**
 
-Observe how Claude uses the skill. Watch for:
+Observe how the agent uses the skill. Watch for:
 - Unexpected exploration paths
 - Missed connections
 - Overreliance on certain sections
@@ -142,14 +142,14 @@ ALWAYS use this exact structure:
 
 ## For Skills with Code
 
-**Utility scripts**: Provide pre-made scripts rather than having Claude write them
+**Utility scripts**: Provide pre-made scripts rather than having the agent write them
 - More reliable than generated code
 - Save tokens and time
 - Ensure consistency
 
 **Package dependencies**: List required packages and verify availability
 
-**Visual analysis**: Convert to images for Claude to analyze layouts
+**Visual analysis**: Convert to images for the agent to analyze layouts
 
 **Verifiable outputs**: Create plan files that get validated before execution
 
@@ -165,4 +165,4 @@ ALWAYS use this exact structure:
 
 **Testing**: Test with all target models
 
-**Conciseness**: Assume Claude is smart, only add what's needed
+**Conciseness**: Assume the target agent can infer common knowledge; only add what's needed

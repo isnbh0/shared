@@ -1,22 +1,43 @@
-# Shared Claude Code Skills
+# Shared Agent Skills
 
 > Source: https://github.com/isnbh0/shared
 
-A collection of reusable Claude Code skills and command aliases, distributed as Claude Code plugins. This file instructs LLMs on how to install skills from this repository into a user's project.
+A collection of reusable `SKILL.md` Agent Skills plus Claude Code marketplace plugin packages. This file instructs LLMs on how to install skills from this repository into a user's project without assuming a Claude-only environment.
 
 ## Installation Instructions
 
-### Option A: Plugin (recommended)
+First identify the user's target agent or editor. The portable source of truth is each skill directory under `plugins/<plugin-name>/skills/<skill-name>/`; install the whole directory, not only `SKILL.md`.
 
-First, register the marketplace:
+### Option A: Direct skill install
 
+Use this for agents that read `SKILL.md` skills from the filesystem.
+
+```bash
+# Clone the repository if needed
+git clone git@github.com:isnbh0/shared.git ~/shared
+
+# Copy one skill into the target agent's skills directory
+mkdir -p <install-root>
+cp -R ~/shared/plugins/<plugin-name>/skills/<skill-name> <install-root>/
 ```
+
+Common install roots:
+
+| Target | Install root |
+|--------|--------------|
+| Codex CLI | `.agents/skills/<skill-name>/` |
+| Amp | `.agents/skills/<skill-name>/` |
+| Antigravity | `.agents/skills/<skill-name>/` |
+| Claude Code standalone skills | `.claude/skills/<skill-name>/` |
+| Cursor | `.cursor/skills/<skill-name>/` |
+| Gemini CLI | `skills/<skill-name>/` inside a Gemini extension, or a context/command setup that explicitly reads the skill file |
+
+### Option B: Claude Code marketplace
+
+Use this only when the target is Claude Code and the user wants marketplace installation.
+
+```bash
 /plugin marketplace add isnbh0/shared
-```
-
-Then install individual skills:
-
-```
 /plugin install interview@isnbh0
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
@@ -25,119 +46,109 @@ Then install individual skills:
 /plugin install gimme@isnbh0
 ```
 
-> **Note:** Only the six plugins above are published to the marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via copy or symlink (Options B/C below).
+Only the six plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
-### Option B: Install individual skills (copy)
-
-Copy only the skills the user needs. Each skill is a self-contained directory under `plugins/<name>/skills/<name>/`.
-
-```bash
-# Clone the repository (if not already cloned)
-git clone git@github.com:isnbh0/shared.git ~/shared
-
-# Copy a specific skill
-cp -r ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude/skills/
-```
-
-### Option C: Install individual skills (symlink)
-
-Symlink individual skills for automatic updates when the source repo is pulled.
-
-```bash
-ln -s ~/shared/plugins/<skill-name>/skills/<skill-name> /path/to/project/.claude/skills/<skill-name>
-```
-
-
-## Available Skills
-
-### Published (marketplace)
-
-### interview
-Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
-
-**Try it without installing:**
+**Claude Code one-shot trial:**
 
 ```bash
 claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-latest/interview.zip
 ```
 
-Like it? Install with the marketplace commands above.
+### Option C: Direct skill install by symlink
 
-Invocation: `/interview <topic> [--ref <path>]`
+Symlink individual skills for automatic updates when the source repo is pulled.
+
+```bash
+mkdir -p <install-root>
+ln -s ~/shared/plugins/<plugin-name>/skills/<skill-name> <install-root>/<skill-name>
+```
+
+Choose the install root from the table above.
+
+## Available Skills
+
+### Published as Claude Code marketplace plugins
+
+### interview
+Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
+
+Claude Code invocation: `/interview <topic> [--ref <path>]`
 
 ### spex
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
 
-Skills: `/spex:write`, `/spex:write-phased`, `/spex:implement`
+Claude Code invocations: `/spex:write`, `/spex:write-phased`, `/spex:implement`
 
 ### critique
 External AI critique via CLI tools (Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using sandboxed execution.
 
-Invocation: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path] [focus]`
+Claude Code invocations: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path] [focus]`
 
 ### macros
 Subagent orchestration workflows and session modes. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for session-level correctness enforcement.
 
-Invocations:
-- `/macros:mapreduce <task>` — split tasks into chunks, dispatch parallel subagents, consolidate results
-- `/macros:chunked <task>` — sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
-- `/macros:doubt ["freeform question"]` — spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
-- `/macros:consensus <count>` — run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
-- `/macros:seq <count>` — run N serial blind passes with commits between rounds; requires clean worktree
-- `/macros:rigor` — activate Rigor Mode for the session: prioritize correctness, thorough investigation, and web-grounded verification over minimalism
-- `/macros:orchestrate` — activate Orchestrator Mode for the session: delegate execution to subagents by default and operate at the high level, keeping your own context for direction and synthesis; an escape hatch keeps trivial work inline
-- `/macros:askme` — shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
-- `/macros:delegate` — shorthand: prefer subagents to save context space and parallelize independent subtasks
-- `/macros:tmi` — flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
-- `/macros:dry-run` — one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
-- `/macros:timeless` — shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- `/macros:dredge ["freeform query"]` — search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
-- `/macros:timestamp` — shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
+Claude Code invocations:
+- `/macros:mapreduce <task>` - split tasks into chunks, dispatch parallel subagents, consolidate results
+- `/macros:chunked <task>` - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
+- `/macros:doubt ["freeform question"]` - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
+- `/macros:consensus <count>` - run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
+- `/macros:seq <count>` - run N serial blind passes with commits between rounds; requires clean worktree
+- `/macros:rigor` - activate Rigor Mode for the session: prioritize correctness, thorough investigation, and web-grounded verification over minimalism
+- `/macros:orchestrate` - activate Orchestrator Mode for the session: delegate execution to subagents by default and operate at the high level, keeping your own context for direction and synthesis; an escape hatch keeps trivial work inline
+- `/macros:askme` - shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
+- `/macros:delegate` - shorthand: prefer subagents to save context space and parallelize independent subtasks
+- `/macros:tmi` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
+- `/macros:dry-run` - one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
+- `/macros:timeless` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
+- `/macros:dredge ["freeform query"]` - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
+- `/macros:timestamp` - shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
 
-Invocation: `/study <uri>`
+Claude Code invocation: `/study <uri>`
 
 ### gimme
-User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress — a checklist document, a drop-bin directory, and a notes template — then launches the user's configured editor/command on it.
+User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress - a checklist document, a drop-bin directory, and a notes template - then launches the user's configured editor/command on it.
 
-Invocation: `/gimme`
+Claude Code invocation: `/gimme`
 
-### Other (copy / symlink only)
+### Other direct-install skills
 
 ### report-writer
 Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
 
-Invocation: `/report-writer [topic]`
+Claude Code invocation: `/report-writer [topic]`
 
 ### rigorous-debug
 Evidence-based debugging protocol using the scientific method. Enforces hypothesis-driven investigation with controlled experiments. Requires one-time project-specific initialization before first use.
 
-Invocation: `/rigorous-debug`
+Claude Code invocation: `/rigorous-debug`
 
 ### skill-writer
-Tools and guidance for creating effective Claude Code skills following best practices.
+Tools and guidance for creating effective `SKILL.md` agent skills following best practices.
 
-Invocation: `/skill-writer`
+Claude Code invocation: `/skill-writer`
 
 ### phaser
-Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase — automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
+Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase - automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
 
 ## Skill Dependencies
 
 Each skill is fully self-contained. There are no cross-skill dependencies. Install only what you need.
 
-The skills (`write`, `write-phased`, `implement`) are included in the `spex` plugin.
+The skills (`write`, `write-phased`, `implement`) are included in the `spex` plugin. The top-level `spex` skill is a router/overview for Claude Code installs.
 
 ## File Structure Reference
 
-Skills live under `plugins/` as independent plugin packages:
+Skills live under `plugins/` as independent packages. `.claude-plugin/` directories are Claude Code marketplace metadata, not the portable skill format.
 
 ```
 shared/
 ├── .claude-plugin/
-│   └── marketplace.json              # Marketplace catalog
+│   └── marketplace.json              # Claude Code marketplace catalog
+├── .agents/
+│   └── skill-configs/                # Agent-neutral skill config
 ├── plugins/
 │   ├── interview/
 │   │   ├── .claude-plugin/plugin.json
@@ -160,7 +171,9 @@ shared/
 │   │   └── skills/skill-writer/
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
-│   │   └── skills/critique/
+│   │   └── skills/
+│   │       ├── codex/
+│   │       └── gemini/
 │   ├── macros/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/
@@ -189,14 +202,14 @@ shared/
 │       ├── .claude-plugin/plugin.json
 │       └── skills/gimme/
 └── .claude/
-    └── skills/       # Symlinks to plugins/*/skills/* (backward compat)
+    └── skills/                       # Claude Code symlinks, backward compat
 ```
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study, gimme) write to configurable workspace directories. There are no built-in defaults — each skill prompts for setup on first use. Typical values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
 
-| Skill | Default workspace |
+| Skill | Example workspace |
 |-------|-------------------|
 | interview | `.agent-workspace/interviews` |
 | spex | `.agent-workspace/specs` |
@@ -207,17 +220,21 @@ Skills that produce files (interview, spex, report-writer, macros, study, gimme)
 
 Override precedence (first match wins):
 
-1. Explicit override — ask to use a specific workspace directory for this run
-2. Local config: `.agents/skill-configs/<skill>/config.local.yaml` — gitignored, personal overrides
-3. Project config: `.agents/skill-configs/<skill>/config.yaml` — committed to repo, shared with team
-4. Legacy fallback: `.claude/skill-configs/<skill>/` — older installs
+1. Explicit override - ask to use a specific workspace directory for this run
+2. Local config: `.agents/skill-configs/<skill>/config.local.yaml` - gitignored, personal overrides
+3. Project config: `.agents/skill-configs/<skill>/config.yaml` - committed to repo, shared with team
+4. Legacy fallback: `.claude/skill-configs/<skill>/` - older installs
 
-The `.agents/skill-configs/` convention is agent-neutral, so every skill runs identically under any coding agent (Claude, Codex, ...). When config is found only at a legacy path, the skill uses it and offers to move it to the new location. `spex` additionally falls back to its former `.agent-workspace/spex/` path.
+Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is retained only as a legacy fallback for older installs.
 
 ## Notes for LLMs
 
-- When a user asks to "install" or "add" a skill, prefer Option A (plugin) for marketplace plugins (interview, spex, critique, macros, study, gimme). The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin — no separate install needed. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) are only available via copy/symlink.
-- If the target project already has a `.claude` directory with existing content, never overwrite it. Merge by copying individual skills into the existing `.claude/skills/` directory.
+- Ask or infer the target agent before installing. Do not assume Claude Code.
+- For Claude Code marketplace installs, prefer Option B for published plugins (interview, spex, critique, macros, study, gimme). Macro subskills are included in `macros`; do not install them separately through the marketplace.
+- For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
+- If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
+- Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only.
+- For Gemini CLI, install through a Gemini extension or a command/context setup that explicitly reads the skill; do not assume a native `.gemini/skills` directory unless the user's current Gemini CLI docs or project already use one.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
-- The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` and complete the setup before it is usable.
+- The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` or otherwise ask the target agent to follow that skill before it is usable.
 - Always verify that the clone location (`~/shared` or user-specified) does not conflict with existing directories before cloning.

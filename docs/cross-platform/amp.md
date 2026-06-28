@@ -2,21 +2,25 @@
 
 # Amp (Sourcegraph)
 
-> **Note:** The agentic tooling ecosystem is evolving rapidly. Paths and mechanisms described here are based on research as of early 2026 and may have changed. Verify against [Amp's current documentation](https://ampcode.com/manual) before use.
-
-Amp supports SKILL.md-compatible skills and can bundle MCP servers alongside them. Skills are activated via semantic triggering.
+Amp supports Agent Skills and can activate them by semantic matching. Project skills can live under `.agents/skills/`; user-level skills can live in shared Agent Skills locations documented by Amp.
 
 ## Installation
+
+### Project-level
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
-# Install a skill into your project
-mkdir -p skills/interview
-cp /tmp/shared/plugins/interview/skills/interview/* skills/interview/
+mkdir -p .agents/skills
+cp -R /tmp/shared/plugins/interview/skills/interview .agents/skills/
 ```
 
-> Check Amp's current documentation for the exact skills directory convention — it may use a project-level directory rather than a dot-prefixed config directory.
+### User-level
+
+```bash
+mkdir -p ~/.agents/skills
+cp -R /tmp/shared/plugins/interview/skills/interview ~/.agents/skills/
+```
 
 ## Usage
 
@@ -25,20 +29,28 @@ Describe what you want naturally:
 > "Interview me about the database migration"
 > "Write a spec for the new API endpoints"
 
-Amp reads the skill's `description` field and activates the matching skill.
+Amp reads the skill's metadata and activates matching instructions.
 
 ## Context Files
 
-Amp uses `AGENT.md` for project-level always-on instructions (similar to `CLAUDE.md` or `AGENTS.md`). For passive skills like `phaser`, reference them from `AGENT.md`:
+Amp supports project-level instruction files such as `AGENTS.md`. For passive skills like `phaser`, reference them from project instructions if you want them always considered:
 
 ```markdown
 ## Skills
 
-When writing Phaser 3 code, consult `skills/phaser/SKILL.md` for patterns and best practices.
+When writing Phaser 3 code, consult `.agents/skills/phaser/SKILL.md` for patterns and best practices.
+```
+
+## Configuration
+
+Use the shared config convention:
+
+```bash
+mkdir -p .agents/skill-configs/interview
+vi .agents/skill-configs/interview/config.yaml
 ```
 
 ## Notes
 
-- Amp works as both a CLI and VS Code extension
-- Skills can be bundled with MCP servers via `mcp.json` — servers start when Amp launches but tools stay hidden until the skill is activated, reducing context usage
-- Amp includes built-in sub-agents (Oracle for code analysis, Librarian for library docs) that complement installed skills
+- Install the whole skill directory, including templates and knowledgebase files.
+- Amp can also use MCP servers alongside skills; keep this repository's filesystem skills independent from any host-specific MCP packaging.

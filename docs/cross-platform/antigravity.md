@@ -2,9 +2,7 @@
 
 # Antigravity
 
-> **Note:** The agentic tooling ecosystem is evolving rapidly. Paths and mechanisms described here are based on research as of early 2026 and may have changed. Verify against [Antigravity's current documentation](https://antigravity.google/docs/home) before use.
-
-Google's agent-first IDE supports SKILL.md natively. Skills are activated via semantic triggering — the agent reads skill descriptions and activates the matching skill when your request fits.
+Antigravity supports Agent Skills through the shared `.agents/skills/` convention. Skills are activated by semantic matching against the skill description and available context.
 
 ## Installation
 
@@ -12,17 +10,17 @@ Google's agent-first IDE supports SKILL.md natively. Skills are activated via se
 git clone https://github.com/isnbh0/shared.git /tmp/shared
 
 # Install a skill into your project
-mkdir -p .antigravity/skills/interview
-cp /tmp/shared/plugins/interview/skills/interview/* .antigravity/skills/interview/
+mkdir -p .agents/skills
+cp -R /tmp/shared/plugins/interview/skills/interview .agents/skills/
 ```
 
 Repeat for any other skills you want:
 
 ```bash
-for skill in spex report-writer rigorous-debug; do
-  mkdir -p .antigravity/skills/$skill
-  cp /tmp/shared/plugins/$skill/skills/$skill/* .antigravity/skills/$skill/
-done
+mkdir -p .agents/skills
+cp -R /tmp/shared/plugins/spex/skills/write .agents/skills/spex-write
+cp -R /tmp/shared/plugins/report-writer/skills/report-writer .agents/skills/
+cp -R /tmp/shared/plugins/rigorous-debug/skills/rigorous-debug .agents/skills/
 ```
 
 ## Usage
@@ -32,23 +30,23 @@ Describe what you want naturally. Antigravity matches your request against insta
 | What to say | Skill activated |
 |-------------|----------------|
 | "Interview me about the auth system" | interview |
-| "Write a spec for the payment flow" | spex |
-| "Debug this — use the rigorous method" | rigorous-debug |
+| "Write a spec for the payment flow" | spex-write |
+| "Debug this using the rigorous method" | rigorous-debug |
 | "Write a technical report on the outage" | report-writer |
 
 ## Configuration
 
-Edit `config.yaml` in the skill's install directory:
+Use the shared config convention:
 
 ```bash
-vi .antigravity/skills/interview/config.yaml
+mkdir -p .agents/skill-configs/interview
+vi .agents/skill-configs/interview/config.yaml
 ```
 
-The `workspace_dir` setting controls where output files are written, relative to the project root.
+The `workspace_dir` setting controls where output files are written, relative to the project root unless the skill says otherwise.
 
 ## Notes
 
-- Antigravity adopted the SKILL.md standard early — skills work without modification
-- The [antigravity-awesome-skills](https://github.com/sickn33/antigravity-awesome-skills) repo aggregates community skills
-- Passive skills like `phaser` activate automatically when you work on relevant code
-- Antigravity's Manager view can orchestrate multiple agents, each with access to installed skills
+- Install the whole skill directory, including templates and knowledgebase files.
+- Passive skills like `phaser` activate automatically when you work on relevant code.
+- Antigravity can also consume skills provided by plugins; package layout may differ from direct `.agents/skills` installs.

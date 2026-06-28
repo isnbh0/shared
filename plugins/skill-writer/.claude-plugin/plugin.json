@@ -1,6 +1,6 @@
 {
   "name": "skill-writer",
-  "description": "Guidance for creating effective Claude Code skills",
-  "version": "1.0.0",
+  "description": "Guidance for creating effective SKILL.md agent skills",
+  "version": "1.0.1",
   "author": { "name": "isnbh0" }
 }
