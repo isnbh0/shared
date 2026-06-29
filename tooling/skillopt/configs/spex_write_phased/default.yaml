@@ -1,0 +1,45 @@
+env: spex_write_phased
+target_skill: spex:write-phased
+initial_skill: skills/spex_write_phased/initial.md
+inject_skill_as: .agents/skills/spex/write-phased/SKILL.md
+tasks_dir: tasks/spex_write_phased
+
+providers:
+  rollout: claude
+  reflect: codex
+reasoning_effort: xhigh
+
+rollout:
+  n_samples: 3
+  timeout: 900.0
+
+train:
+  batch_size: 3
+  resample: true
+  split_seed: 20260629
+
+val:
+  frozen: true
+
+loader:
+  val_fraction: 0.40
+
+scorer:
+  kind: deterministic
+  spec_dir_regex: '^\d{6}-\d{6}-'
+  phase_file_regex: '^P\d+-.+\.md$'
+  required_headers:
+    - Design Principles
+    - Key Design Decisions
+    - Phase Summary
+    - Progress Tracking
+  phase_markers:
+    - Goal
+    - Entry state
+    - Exit state
+    - Implementation Checklist
+    - Required Tests
+  min_phase_files: 1
+
+gate:
+  mode: variance

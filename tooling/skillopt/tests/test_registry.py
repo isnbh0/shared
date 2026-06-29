@@ -13,8 +13,16 @@ class _Loader:
 
 @pytest.fixture(autouse=True)
 def _clean_registry():
-    """Snapshot and restore the module-global registry so tests don't leak state."""
+    """Isolate each test with an EMPTY registry, then restore prior state.
+
+    Phase 4 env packages call ``register_env`` at import time, and pytest imports
+    every test module (including the env-importing scorer tests) during collection,
+    so the module-global registry is already populated when these tests run. Clear
+    it for the duration of each test so the registry mechanism is exercised in
+    isolation, then restore the snapshot so nothing leaks to other modules.
+    """
     snapshot = dict(registry._ENV_REGISTRY)
+    registry._ENV_REGISTRY.clear()
     try:
         yield
     finally:

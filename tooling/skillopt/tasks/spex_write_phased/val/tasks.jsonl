@@ -1,0 +1,2 @@
+{"id": "spex-val-01", "type": "spec", "prompt": "Write a phased spec for adding OAuth login to a web application.", "min_phase_files": 1}
+{"id": "spex-val-02", "type": "spec", "prompt": "Write a phased spec for splitting a monolithic module into two packages.", "min_phase_files": 1}

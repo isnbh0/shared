@@ -1,0 +1,4 @@
+{"id": "ts-train-01", "type": "file", "prompt": "Create a single markdown file named summary.md containing a one-line summary of the project.", "min_artifacts": 1}
+{"id": "ts-train-02", "type": "folder", "prompt": "Create a new folder named drafts to hold work-in-progress notes.", "min_artifacts": 1}
+{"id": "ts-train-03", "type": "mixed", "prompt": "Create a report file report.md and a top-level folder figures for its images.", "min_artifacts": 2}
+{"id": "ts-train-04", "type": "file", "prompt": "Create two files at the top level: notes.md and todo.md.", "min_artifacts": 2}
