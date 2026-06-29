@@ -201,10 +201,9 @@ class OAuthCLIExecutor:
         self._preflight(provider)
         requested = self.model_claude if provider == "claude" else self.model_codex
 
-        created_tmp = False
+        created_tmp: str | None = None
         if workdir is None and skill_path is not None:
-            workdir = tempfile.mkdtemp(prefix="skillopt-work-")
-            created_tmp = True
+            workdir = created_tmp = tempfile.mkdtemp(prefix="skillopt-work-")
         if skill_path is not None and workdir is not None:
             self._inject_skill(workdir, skill_path)
 
@@ -232,8 +231,9 @@ class OAuthCLIExecutor:
             stderr = exc.stderr if isinstance(exc.stderr, str) else ""
             exit_code = TIMEOUT_EXIT_CODE
         finally:
-            if created_tmp:
-                shutil.rmtree(workdir, ignore_errors=True)
+            # Only ever remove the temp dir we allocated -- never a caller-supplied workdir.
+            if created_tmp is not None:
+                shutil.rmtree(created_tmp, ignore_errors=True)
 
         reported = self._extract_model_marker(stdout)
         model_asserted = self._assert_model(requested, reported) if exit_code == 0 else None
@@ -297,12 +297,18 @@ class OAuthCLIExecutor:
         claude; it is never handed to codex.
         """
         if self.scrub_child_env:
+            # Suffix match is intentionally uppercase: the claude/codex CLIs only
+            # read the canonical UPPER_CASE_API_KEY names, so a lowercase variant
+            # surviving here is inert (it would never flip billing).
             env = {k: v for k, v in os.environ.items()
                    if not (k.endswith("_API_KEY") or k.endswith("_AUTH_TOKEN"))}
             for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN",
                          "OPENAI_API_KEY", "CODEX_API_KEY"):
                 env.pop(name, None)  # belt-and-suspenders past the suffix filter
         else:
+            # Opting out forfeits the metered-API safeguard: any *_API_KEY in the
+            # parent will reach the child and silently bill metered API even with a
+            # valid OAuth session. Leave the default (True) on for billing safety.
             env = dict(os.environ)
         if provider != "claude":
             env.pop("CLAUDE_CODE_OAUTH_TOKEN", None)
