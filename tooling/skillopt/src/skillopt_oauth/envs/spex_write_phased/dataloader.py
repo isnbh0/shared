@@ -20,19 +20,22 @@ class SpexWritePhasedDataLoader(SplitDataLoader):
                  val_fraction: float = 0.40, split_seed: object = 20260629):
         super().__init__()  # base plumbing only (Phase 1); no required args
         if tasks_dir is None:
-            tasks_dir = _io.project_root(__file__) / "tasks" / self.env_name
-        self.tasks_dir = Path(tasks_dir)
+            self.tasks_dir = _io.project_root(__file__) / "tasks" / self.env_name
+        else:
+            self.tasks_dir = Path(tasks_dir)
         self.val_fraction = val_fraction
         self.split_seed = split_seed
         self._train: list[dict] | None = None
         self._val: list[dict] | None = None
 
     def load(self) -> dict:
-        if self._train is None:
-            self._train = _io.read_jsonl_dir(self.tasks_dir / "train")
-        if self._val is None:
-            self._val = _io.read_jsonl_dir(self.tasks_dir / "val")
-        return {"train": list(self._train), "val": list(self._val)}
+        train = self._train
+        if train is None:
+            train = self._train = _io.read_jsonl_dir(self.tasks_dir / "train")
+        val = self._val
+        if val is None:
+            val = self._val = _io.read_jsonl_dir(self.tasks_dir / "val")
+        return {"train": list(train), "val": list(val)}
 
     def train_split(self) -> list[dict]:
         return self.load()["train"]
