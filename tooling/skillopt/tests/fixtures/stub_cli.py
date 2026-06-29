@@ -13,6 +13,9 @@ with the prompt on stdin. Behaviour is selected by ``STUB_MODE``:
     slow       -> sleep STUB_DELAY seconds, then behave like ``rollout``
     auth_warning -> rollout text on stdout + an auth/billing notice on stderr, exit 0
     env_echo   -> print the *_API_KEY / *_AUTH_TOKEN names visible to the child, exit 0
+    flaky      -> emit a 429 for the first STUB_FAIL_TIMES calls (tracked in
+                  STUB_COUNTER_FILE), then fall through to ``ok`` -- exercises the
+                  scheduler's rate-limit backoff/retry across subprocess attempts
 
 Every successful response ends with a model marker line
 ``[[SKILLOPT_MODEL:<model>]]`` where ``<model>`` is ``STUB_MODEL_OVERRIDE`` if
@@ -38,6 +41,33 @@ CANNED_PATCH = """Here is the proposed edit:
 ```"""
 
 
+def _maybe_flaky() -> None:
+    """Emit a rate-limit signal for the first STUB_FAIL_TIMES calls, then succeed.
+
+    State is kept in STUB_COUNTER_FILE so successive subprocess invocations of
+    the same logical job (scheduler retries) progress fail -> fail -> ok. On the
+    success call it rewrites STUB_MODE to "ok" and returns so the normal ok
+    dispatch emits the standard model-pinned rollout payload. Keep flaky tests on
+    the claude provider: this early-exit runs before codex stdin is drained.
+    """
+    if os.environ.get("STUB_MODE") != "flaky":
+        return
+    counter_file = os.environ.get("STUB_COUNTER_FILE")
+    fail_times = int(os.environ.get("STUB_FAIL_TIMES", "1"))
+    seen = 0
+    if counter_file and os.path.exists(counter_file):
+        try:
+            seen = int((open(counter_file).read().strip() or "0"))
+        except ValueError:
+            seen = 0
+    if seen < fail_times:
+        if counter_file:
+            open(counter_file, "w").write(str(seen + 1))
+        sys.stdout.write("HTTP 429 rate limit exceeded\n")
+        sys.exit(1)
+    os.environ["STUB_MODE"] = "ok"  # fall through to the standard success path
+
+
 def detect_provider(argv):
     if "exec" in argv:
         return "codex"
@@ -54,6 +84,7 @@ def model_marker():
 
 
 def main():
+    _maybe_flaky()  # Phase 3: rate-limit-then-succeed for the retry integration test
     argv = sys.argv[1:]
     provider = detect_provider(argv)
 
