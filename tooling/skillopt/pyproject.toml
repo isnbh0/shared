@@ -1,0 +1,31 @@
+[project]
+name = "skillopt-oauth"
+version = "0.1.0"
+description = "OAuth-CLI fork of Microsoft SkillOpt: every LLM call routes through claude/codex subscription sessions instead of metered provider APIs."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "isnbh0" }]
+dependencies = [
+    # Pinned upstream Microsoft SkillOpt. Replace <PINNED_VERSION> with the exact
+    # selected release. Intentionally left COMMENTED in Phase 1: no Phase-1 code path
+    # imports `skillopt`, and keeping it commented lets `uv sync` resolve offline.
+    # Phase 2 (OAuth-CLI executor backend) uncomments and pins this line.
+    # "skillopt==<PINNED_VERSION>",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+skillopt-oauth = "skillopt_oauth.train:main"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skillopt_oauth"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
