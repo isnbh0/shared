@@ -598,8 +598,8 @@ def test_main_log_disabled_no_file_but_stderr_emits(tmp_path, monkeypatch, capsy
 def test_supervise_forwards_signal_once_and_returns_code():
     proc = _FakeProc(returncode=0, on_wait_signal=signal.SIGINT)
     rc = oauth_guard._supervise(
-        "skillopt-train", ["skillopt-train"], {},
-        run_fn=lambda prog, argv, env: proc,
+        ["skillopt-train"], {},
+        run_fn=lambda argv, env: proc,
     )
     assert proc.signals == [signal.SIGINT]  # forwarded exactly once
     assert rc == 0
@@ -608,8 +608,8 @@ def test_supervise_forwards_signal_once_and_returns_code():
 def test_supervise_returns_signal_aware_exit_code():
     proc = _FakeProc(returncode=-signal.SIGINT)  # child killed by SIGINT
     rc = oauth_guard._supervise(
-        "skillopt-train", ["skillopt-train"], {},
-        run_fn=lambda prog, argv, env: proc,
+        ["skillopt-train"], {},
+        run_fn=lambda argv, env: proc,
     )
     assert rc == 128 + signal.SIGINT
 
@@ -920,7 +920,7 @@ def test_supervise_forwards_to_process_group(monkeypatch):
     calls: list[tuple[int, int]] = []
     monkeypatch.setattr(oauth_guard.os, "getpgid", lambda pid: pid)
     monkeypatch.setattr(oauth_guard.os, "killpg", lambda pgid, sig: calls.append((pgid, sig)))
-    rc = oauth_guard._supervise("p", ["p"], {}, run_fn=lambda *_a: proc)
+    rc = oauth_guard._supervise(["p"], {}, run_fn=lambda *_a: proc)
     assert calls == [(4321, signal.SIGTERM)]  # delivered to the whole group
     assert proc.signals == []                 # killpg path, not the direct-child fallback
     assert rc == 0
@@ -928,7 +928,7 @@ def test_supervise_forwards_to_process_group(monkeypatch):
 
 def test_supervise_send_signal_fallback_when_no_pgid():
     proc = _FakeProc(pid=None, on_wait_signal=signal.SIGINT)  # no pid -> skip killpg
-    oauth_guard._supervise("p", ["p"], {}, run_fn=lambda *_a: proc)
+    oauth_guard._supervise(["p"], {}, run_fn=lambda *_a: proc)
     assert proc.signals == [signal.SIGINT]
 
 
@@ -937,7 +937,7 @@ def test_supervise_send_signal_fallback_when_getpgid_raises(monkeypatch):
     proc = _FakeProc(pid=4321, on_wait_signal=signal.SIGINT)
     monkeypatch.setattr(oauth_guard.os, "getpgid",
                         lambda pid: (_ for _ in ()).throw(ProcessLookupError()))
-    oauth_guard._supervise("p", ["p"], {}, run_fn=lambda *_a: proc)
+    oauth_guard._supervise(["p"], {}, run_fn=lambda *_a: proc)
     assert proc.signals == [signal.SIGINT]
 
 

@@ -7,9 +7,9 @@ Because upstream's ``subprocess.run`` inherits the parent env, a stray
 ``ANTHROPIC_API_KEY`` / ``OPENAI_API_KEY`` silently flips the call onto the metered
 provider API even with a valid subscription session -- the billing footgun.
 
-This module is the surviving artifact of the retired SkillOpt fork: a thin launch
-wrapper (console script ``skillopt-oauth``) that, before handing off to upstream's
-``skillopt-train``, does the three things upstream omits, then ``exec``s upstream:
+This module is a thin launch wrapper (console script ``skillopt-oauth``) that,
+before handing off to upstream's ``skillopt-train``, does the three things upstream
+omits, then ``exec``s upstream:
 
 1. **Fail-closed OAuth preflight** -- confirm a subscription credential for the
    provider in use (claude: env ``CLAUDE_CODE_OAUTH_TOKEN`` / macOS Keychain
@@ -25,9 +25,9 @@ wrapper (console script ``skillopt-oauth``) that, before handing off to upstream
 Then ``os.execvpe`` upstream's ``skillopt-train`` (console script
 ``scripts.train:main``), passing through all user args.
 
-The probes and the scrub are lifted verbatim from the fork's tested executor; the
-rest of the fork (its own loop, gate, reflect, checkpoint, scheduler, scorers, and
-demo envs) is upstream's job now and was deleted.
+The training loop, gate, reflect, checkpoint, scheduler, scorers, and demo envs are
+upstream's responsibility; this wrapper owns only the preflight, scrub, and routing
+above.
 
 **Records & observability.** The wrapper is the only thing that knows *which*
 credential it proved, *which* metered keys it neutralized, and *where* it routed --
@@ -131,7 +131,7 @@ class OAuthPreflightError(RuntimeError):
     verdict: str | None = None
 
 
-# -- OAuth probes (lifted verbatim from the fork's executor) ----------------
+# -- OAuth probes -----------------------------------------------------------
 
 
 def default_oauth_probe(provider: str) -> str:
@@ -684,7 +684,7 @@ def _emit_event(*, level: int, message: str, record: dict,
 # -- opt-in supervise (completion record) -----------------------------------
 
 
-def _default_runner(prog: str, argv: list[str], env: Mapping[str, str]):
+def _default_runner(argv: list[str], env: Mapping[str, str]):
     # Inherit parent stdio (claude `-p` / codex `exec` are non-interactive -> no
     # PTY needed). `start_new_session=True` isolates the child into its own process
     # group so a terminal-generated SIGINT/SIGTERM does NOT reach it directly; this
@@ -722,8 +722,8 @@ def _signal_child(proc: Any, signum: int) -> None:
         pass
 
 
-def _supervise(prog: str, argv: list[str], env: Mapping[str, str], *,
-               run_fn: Callable[[str, list[str], Mapping[str, str]], object] | None = None) -> int:
+def _supervise(argv: list[str], env: Mapping[str, str], *,
+               run_fn: Callable[[list[str], Mapping[str, str]], object] | None = None) -> int:
     """Spawn the child, forward signals to its group, wait, return a signal-aware code.
 
     Opt-in path. The child inherits stdio; SIGINT/SIGTERM/SIGHUP/SIGQUIT are
@@ -739,7 +739,7 @@ def _supervise(prog: str, argv: list[str], env: Mapping[str, str], *,
     pending: list[int] = []
     proc_holder: list[Any] = [None]
 
-    def _forward(signum, _frame):
+    def _forward(signum, *_):
         proc = proc_holder[0]
         if proc is None:
             pending.append(signum)  # arrived during the spawn window; flush below
@@ -754,7 +754,7 @@ def _supervise(prog: str, argv: list[str], env: Mapping[str, str], *,
             pass  # not in main thread / unsupported signal -> best-effort
     proc: Any = None
     try:
-        proc = (run_fn or _default_runner)(prog, argv, env)
+        proc = (run_fn or _default_runner)(argv, env)
         proc_holder[0] = proc
         for signum in pending:  # re-deliver any signal caught mid-spawn
             _signal_child(proc, signum)
@@ -959,7 +959,7 @@ def main(argv: list[str] | None = None, *,
     if do_supervise:
         start = time.monotonic()
         try:
-            rc = _supervise(UPSTREAM_TRAIN, full_argv, child_env)
+            rc = _supervise(full_argv, child_env)
         except OSError as exc:
             return _emit_exec_failed(exc)
         duration_s = round(time.monotonic() - start, 6)
