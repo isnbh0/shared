@@ -21,7 +21,11 @@ from skillopt.model.common import (
 
 
 CODEX_BIN = os.environ.get("CODEX_CLI_BIN", "codex")
-CODEX_PROFILE = os.environ.get("CODEX_PROFILE", "review")
+# Optional codex profile, passed to `codex exec --profile` only when non-empty
+# (see _run_codex_exec) -- mirrors the target codex_exec path, which adds the
+# profile flag only when set, so the optimizer works against a profile-less
+# ~/.codex/config.toml. Set CODEX_PROFILE to pin a specific profile.
+CODEX_PROFILE = os.environ.get("CODEX_PROFILE", "")
 CODEX_SANDBOX_MODE = os.environ.get("CODEX_SANDBOX_MODE", "read-only")
 
 OPTIMIZER_DEPLOYMENT = os.environ.get("OPTIMIZER_DEPLOYMENT", "gpt-4o")
@@ -294,8 +298,10 @@ def _run_codex_exec(
             "exec",
             "--json",
             "--ephemeral",
-            "--profile",
-            CODEX_PROFILE,
+        ]
+        if CODEX_PROFILE:
+            command.extend(["--profile", CODEX_PROFILE])
+        command.extend([
             "-c",
             "approval_policy=\"never\"",
             "--sandbox",
@@ -307,7 +313,7 @@ def _run_codex_exec(
             model,
             "--output-last-message",
             output_path,
-        ]
+        ])
 
         if REASONING_EFFORT:
             command.extend(["-c", f"model_reasoning_effort={json.dumps(REASONING_EFFORT)}"])

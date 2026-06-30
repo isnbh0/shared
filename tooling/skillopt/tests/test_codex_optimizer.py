@@ -104,3 +104,40 @@ def test_claude_chat_optimizer_still_selectable():
     # Regression: the existing dispatch branches are untouched.
     set_optimizer_backend("claude_chat")
     assert get_optimizer_backend() == "claude_chat"
+
+
+def test_codex_optimizer_profile_conditional(monkeypatch):
+    """``codex exec --profile`` is only passed when CODEX_PROFILE is non-empty, so
+    the optimizer works against a profile-less ~/.codex/config.toml (matches the
+    target codex_exec path). Mocks the codex subprocess; spends nothing."""
+    import subprocess
+
+    captured: dict = {}
+
+    def fake_run(command, **kwargs):
+        captured["cmd"] = list(command)
+        out_idx = command.index("--output-last-message")
+        with open(command[out_idx + 1], "w", encoding="utf-8") as f:
+            f.write("ANSWER")
+
+        class _R:
+            returncode = 0
+            stdout = '{"type":"turn.completed","usage":{"input_tokens":1,"output_tokens":1}}'
+            stderr = ""
+
+        return _R()
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    # Empty profile (the default) -> no --profile flag.
+    monkeypatch.setattr(C, "CODEX_PROFILE", "")
+    out, _usage = C.chat_optimizer(system="s", user="u")
+    assert out == "ANSWER"
+    assert "--profile" not in captured["cmd"]
+
+    # Explicit profile -> --profile <name> present.
+    monkeypatch.setattr(C, "CODEX_PROFILE", "review")
+    C.chat_optimizer(system="s", user="u")
+    assert "--profile" in captured["cmd"]
+    i = captured["cmd"].index("--profile")
+    assert captured["cmd"][i + 1] == "review"
