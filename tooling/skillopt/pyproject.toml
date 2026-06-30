@@ -28,3 +28,11 @@ packages = ["src/skillopt_oauth"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv.workspace]
+members = [
+    "vendor/skillopt",
+]
+
+[tool.uv.sources]
+skillopt = { workspace = true, editable = true }
