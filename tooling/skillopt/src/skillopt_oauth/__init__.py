@@ -1,17 +1,23 @@
-"""SkillOpt-OAuth: a fork of Microsoft SkillOpt that routes every LLM call (rollout,
-reflect/optimizer, judge) through OAuthed `claude` / `codex` CLI sessions instead of
-metered provider APIs.
+"""skillopt-oauth: make Microsoft SkillOpt safe to run on ``claude`` / ``codex``
+subscription CLIs.
 
-STUB STATE (Phase 1): package skeleton with a working config schema and environment
-registry. The executor, scheduler, backends, reflect, gate, and checkpoint modules are
-signature-only stubs filled in Phases 2-5.
+A thin launch wrapper (console script ``skillopt-oauth``) around upstream's
+``skillopt-train``: it runs a fail-closed OAuth preflight, scrubs every
+``*_API_KEY`` / ``*_AUTH_TOKEN`` from the child env so a metered fallback is
+impossible by construction, routes upstream at its ``claude_code_exec`` /
+``codex_exec`` backends, then ``exec``s upstream. See :mod:`skillopt_oauth.oauth_guard`.
 """
 from __future__ import annotations
 
-from .config import Config, load_config
-from .registry import list_envs, register_env
-from . import envs as _envs  # noqa: F401  (importing registers any benchmark envs)
+from .oauth_guard import OAuthPreflightError, configure_backends, main, preflight, scrub_env
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
-__all__ = ["Config", "load_config", "register_env", "list_envs", "__version__"]
+__all__ = [
+    "OAuthPreflightError",
+    "configure_backends",
+    "main",
+    "preflight",
+    "scrub_env",
+    "__version__",
+]

@@ -1,3 +1,0 @@
-{"id": "ts-val-01", "type": "file", "prompt": "Create a file changelog.md.", "min_artifacts": 1}
-{"id": "ts-val-02", "type": "mixed", "prompt": "Create a top-level folder exports and a top-level file manifest.json.", "min_artifacts": 2}
-{"id": "ts-val-03", "type": "folder", "prompt": "Create a folder backups.", "min_artifacts": 1}

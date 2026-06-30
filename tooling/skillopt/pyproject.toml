@@ -1,21 +1,20 @@
 [project]
 name = "skillopt-oauth"
-version = "0.1.0"
-description = "OAuth-CLI fork of Microsoft SkillOpt: every LLM call routes through claude/codex subscription sessions instead of metered provider APIs."
+version = "0.2.0"
+description = "Run Microsoft SkillOpt safely on claude/codex OAuth subscription CLIs: a fail-closed OAuth preflight + env scrub guard around upstream's exec backends."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "isnbh0" }]
 dependencies = [
-    # Pinned upstream Microsoft SkillOpt. Replace <PINNED_VERSION> with the exact
-    # selected release. Intentionally left COMMENTED in Phase 1: no Phase-1 code path
-    # imports `skillopt`, and keeping it commented lets `uv sync` resolve offline.
-    # Phase 2 (OAuth-CLI executor backend) uncomments and pins this line.
-    # "skillopt==<PINNED_VERSION>",
-    "pyyaml>=6.0",
+    # Upstream Microsoft SkillOpt (https://github.com/microsoft/SkillOpt). The
+    # `[claude]` extra pulls in `claude-agent-sdk`, which upstream's
+    # `claude_code_exec` backend uses. This package is a thin OAuth-safety wrapper
+    # over it, not a fork.
+    "skillopt[claude]>=0.1.0",
 ]
 
 [project.scripts]
-skillopt-oauth = "skillopt_oauth.train:main"
+skillopt-oauth = "skillopt_oauth.oauth_guard:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]

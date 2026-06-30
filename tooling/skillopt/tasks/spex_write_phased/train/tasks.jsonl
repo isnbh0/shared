@@ -1,3 +1,0 @@
-{"id": "spex-train-01", "type": "spec", "prompt": "Write a phased spec for adding request rate limiting to an HTTP API gateway.", "min_phase_files": 1}
-{"id": "spex-train-02", "type": "spec", "prompt": "Write a phased spec for migrating a service's storage from JSON files to SQLite.", "min_phase_files": 1}
-{"id": "spex-train-03", "type": "spec", "prompt": "Write a phased spec for introducing structured logging across a Python service.", "min_phase_files": 1}
