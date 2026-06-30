@@ -148,7 +148,7 @@ def test_configure_backends_codex_sets_exec_backend_and_path():
     env: dict[str, str] = {}
     configure_backends(env, "codex", codex_bin="/opt/codex")
     assert env["TARGET_BACKEND"] == "codex_exec"
-    assert env["OPTIMIZER_BACKEND"] == "openai_chat"
+    assert env["OPTIMIZER_BACKEND"] == "codex_chat"
     assert env["CODEX_EXEC_PATH"] == "/opt/codex"
 
 
@@ -223,8 +223,10 @@ def test_main_execs_upstream_with_passthrough_and_safe_env(monkeypatch):
 
     assert rec.called is True
     assert rec.file == "skillopt-train"
-    # argv passes through verbatim after the program name.
-    assert rec.args == ["skillopt-train", *user_args]
+    # argv passes through after the program name, with the optimizer backend
+    # injected last so the optimizer leg also rides the OAuth CLI.
+    assert rec.args[:1 + len(user_args)] == ["skillopt-train", *user_args]
+    assert rec.args[-2:] == ["--optimizer_backend", "claude_chat"]
     # the scrub closed the metered-billing hole...
     assert "ANTHROPIC_API_KEY" not in rec.env
     # ...and the routing pointed upstream at the OAuth CLI.
@@ -506,8 +508,10 @@ def test_main_handoff_record_has_run_id_and_scrub(tmp_path, monkeypatch):
     r = records[0]
     assert r["run_id"] == "rid"
     assert "ANTHROPIC_API_KEY" in r["scrubbed_keys"]  # name only
-    # live argv passed through verbatim; child env scrubbed + carries run_id.
-    assert rec.args == ["skillopt-train", *user_args]
+    # live argv passed through (optimizer backend injected last); child env
+    # scrubbed + carries run_id.
+    assert rec.args[:1 + len(user_args)] == ["skillopt-train", *user_args]
+    assert rec.args[-2:] == ["--optimizer_backend", "claude_chat"]
     assert "ANTHROPIC_API_KEY" not in rec.env
     assert rec.env["SKILLOPT_OAUTH_RUN_ID"] == "rid"
 
@@ -983,3 +987,130 @@ def test_print_dry_run_swallows_broken_pipe(monkeypatch, capsys):
     monkeypatch.setattr(builtins, "print", _broken)
     # must not raise into the launch path even when stdout is gone.
     oauth_guard._print_dry_run("claude", ["--config", "x"], {}, {})
+
+
+# -- optimizer backend injection ------------------------------------------- #
+#
+# Upstream's --backend macro defaults the optimizer to the metered openai_chat and
+# reads no env for selection, so the wrapper injects an explicit --optimizer_backend
+# so the optimizer/reflect leg also rides the OAuth CLI (codex_chat / claude_chat).
+
+
+@pytest.mark.parametrize("argv,expected", [
+    (["--optimizer_backend", "qwen_chat"], "qwen_chat"),
+    (["--optimizer_backend=qwen_chat"], "qwen_chat"),
+    (["--optimizer_b", "qwen_chat"], "qwen_chat"),                       # allow_abbrev prefix
+    (["--optimizer_backend", "a", "--optimizer_backend", "b"], "b"),    # last wins
+    (["--optimizer_backend"], None),                                    # dangling
+    (["--optimizer_backend", "--other"], None),                         # option-valued -> no value
+    (["--optimizer_model", "gpt-5"], None),                             # not a prefix of _backend
+    ([], None),
+])
+def test_extract_optimizer_backend_argparse_faithful(argv, expected):
+    assert oauth_guard.extract_optimizer_backend(argv) == expected
+
+
+def test_resolve_optimizer_backend_defaults_per_provider():
+    assert oauth_guard._resolve_optimizer_backend([], "codex", {}) == ("codex_chat", True)
+    assert oauth_guard._resolve_optimizer_backend([], "claude", {}) == ("claude_chat", True)
+
+
+def test_resolve_optimizer_backend_explicit_arg_wins_no_inject():
+    got = oauth_guard._resolve_optimizer_backend(
+        ["--optimizer_backend", "qwen_chat"], "codex", {})
+    assert got == ("qwen_chat", False)
+
+
+def test_resolve_optimizer_backend_env_override():
+    got = oauth_guard._resolve_optimizer_backend(
+        [], "codex", {"SKILLOPT_OAUTH_OPTIMIZER": "claude_chat"})
+    assert got == ("claude_chat", True)
+
+
+@pytest.mark.parametrize("val", ["off", "none", "0", "", "  "])
+def test_resolve_optimizer_backend_env_disables(val):
+    got = oauth_guard._resolve_optimizer_backend(
+        [], "codex", {"SKILLOPT_OAUTH_OPTIMIZER": val})
+    assert got == (None, False)
+
+
+def test_main_injects_codex_optimizer(tmp_path):
+    rec = _RecordingExec()
+    main(["--backend", "codex_exec"], probe=lambda _p: "oauth", exec_fn=rec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    assert rec.args[-2:] == ["--optimizer_backend", "codex_chat"]
+    r = _read_records(tmp_path)[0]
+    assert r["routing"]["optimizer_injected"] is True
+    assert r["routing"]["optimizer_backend_arg"] == "codex_chat"
+    assert r["routing"]["optimizer_provider"] == "codex"
+
+
+def test_main_no_inject_when_user_pinned_optimizer():
+    rec = _RecordingExec()
+    main(["--backend", "codex_exec", "--optimizer_backend", "codex_chat"],
+         probe=lambda _p: "oauth", exec_fn=rec)
+    # not duplicated: exactly the one the user already passed.
+    assert rec.args.count("--optimizer_backend") == 1
+
+
+def test_main_env_knob_disables_injection(tmp_path, monkeypatch):
+    monkeypatch.setenv("SKILLOPT_OAUTH_OPTIMIZER", "off")
+    rec = _RecordingExec()
+    main(["--backend", "codex_exec"], probe=lambda _p: "oauth", exec_fn=rec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    assert "--optimizer_backend" not in rec.args
+    r = _read_records(tmp_path)[0]
+    assert r["routing"]["optimizer_injected"] is False
+    assert r["routing"]["optimizer_backend_arg"] is None
+
+
+def test_main_hybrid_preflights_both_providers(tmp_path, monkeypatch):
+    monkeypatch.setenv("SKILLOPT_OAUTH_OPTIMIZER", "claude_chat")
+    probed: list[str] = []
+
+    def probe(p):
+        probed.append(p)
+        return "oauth"
+
+    rec = _RecordingExec()
+    main(["--backend", "codex_exec"], probe=probe, exec_fn=rec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    assert probed == ["codex", "claude"]              # target leg then optimizer leg
+    assert rec.args[-2:] == ["--optimizer_backend", "claude_chat"]
+    r = _read_records(tmp_path)[0]
+    assert r["preflight"]["providers"] == ["codex", "claude"]
+    assert r["preflight"]["verdicts"] == {"codex": "oauth", "claude": "oauth"}
+
+
+def test_main_hybrid_fails_closed_on_optimizer_leg(tmp_path, monkeypatch):
+    monkeypatch.setenv("SKILLOPT_OAUTH_OPTIMIZER", "claude_chat")
+    rec = _RecordingExec()
+    rc = main(["--backend", "codex_exec"],
+              probe=lambda p: "oauth" if p == "codex" else "api_key",
+              exec_fn=rec, now=lambda: "t", run_id_fn=lambda: "rid")
+    assert rc == 2
+    assert rec.called is False                        # never handed off
+    r = _read_records(tmp_path)[0]
+    assert r["event"] == "refused"
+    assert r["provider"] == "claude"                  # the failing optimizer leg
+    assert r["preflight"]["verdicts"] == {"codex": "oauth", "claude": "api_key"}
+
+
+def test_main_injection_keeps_out_root_last(monkeypatch):
+    monkeypatch.setenv("SKILLOPT_OAUTH_INJECT_OUT_ROOT", "1")
+    rec = _RecordingExec()
+    main(["--backend", "codex_exec"], probe=lambda _p: "oauth", exec_fn=rec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    assert "--optimizer_backend" in rec.args
+    assert rec.args[-2] == "--out_root"               # out_root injected after, stays last
+
+
+def test_main_injects_claude_optimizer_on_common_path():
+    rec = _RecordingExec()
+    main(["--backend", "claude_code_exec"], probe=lambda _p: "oauth", exec_fn=rec)
+    assert rec.args[-2:] == ["--optimizer_backend", "claude_chat"]
+
+
+def test_redact_argv_passes_optimizer_backend_through():
+    argv = ["--optimizer_backend", "codex_chat"]
+    assert redact_argv(argv) == argv                  # not a secret; value preserved

@@ -19,8 +19,12 @@ omits, then ``exec``s upstream:
    environment the child inherits, so a metered fallback is impossible by
    construction. Fixing *our* process env fixes upstream's footgun without
    patching upstream.
-3. **Route to the CLI backends** -- point ``TARGET_BACKEND`` / ``OPTIMIZER_BACKEND``
-   and ``CLAUDE_CODE_EXEC_PATH`` / ``CODEX_EXEC_PATH`` at the OAuth CLIs.
+3. **Route both legs onto the CLI** -- point ``CLAUDE_CODE_EXEC_PATH`` /
+   ``CODEX_EXEC_PATH`` at the OAuth CLI, and inject an explicit
+   ``--optimizer_backend`` so the optimizer/reflect leg rides the subscription CLI
+   too. Upstream's ``--backend`` macro otherwise defaults the optimizer to the
+   metered ``openai_chat``, and env is inert for upstream's selection -- so the
+   argv flag is what actually keeps the whole loop on the subscription.
 
 Then ``os.execvpe`` upstream's ``skillopt-train`` (console script
 ``scripts.train:main``), passing through all user args.
@@ -69,6 +73,7 @@ __all__ = [
     "configure_backends",
     "redact_argv",
     "extract_out_root",
+    "extract_optimizer_backend",
     "build_record",
     "write_record",
     "main",
@@ -82,12 +87,15 @@ PROVIDERS = ("claude", "codex")
 # Provider -> upstream target (rollout) backend that spawns the OAuth CLI.
 _TARGET_BACKEND = {"claude": "claude_code_exec", "codex": "codex_exec"}
 
-# Provider -> the chat backend upstream pairs the optimizer/reflect path with
-# (mirrors ``scripts/train.py`` setdefault logic). Upstream restricts the
-# optimizer to chat backends, so reflect cannot itself route through an OAuth CLI;
-# once the API keys are scrubbed this path fails *closed* (loudly) rather than
-# silently billing -- which is the safety property we want.
-_OPTIMIZER_BACKEND = {"claude": "claude_chat", "codex": "openai_chat"}
+# Provider -> the optimizer/reflect backend that rides the SAME OAuth CLI as the
+# target, so the full optimize loop runs on the subscription. ``claude_chat`` shells
+# ``claude -p`` and ``codex_chat`` shells ``codex exec`` -- both keyless. Upstream's
+# ``--backend`` macro otherwise defaults the optimizer to the metered ``openai_chat``
+# (``scripts/train.py``), and env is inert for upstream's selection, so the wrapper
+# makes this real by injecting an explicit ``--optimizer_backend`` argv flag (see
+# ``main``). ``codex_chat`` needs the vendored fork's optimizer allowlist + dispatcher
+# (``vendor/skillopt``); ``claude_chat`` already works against stock upstream.
+_OPTIMIZER_BACKEND = {"claude": "claude_chat", "codex": "codex_chat"}
 
 # Provider -> the env var upstream reads for the CLI binary path.
 _EXEC_PATH_VAR = {"claude": "CLAUDE_CODE_EXEC_PATH", "codex": "CODEX_EXEC_PATH"}
@@ -98,6 +106,12 @@ _DEFAULT_BIN = {"claude": "claude", "codex": "codex"}
 # Env var that lets a user pin which provider to guard/route when it cannot be
 # inferred from the passthrough args.
 _TARGET_ENV = "SKILLOPT_OAUTH_TARGET"
+
+# Env var that overrides which optimizer backend the wrapper injects (default: the
+# per-provider value in ``_OPTIMIZER_BACKEND``). A backend name forces that optimizer;
+# ``off``/``none``/empty disables the injection entirely, letting upstream/config
+# decide (the scrub still backstops billing). Never a CLI flag -- env-only surface.
+_OPTIMIZER_ENV = "SKILLOPT_OAUTH_OPTIMIZER"
 
 # -- observability env-var surface (all optional) ---------------------------
 _LOG_DIR_ENV = "SKILLOPT_OAUTH_LOG_DIR"       # record dir; default .agent-workspace/skillopt-oauth
@@ -115,7 +129,7 @@ _RECORD_FILE = "runs.jsonl"
 _LOGGER_NAME = "skillopt-oauth"
 
 # Bumped when the record shape changes; readers key off this.
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class OAuthPreflightError(RuntimeError):
@@ -528,6 +542,58 @@ def extract_out_root(argv: list[str]) -> str | None:
     return result
 
 
+_OPTIMIZER_BACKEND_FLAG = "--optimizer_backend"
+
+
+def extract_optimizer_backend(argv: list[str]) -> str | None:
+    """Return the user's explicit ``--optimizer_backend`` value from ``argv``, else None.
+
+    Argparse-faithful, identical mechanics to ``extract_out_root``: ``allow_abbrev``
+    prefixes (any non-empty prefix of ``--optimizer_backend``, e.g. ``--optimizer_b``),
+    space + ``=`` forms, last-occurrence-wins, dangling/option-valued -> None. A prefix
+    like ``--optimizer_m`` belongs to ``--optimizer_model`` -- it is NOT a prefix of
+    ``--optimizer_backend`` -- so it is correctly ignored.
+    """
+    result: str | None = None
+    i = 0
+    n = len(argv)
+    while i < n:
+        flag, eq, val = argv[i].partition("=")
+        if len(flag) > 2 and _OPTIMIZER_BACKEND_FLAG.startswith(flag):
+            if eq:
+                result = val
+            elif i + 1 < n and not argv[i + 1].startswith("--"):
+                result = argv[i + 1]
+                i += 1
+            else:
+                result = None
+        i += 1
+    return result
+
+
+def _resolve_optimizer_backend(argv: list[str], provider: str,
+                               environ: Mapping[str, str]) -> tuple[str | None, bool]:
+    """Return ``(optimizer_backend, injected)`` the run will actually use.
+
+    Precedence: an explicit ``--optimizer_backend`` on argv wins and is never
+    re-injected; else ``SKILLOPT_OAUTH_OPTIMIZER`` (a backend name -> inject it;
+    ``off``/``none``/``0``/empty -> no injection, let upstream/config decide -- the
+    scrub backstops billing); else the per-provider default from ``_OPTIMIZER_BACKEND``
+    -> inject it. Injection is what actually selects the optimizer, since upstream
+    reads CLI args/config, never env, for backend selection.
+    """
+    user = extract_optimizer_backend(argv)
+    if user is not None:
+        return user, False
+    raw = environ.get(_OPTIMIZER_ENV)
+    if raw is None:
+        return _OPTIMIZER_BACKEND[provider], True
+    val = raw.strip()
+    if val.lower() in ("", "off", "none", "0", "false", "no"):
+        return None, False
+    return val, True
+
+
 # -- record construction (pure, no I/O) -------------------------------------
 
 
@@ -567,6 +633,8 @@ def build_record(*, event: str, run_id: str, ts: str, provider: str,
                  src_env: Mapping[str, str], child_env: Mapping[str, str],
                  routing: dict, argv: list[str], resolved_path: str | None,
                  out_root_arg: str | None, out_root_injected: bool,
+                 preflight_providers: list[str] | None = None,
+                 preflight_verdicts: Mapping[str, str | None] | None = None,
                  **extra) -> dict:
     """Build one record dict for ``event``. Non-secret by construction: only env
     *names* (sanitized; never values), a redacted argv copy, and routing/preflight
@@ -578,6 +646,11 @@ def build_record(*, event: str, run_id: str, ts: str, provider: str,
     """
     argv_redacted = _redact_argv_safe(argv)
     scrubbed_keys = sorted({_sanitize_env_name(n) for n in (set(src_env) - set(child_env))})
+    preflight_info: dict[str, Any] = {"verdict": verdict, "probe_name": probe_name}
+    if preflight_providers is not None:
+        preflight_info["providers"] = list(preflight_providers)
+    if preflight_verdicts is not None:
+        preflight_info["verdicts"] = dict(preflight_verdicts)
     return {
         **extra,
         "schema_version": SCHEMA_VERSION,
@@ -586,7 +659,7 @@ def build_record(*, event: str, run_id: str, ts: str, provider: str,
         "event": event,
         "wrapper_version": _wrapper_version(),
         "provider": provider,
-        "preflight": {"verdict": verdict, "probe_name": probe_name},
+        "preflight": preflight_info,
         "scrubbed_keys": scrubbed_keys,
         "routing": routing,
         "upstream": {
@@ -865,28 +938,45 @@ def main(argv: list[str] | None = None, *,
     dry_run = _truthy(os.environ.get(_DRY_RUN_ENV))
 
     provider = resolve_target(args)
+    optimizer_backend, optimizer_injected = _resolve_optimizer_backend(args, provider, os.environ)
+    optimizer_provider = _provider_of(optimizer_backend) if optimizer_backend else None
+    preflight_providers = [provider]
+    if optimizer_provider and optimizer_provider != provider:
+        preflight_providers.append(optimizer_provider)
     run_id = make_run_id()
     ts = clock()
     probe_name = _probe_name(probe)
     resolved_path = shutil.which(UPSTREAM_TRAIN)
     src_env = dict(os.environ)
 
-    # 1) Preflight (fail closed). On refusal, record the verdict and return 2.
-    try:
-        verdict = preflight(provider, probe=probe)
-    except OAuthPreflightError as exc:
-        record = build_record(
-            event="refused", run_id=run_id, ts=ts, provider=provider,
-            verdict=getattr(exc, "verdict", None), probe_name=probe_name,
-            src_env=src_env, child_env=src_env,  # no scrub happened
-            routing={"TARGET_BACKEND": None, "OPTIMIZER_BACKEND": None,
-                     "exec_path_var": _EXEC_PATH_VAR[provider], "exec_path": None},
-            argv=args, resolved_path=resolved_path,
-            out_root_arg=extract_out_root(args), out_root_injected=False,
-        )
-        _emit_event(level=logging.ERROR, message=str(exc), record=record,
-                    log_dir=ldir, log_enabled=log_enabled)
-        return 2
+    # 1) Preflight EVERY provider the run will touch (target + a hybrid optimizer
+    #    leg on a different CLI), failing closed on the first that can't prove OAuth
+    #    so the subscription guarantee covers the optimizer leg too. For codex/codex
+    #    and claude/claude this is a single provider -- identical to before.
+    verdicts: dict[str, str] = {}
+    for prov in preflight_providers:
+        try:
+            verdicts[prov] = preflight(prov, probe=probe)
+        except OAuthPreflightError as exc:
+            record = build_record(
+                event="refused", run_id=run_id, ts=ts, provider=prov,
+                verdict=getattr(exc, "verdict", None), probe_name=probe_name,
+                src_env=src_env, child_env=src_env,  # no scrub happened
+                routing={"TARGET_BACKEND": None, "OPTIMIZER_BACKEND": None,
+                         "exec_path_var": _EXEC_PATH_VAR.get(prov), "exec_path": None,
+                         "target_provider": provider,
+                         "optimizer_backend_arg": optimizer_backend,
+                         "optimizer_injected": optimizer_injected,
+                         "optimizer_provider": optimizer_provider},
+                argv=args, resolved_path=resolved_path,
+                out_root_arg=extract_out_root(args), out_root_injected=False,
+                preflight_providers=preflight_providers,
+                preflight_verdicts={**verdicts, prov: getattr(exc, "verdict", None)},
+            )
+            _emit_event(level=logging.ERROR, message=str(exc), record=record,
+                        log_dir=ldir, log_enabled=log_enabled)
+            return 2
+    verdict = verdicts[provider]  # target verdict drives the back-compat singular field
 
     # 2) Scrub + route. The child env is what exec/supervise will inherit.
     child_env = scrub_env(src_env)
@@ -898,9 +988,19 @@ def main(argv: list[str] | None = None, *,
         "OPTIMIZER_BACKEND": child_env["OPTIMIZER_BACKEND"],
         "exec_path_var": _EXEC_PATH_VAR[provider],
         "exec_path": child_env[_EXEC_PATH_VAR[provider]],
+        "optimizer_backend_arg": optimizer_backend,  # what the optimizer leg will run (or None)
+        "optimizer_injected": optimizer_injected,    # did the wrapper add --optimizer_backend
+        "optimizer_provider": optimizer_provider,    # claude / codex / None
     }
 
-    # 3) Optional --out_root injection (off by default; it relocates upstream's
+    # 3) Inject the optimizer backend so upstream actually selects it. Upstream's
+    #    --backend macro defaults the optimizer to the metered openai_chat and reads
+    #    no env for selection, so this argv flag is what keeps the optimizer leg on
+    #    the subscription CLI. Mirror the --out_root injection; out_root stays last.
+    if optimizer_injected and optimizer_backend:
+        args = [*args, _OPTIMIZER_BACKEND_FLAG, optimizer_backend]
+
+    # 4) Optional --out_root injection (off by default; it relocates upstream's
     #    documented default output dir, a passthrough intrusion).
     out_root_arg = extract_out_root(args)
     out_root_injected = False
@@ -916,9 +1016,10 @@ def main(argv: list[str] | None = None, *,
             src_env=src_env, child_env=child_env, routing=routing,
             argv=args, resolved_path=resolved_path,
             out_root_arg=out_root_arg, out_root_injected=out_root_injected,
+            preflight_providers=preflight_providers, preflight_verdicts=verdicts,
             **extra)
 
-    # 4) Dry-run: record + print the would-be launch, never exec. Takes
+    # 5) Dry-run: record + print the would-be launch, never exec. Takes
     #    precedence over supervise.
     if dry_run:
         _emit_event(
@@ -929,7 +1030,7 @@ def main(argv: list[str] | None = None, *,
         _print_dry_run(provider, args, src_env, child_env)
         return 0
 
-    # 5) Handoff: record BEFORE exec/supervise so a kill still leaves a trace.
+    # 6) Handoff: record BEFORE exec/supervise so a kill still leaves a trace.
     _emit_event(
         level=logging.INFO,
         message=(f"OAuth preflight OK for {provider!r}; "
@@ -953,7 +1054,7 @@ def main(argv: list[str] | None = None, *,
             log_dir=ldir, log_enabled=log_enabled)
         return 127
 
-    # 6a) Supervise (opt-in): run to completion and record exit code + duration.
+    # 7a) Supervise (opt-in): run to completion and record exit code + duration.
     #     A spawn-time OSError is surfaced the same way as the exec path (symmetric
     #     exec_failed record + rc 127) instead of crashing with a traceback.
     if do_supervise:
@@ -972,7 +1073,7 @@ def main(argv: list[str] | None = None, *,
             log_dir=ldir, log_enabled=log_enabled)
         return rc
 
-    # 6b) Default: exec upstream (replaces this process; never returns on success).
+    # 7b) Default: exec upstream (replaces this process; never returns on success).
     try:
         exec_fn(UPSTREAM_TRAIN, full_argv, child_env)
     except OSError as exc:
