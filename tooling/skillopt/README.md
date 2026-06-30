@@ -75,18 +75,27 @@ queryable record of its own decision**, plus a structured stderr log line.
   (cwd-relative; override with `SKILLOPT_OAUTH_LOG_DIR`). It's **append-only** and
   already gitignored at the repo root.
 - **What.** One line per decision point, keyed by a generated `run_id`:
-  `refused` (preflight failed closed), `dry_run`, `handoff` (written *before* the
-  handoff, so a kill still leaves a trace), `exec_failed`, and — under
-  `SKILLOPT_OAUTH_SUPERVISE=1` — `completed` (exit code + duration). Lines for one
-  invocation share a `run_id` and may be non-adjacent; **readers join on `run_id`**.
-- **Secret-safe by construction.** Records hold only env *names* (never values —
-  `scrubbed_keys` is the sorted set of stripped names), a **redacted** copy of the
-  argv (secret-flag values, incl. `allow_abbrev` abbreviations like `--azure_api_k`,
-  replaced with `<redacted>`), and routing/preflight metadata. No env value, config
-  contents, or upstream exception text is ever written. The redaction runs on a
-  copy — the live argv handed to upstream is verbatim.
+  `refused` (preflight failed closed), `dry_run`, `handoff` (written *before*
+  exec/supervise, so a kill still leaves a trace), `exec_failed` (adds a sanitized
+  `error`: exception class + `errno`, never the OS message), and — under
+  `SKILLOPT_OAUTH_SUPERVISE=1` — `completed` (adds `exit_code`, `duration_s`,
+  `end_ts`). Those event-specific fields are absent on the other events. Lines for
+  one invocation share a `run_id` and may be non-adjacent; **readers join on `run_id`**.
+- **No credential ever recorded.** Records hold only env *names* (never values —
+  `scrubbed_keys` is the sorted set of stripped names, and any name that isn't a
+  plain identifier is itself redacted), a **redacted** copy of the argv, and
+  routing/preflight metadata. The argv redaction covers `--secret_flag value`,
+  `--secret_flag=value`, `allow_abbrev` abbreviations (`--azure_api_k`), **and** the
+  bare `section.key=value` tokens of upstream's preferred `--cfg-options` channel
+  (`model.azure_api_key=…`) — every secret value becomes `<redacted>`. No credential
+  value, config-file contents, or raw OS exception text is ever written. Redaction
+  runs on a copy — the live argv handed to upstream is verbatim. (Operational,
+  non-secret facts *are* recorded by design: the resolved CLI binary path, `cwd`, and
+  the `--out_root` you passed — an audit record needs to know what ran and where. The
+  file is created `0o600`, `O_NOFOLLOW`, owner-only.)
 - **Fail-soft.** The stderr line is the contract; the file is an add-on. Any write
-  error warns to stderr and the launch proceeds — records never block or slow a run.
+  error (bad dir, full disk, deleted `cwd`, planted symlink, non-serializable record)
+  warns to stderr and the launch proceeds — records never block or slow a run.
 
 The `run_id` is also exported into the child as `SKILLOPT_OAUTH_RUN_ID`, a
 non-intrusive hook for correlating the guard's record with upstream's own output
@@ -97,8 +106,8 @@ non-intrusive hook for correlating the guard's record with upstream's own output
 | Var | Effect |
 | --- | --- |
 | `SKILLOPT_OAUTH_LOG_DIR` | Record dir. Default `.agent-workspace/skillopt-oauth`. |
-| `SKILLOPT_OAUTH_LOG=0\|off` | Disable the file write (the stderr line still emits). |
-| `SKILLOPT_OAUTH_LOG_LEVEL` | Log level (default `INFO`; refusals log at `ERROR`). |
+| `SKILLOPT_OAUTH_LOG=0\|off` | Disable the **file** write (the stderr line still emits). |
+| `SKILLOPT_OAUTH_LOG_LEVEL` | stderr verbosity (default `INFO`). Decision lines log at `INFO`; refusals and launch failures at `ERROR` (so `LOG_LEVEL=ERROR` keeps those, `CRITICAL` silences stderr). The record file is unaffected by this. |
 | `SKILLOPT_OAUTH_DRY_RUN=1` | Preflight + scrub + route, print the would-be launch, **don't exec**. |
 | `SKILLOPT_OAUTH_SUPERVISE=1` | Wait on the child and record a `completed` line (exit code + duration). |
 | `SKILLOPT_OAUTH_INJECT_OUT_ROOT=1` | When `--out_root` is absent, inject one under the record dir for correlation (off by default; it relocates upstream's default output dir). |
@@ -112,7 +121,7 @@ $ SKILLOPT_OAUTH_DRY_RUN=1 skillopt-oauth --backend claude_code_exec \
 skillopt-oauth: dry-run for 'claude'; run_id=…; would exec skillopt-train (no launch)
 skillopt-oauth dry-run (no exec):
   provider:    claude
-  would exec:  skillopt-train --backend claude_code_exec --config x.yaml --azure_api_key <redacted>
+  would exec:  skillopt-train --backend claude_code_exec --config x.yaml --azure_api_key '<redacted>'
   env removed: ['ANTHROPIC_API_KEY']
   env added:   ['CLAUDE_CODE_EXEC_PATH', 'OPTIMIZER_BACKEND', 'SKILLOPT_OAUTH_RUN_ID', 'TARGET_BACKEND']
 ```

@@ -45,6 +45,8 @@ import json
 import logging
 import os
 import platform
+import re
+import shlex
 import shutil
 import signal
 import subprocess
@@ -240,6 +242,11 @@ def resolve_target(argv: list[str], environ: Mapping[str, str] | None = None) ->
     the ``SKILLOPT_OAUTH_TARGET`` env var > the default (``'claude'``). Any value
     mentioning ``codex`` selects codex; any value mentioning ``claude`` selects
     claude.
+
+    The arg parse mirrors upstream's argparse so the guard preflights the provider
+    that will actually run: ``--target_backend`` is authoritative over ``--backend``
+    (it is the rollout backend that spawns the CLI), the **last** occurrence wins,
+    and ``allow_abbrev`` abbreviations (e.g. ``--back codex_exec``) are recognized.
     """
     src = os.environ if environ is None else environ
     inferred = _target_from_args(argv)
@@ -251,22 +258,66 @@ def resolve_target(argv: list[str], environ: Mapping[str, str] | None = None) ->
     return "claude"
 
 
+# Long options upstream reads to pick the rollout backend.
+_BACKEND_FLAG = "--backend"
+_TARGET_BACKEND_FLAG = "--target_backend"
+
+
+def _backend_selector_kind(flag: str) -> str | None:
+    """Return ``'target'`` / ``'backend'`` if ``flag`` is the ``--target_backend`` /
+    ``--backend`` option or an unambiguous abbreviation of it, else ``None``.
+
+    Upstream's parser has ``allow_abbrev=True``, so any non-empty prefix of a long
+    option resolves to it; we mirror that here. ``--target_backend`` is checked first
+    because it is authoritative for the rollout. The value still has to mention a
+    provider to count (see ``_provider_of``), so over-matching an ambiguous prefix is
+    harmless.
+    """
+    if len(flag) <= 2 or not flag.startswith("--"):
+        return None
+    if _TARGET_BACKEND_FLAG.startswith(flag):
+        return "target"
+    if _BACKEND_FLAG.startswith(flag):
+        return "backend"
+    return None
+
+
+def _provider_of(value: str) -> str | None:
+    low = (value or "").strip().lower()
+    if "codex" in low:
+        return "codex"
+    if "claude" in low:
+        return "claude"
+    return None
+
+
 def _target_from_args(argv: list[str]) -> str | None:
-    flags = {"--backend", "--target_backend"}
-    values: list[str] = []
-    for i, tok in enumerate(argv):
-        if "=" in tok:
-            flag, _, val = tok.partition("=")
-            if flag in flags:
-                values.append(val)
-        elif tok in flags and i + 1 < len(argv):
-            values.append(argv[i + 1])
-    for val in values:
-        low = val.strip().lower()
-        if "codex" in low:
-            return "codex"
-        if "claude" in low:
-            return "claude"
+    target_vals: list[str] = []
+    backend_vals: list[str] = []
+    i = 0
+    n = len(argv)
+    while i < n:
+        flag, eq, val = argv[i].partition("=")
+        kind = _backend_selector_kind(flag)
+        if kind:
+            if eq:
+                value = val
+            elif i + 1 < n:
+                value = argv[i + 1]
+                i += 1  # consume the space-form value
+            else:
+                value = ""
+            (target_vals if kind == "target" else backend_vals).append(value)
+        i += 1
+    # target_backend wins over backend; within each, last occurrence wins.
+    for value in reversed(target_vals):
+        provider = _provider_of(value)
+        if provider:
+            return provider
+    for value in reversed(backend_vals):
+        provider = _provider_of(value)
+        if provider:
+            return provider
     return None
 
 
@@ -341,70 +392,140 @@ _REDACTION_FAILED = ["<argv-redaction-failed>"]
 
 
 def _normalize_flag(flag: str) -> str:
-    return flag.lstrip("-").lower()
+    # Strip surrounding whitespace too: a cfg-options token like
+    # ``model.azure_api_key =sk`` must still resolve to the secret key.
+    return flag.strip().lstrip("-").lower()
 
 
-def _is_secret_flag(norm: str) -> bool:
-    """Decide whether a normalized flag name names a secret value (over-redact).
+def _is_secret_flag(norm: str, *, allow_prefix: bool = True) -> bool:
+    """Decide whether a normalized flag/config-key name names a secret value.
 
-    Order matters and is security-biased -- when uncertain, redact:
-    1. exact known secret flag; 2. prefix of any known secret flag (catches
-    ``allow_abbrev`` abbreviations like ``azure_api_k``); 3. numeric denylist
-    (``*_max_tokens`` / ``*_completion_tokens`` / ``*_thinking_tokens``) is
-    explicitly NOT secret -- it guards the heuristic below from false positives;
-    4. forward-compat heuristic for flags upstream may add later.
+    Security-biased -- when uncertain, redact. Order matters:
+    1. exact known secret flag;
+    2. prefix of any known secret flag (catches ``allow_abbrev`` abbreviations like
+       ``azure_api_k``) -- only when ``allow_prefix`` (i.e. the token is a ``--`` flag,
+       where argparse abbreviation applies). Bare ``--cfg-options`` keys are full config
+       paths, never abbreviated, so the prefix rule is skipped for them -- otherwise a
+       routing key like ``optimizer`` (a prefix of ``optimizer_..._api_key``) would be
+       redacted out of the audit record;
+    3. positive secret signals (``*_api_key``, contains ``secret``/``password``/
+       ``credential``, ``*_auth_token``/``access_token``/``oauth_token``, ``*_token``/
+       ``*_key``) -- these win over the numeric denylist, so e.g.
+       ``--password_max_tokens`` is still redacted;
+    4. numeric denylist (``*_max_tokens`` / ``*_completion_tokens`` /
+       ``*_thinking_tokens``) is explicitly NOT secret -- it keeps the legitimate
+       integer-valued flags out of the record verbatim;
+    5. otherwise not secret.
+
+    ``norm`` may be a flag name (``azure_api_key``) or a dotted/flat config key from
+    ``--cfg-options`` (``model.azure_api_key``); the suffix/substring rules handle both.
     """
     if not norm:
         return False
     if norm in _KNOWN_SECRET_NAMES:
         return True
-    if any(known.startswith(norm) for known in _KNOWN_SECRET_NAMES):
+    if allow_prefix and any(known.startswith(norm) for known in _KNOWN_SECRET_NAMES):
         return True
-    if (norm.endswith("_max_tokens") or norm.endswith("_completion_tokens")
-            or norm.endswith("_thinking_tokens")):
-        return False
-    if norm.endswith("_api_key"):
+    if norm.endswith("_api_key") or norm.endswith(".api_key") or norm == "api_key":
         return True
     if "secret" in norm or "password" in norm or "credential" in norm:
         return True
     if (norm.endswith("_auth_token") or norm.endswith("access_token")
             or norm.endswith("oauth_token")):
         return True
+    if (norm.endswith("_max_tokens") or norm.endswith("_completion_tokens")
+            or norm.endswith("_thinking_tokens")):
+        return False
+    # Forward-compat: any remaining ``*_token`` / ``*_key`` name is treated as a
+    # secret (the numeric ``*_tokens`` flags are already excluded above).
+    if norm.endswith("_token") or norm.endswith("_key"):
+        return True
     return False
 
 
 def redact_argv(argv: list[str]) -> list[str]:
-    """Return a copy of ``argv`` with every secret-flag *value* replaced.
+    """Return a copy of ``argv`` with every secret *value* replaced by a sentinel.
 
-    Handles both ``--flag value`` and ``--flag=value``. Operates on a copy: the
-    live ``argv`` handed to exec/supervise is verbatim and untouched. Biased to
-    over-redact -- it only ever affects the record copy, never the live launch.
+    Covers three shapes, biased to over-redact:
+    - ``--secret_flag value`` (space form);
+    - ``--secret_flag=value`` (eq form);
+    - bare ``key=value`` tokens with **no** ``--`` prefix -- upstream's preferred
+      override channel ``--cfg-options`` (``allow_abbrev``, ``nargs="+"``) takes bare
+      ``section.key=value`` tokens, and every metered secret is a real config path
+      (``model.azure_api_key=...`` etc.), so those must be redacted too.
+
+    Operates on a copy: the live ``argv`` handed to exec/supervise is verbatim and
+    untouched. In the space form a ``--``-prefixed next token is treated as another
+    option, not this flag's value (mirroring argparse, which rejects option-like
+    values) -- so a secret value that itself starts with ``--`` must use the eq form,
+    which is handled, and two adjacent secret flags no longer desync the value skip.
     """
     out = list(argv)
     n = len(out)
     i = 0
     while i < n:
         tok = out[i]
-        if isinstance(tok, str) and tok.startswith("--") and "=" in tok:
-            flag = tok.partition("=")[0]
-            if _is_secret_flag(_normalize_flag(flag)):
-                out[i] = f"{flag}={_REDACTED}"
-        elif isinstance(tok, str) and tok.startswith("--"):
-            if _is_secret_flag(_normalize_flag(tok)) and i + 1 < n:
+        if not isinstance(tok, str):
+            i += 1
+            continue
+        if "=" in tok:
+            key, _, val = tok.partition("=")
+            # Abbreviation (prefix) matching applies only to ``--`` flags, where
+            # argparse allow_abbrev does; a bare ``key=value`` cfg token is a full
+            # config path and is matched exactly + by suffix only.
+            if _is_secret_flag(_normalize_flag(key), allow_prefix=key.startswith("--")):
+                out[i] = f"{key}={_REDACTED}"
+            elif "=" in val:
+                # ``--cfg-options=section.key=value`` (eq directly on the option):
+                # the secret is keyed by the value's own ``k=v`` (a bare cfg key).
+                subkey = val.partition("=")[0]
+                if _is_secret_flag(_normalize_flag(subkey), allow_prefix=False):
+                    out[i] = f"{key}={subkey}={_REDACTED}"
+        elif tok.startswith("--") and _is_secret_flag(_normalize_flag(tok)):
+            nxt = out[i + 1] if i + 1 < n else None
+            if isinstance(nxt, str) and not nxt.startswith("--"):
                 out[i + 1] = _REDACTED
                 i += 1  # skip the value we just neutralized
         i += 1
     return out
 
 
+def _redact_argv_safe(argv: list[str]) -> list[str]:
+    """``redact_argv`` that never raises: on any failure returns the sentinel field
+    (never a raw value), so a record build / dry-run print can't crash or leak."""
+    try:
+        return redact_argv(argv)
+    except Exception:
+        return list(_REDACTION_FAILED)
+
+
+_OUT_ROOT_FLAG = "--out_root"
+
+
 def extract_out_root(argv: list[str]) -> str | None:
-    """Return the ``--out_root`` value from ``argv`` (either form), else ``None``."""
-    for i, tok in enumerate(argv):
-        if tok == "--out_root" and i + 1 < len(argv):
-            return argv[i + 1]
-        if tok.startswith("--out_root="):
-            return tok.partition("=")[2]
-    return None
+    """Return the effective ``--out_root`` value from ``argv``, else ``None``.
+
+    Mirrors upstream argparse: recognizes ``allow_abbrev`` abbreviations (any
+    non-empty prefix of ``--out_root``, e.g. ``--out_ro``), the **last** occurrence
+    wins, and a dangling flag whose following token is itself an option (or which is
+    the last token) has no value (``None``). Keeping this argparse-faithful matters
+    because a wrong/None result drives the opt-in ``--out_root`` injection decision.
+    """
+    result: str | None = None
+    i = 0
+    n = len(argv)
+    while i < n:
+        flag, eq, val = argv[i].partition("=")
+        if len(flag) > 2 and _OUT_ROOT_FLAG.startswith(flag):
+            if eq:
+                result = val
+            elif i + 1 < n and not argv[i + 1].startswith("--"):
+                result = argv[i + 1]
+                i += 1
+            else:
+                result = None  # dangling: argparse would reject / no value
+        i += 1
+    return result
 
 
 # -- record construction (pure, no I/O) -------------------------------------
@@ -420,22 +541,45 @@ def _wrapper_version() -> str:
         return "unknown"
 
 
+def _safe_cwd() -> str | None:
+    """``os.getcwd()`` but fail-soft: ``None`` if the cwd was removed (so a deleted
+    working directory can never raise into the launch path)."""
+    try:
+        return os.getcwd()
+    except OSError:
+        return None
+
+
+# A canonical env var name (what a shell can assign). A scrubbed *value* is never
+# recorded, but a pathological *name* could itself embed a secret (e.g.
+# ``LEAK_sk-...-SECRET_API_KEY`` via ``env``), so any name that isn't a plain
+# identifier is replaced before it reaches a record.
+_ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_NON_IDENTIFIER_KEY = "<non-identifier-key>"
+
+
+def _sanitize_env_name(name: str) -> str:
+    return name if _ENV_NAME_RE.match(name) else _NON_IDENTIFIER_KEY
+
+
 def build_record(*, event: str, run_id: str, ts: str, provider: str,
                  verdict: str | None, probe_name: str,
                  src_env: Mapping[str, str], child_env: Mapping[str, str],
                  routing: dict, argv: list[str], resolved_path: str | None,
                  out_root_arg: str | None, out_root_injected: bool,
                  **extra) -> dict:
-    """Build one record dict for ``event``. All fields are non-secret by
-    construction: only env *names* (never values), a redacted argv copy, and
-    routing/preflight metadata. Deterministic given ``ts`` + ``run_id``.
+    """Build one record dict for ``event``. Non-secret by construction: only env
+    *names* (sanitized; never values), a redacted argv copy, and routing/preflight
+    metadata. Deterministic given ``ts`` + ``run_id``.
+
+    ``extra`` adds event-specific fields (``exit_code``/``duration_s``/``end_ts`` on
+    ``completed``; ``error`` on ``exec_failed``) but can never clobber a reserved
+    field -- the reserved keys are written last.
     """
-    try:
-        argv_redacted = redact_argv(argv)
-    except Exception:
-        argv_redacted = list(_REDACTION_FAILED)
-    scrubbed_keys = sorted(set(src_env) - set(child_env))
-    record = {
+    argv_redacted = _redact_argv_safe(argv)
+    scrubbed_keys = sorted({_sanitize_env_name(n) for n in (set(src_env) - set(child_env))})
+    return {
+        **extra,
         "schema_version": SCHEMA_VERSION,
         "run_id": run_id,
         "ts": ts,
@@ -452,11 +596,9 @@ def build_record(*, event: str, run_id: str, ts: str, provider: str,
             "out_root_injected": out_root_injected,
         },
         "argv_redacted": argv_redacted,
-        "cwd": os.getcwd(),
+        "cwd": _safe_cwd(),
         "pid": os.getpid(),
     }
-    record.update(extra)
-    return record
 
 
 # -- record persistence + structured logging (the only I/O; all fail-soft) --
@@ -490,25 +632,36 @@ def _get_logger() -> logging.Logger:
 def write_record(record: dict, *, log_dir: str, enabled: bool) -> None:
     """Append ``record`` as one JSONL line to ``<log_dir>/runs.jsonl``.
 
-    Fail-soft: when ``enabled`` is False this is a no-op; on any ``OSError`` it
-    warns once to stderr and returns so the launch proceeds. The line is written
-    with a single ``os.write`` to an ``O_APPEND`` fd (POSIX append atomicity) at
-    mode ``0o600``.
+    Fail-soft: when ``enabled`` is False this is a no-op; on any error -- I/O
+    (``OSError``) or a non-serializable record (``TypeError``/``ValueError``) -- it
+    warns to stderr and returns so the launch proceeds. The line is appended to an
+    ``O_APPEND`` fd (each ``write(2)`` is atomically positioned at EOF) opened
+    ``O_NOFOLLOW`` (never append through a planted symlink) and ``fchmod`` 0o600
+    (tighten a pre-existing world-readable file past the umask), and ``os.write`` is
+    looped so a short write (near-full disk) can't truncate the line.
     """
     if not enabled:
         return
     try:
-        line = json.dumps(record, separators=(",", ":")) + "\n"
+        data = (json.dumps(record, separators=(",", ":")) + "\n").encode("utf-8")
         os.makedirs(log_dir, exist_ok=True)
         path = os.path.join(log_dir, _RECORD_FILE)
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0)
+        fd = os.open(path, flags, 0o600)
         try:
-            os.write(fd, line.encode("utf-8"))
+            try:
+                os.fchmod(fd, 0o600)  # tighten an existing permissive file
+            except OSError:
+                pass
+            written = 0
+            while written < len(data):
+                written += os.write(fd, data[written:])
         finally:
             os.close(fd)
-    except OSError as exc:
+    except (OSError, TypeError, ValueError) as exc:
         try:
-            _get_logger().warning("could not write record to %s: %s", log_dir, exc)
+            _get_logger().warning("could not write record to %s: %s",
+                                  log_dir, exc.__class__.__name__)
         except Exception:
             pass
         return
@@ -546,21 +699,52 @@ _FORWARD_SIGNALS = tuple(
 )
 
 
+def _signal_child(proc: Any, signum: int) -> None:
+    """Forward ``signum`` to the child's whole process group, then the child alone.
+
+    The child is spawned ``start_new_session=True`` (its own session/group), so it
+    is shielded from terminal-delivered signals and we are its sole signal source;
+    delivering to the *group* (``killpg``) also reaches grandchildren -- the actual
+    ``claude`` / ``codex`` CLI that upstream spawns -- so a Ctrl-C tears the whole
+    tree down instead of orphaning a metered run. Falls back to the direct child if
+    the group lookup fails (and is a no-op for an already-dead child).
+    """
+    pid = getattr(proc, "pid", None)
+    if isinstance(pid, int) and pid > 0:
+        try:
+            os.killpg(os.getpgid(pid), signum)
+            return
+        except (ProcessLookupError, PermissionError, OSError):
+            pass
+    try:
+        proc.send_signal(signum)
+    except (ProcessLookupError, OSError):
+        pass
+
+
 def _supervise(prog: str, argv: list[str], env: Mapping[str, str], *,
                run_fn: Callable[[str, list[str], Mapping[str, str]], object] | None = None) -> int:
-    """Spawn the child, forward signals to it, wait, return a signal-aware code.
+    """Spawn the child, forward signals to its group, wait, return a signal-aware code.
 
     Opt-in path. The child inherits stdio; SIGINT/SIGTERM/SIGHUP/SIGQUIT are
-    forwarded to it while we wait. Returns the child's exit code, or ``128+signo``
-    if it was killed by a signal. ``run_fn`` is injectable for hermetic tests.
+    forwarded to its process group while we wait. Returns the child's exit code, or
+    ``128+signo`` if it was killed by a signal. ``run_fn`` is injectable for
+    hermetic tests. A spawn-time ``OSError`` propagates (handlers restored first) so
+    ``main`` can record ``exec_failed`` symmetrically with the exec path.
+
+    Handlers are installed *before* the spawn so a signal landing in the
+    spawn-to-install window can't take the default disposition (kill the parent,
+    orphan the child); such a signal is buffered and re-delivered once the child exists.
     """
-    proc: Any = (run_fn or _default_runner)(prog, argv, env)
+    pending: list[int] = []
+    proc_holder: list[Any] = [None]
 
     def _forward(signum, _frame):
-        try:
-            proc.send_signal(signum)
-        except (ProcessLookupError, OSError):
-            pass
+        proc = proc_holder[0]
+        if proc is None:
+            pending.append(signum)  # arrived during the spawn window; flush below
+            return
+        _signal_child(proc, signum)
 
     installed: list[tuple[int, Any]] = []
     for sig in _FORWARD_SIGNALS:
@@ -568,7 +752,12 @@ def _supervise(prog: str, argv: list[str], env: Mapping[str, str], *,
             installed.append((sig, signal.signal(sig, _forward)))
         except (ValueError, OSError, RuntimeError):
             pass  # not in main thread / unsupported signal -> best-effort
+    proc: Any = None
     try:
+        proc = (run_fn or _default_runner)(prog, argv, env)
+        proc_holder[0] = proc
+        for signum in pending:  # re-deliver any signal caught mid-spawn
+            _signal_child(proc, signum)
         proc.wait()
     finally:
         for sig, prev in installed:
@@ -599,7 +788,10 @@ def _default_log_dir() -> str:
         return override
     # cwd-relative, matching the repo's .agent-workspace/<tool>/ convention
     # (gitignored at root) and symmetric with upstream's cwd-relative outputs/.
-    return os.path.join(os.getcwd(), ".agent-workspace", "skillopt-oauth")
+    # Fail-soft on a deleted cwd: fall back to $HOME (or ".") so resolving the log
+    # dir can never raise into the launch path.
+    base = _safe_cwd() or os.environ.get("HOME") or "."
+    return os.path.join(base, ".agent-workspace", "skillopt-oauth")
 
 
 def _log_enabled() -> bool:
@@ -611,16 +803,33 @@ def _probe_name(probe: Callable[[str], str] | None) -> str:
     return getattr(fn, "__name__", repr(fn))
 
 
+def _safe_exc(exc: BaseException) -> str:
+    """A secret-free summary of a launch ``OSError``: exception class + ``errno``
+    only. The raw ``str(exc)`` / ``filename`` of an ``os.execvpe`` / ``Popen``
+    failure embeds the PATH-resolved absolute path of the binary, which can carry an
+    env-derived value -- so it is never recorded or logged."""
+    return f"{exc.__class__.__name__}(errno={getattr(exc, 'errno', None)})"
+
+
 def _print_dry_run(provider: str, argv: list[str],
                    src_env: Mapping[str, str], child_env: Mapping[str, str]) -> None:
-    """Print the would-be launch to stdout: redacted argv + env delta (names only)."""
-    removed = sorted(set(src_env) - set(child_env))
-    added = sorted(set(child_env) - set(src_env))
-    print("skillopt-oauth dry-run (no exec):")
-    print(f"  provider:    {provider}")
-    print(f"  would exec:  {UPSTREAM_TRAIN} {' '.join(redact_argv(argv))}")
-    print(f"  env removed: {removed}")
-    print(f"  env added:   {added}")
+    """Print the would-be launch to stdout: redacted argv + env delta (names only).
+
+    Uses the same secret-safe redaction and env-name sanitization as the record,
+    and ``shlex.join`` so an arg with spaces/newlines can't forge log-looking output.
+    """
+    removed = sorted({_sanitize_env_name(n) for n in (set(src_env) - set(child_env))})
+    added = sorted({_sanitize_env_name(n) for n in (set(child_env) - set(src_env))})
+    try:
+        print("skillopt-oauth dry-run (no exec):")
+        print(f"  provider:    {provider}")
+        print(f"  would exec:  {UPSTREAM_TRAIN} {shlex.join(_redact_argv_safe(argv))}")
+        print(f"  env removed: {removed}")
+        print(f"  env added:   {added}")
+    except OSError:
+        # a closed/broken stdout (e.g. `... | head -c0`) must not raise into the
+        # launch path -- the dry-run print is best-effort like every other emit.
+        pass
 
 
 # -- main: preflight -> scrub -> route -> record -> exec/supervise -----------
@@ -732,10 +941,27 @@ def main(argv: list[str] | None = None, *,
 
     full_argv = [UPSTREAM_TRAIN, *args]
 
+    def _emit_exec_failed(exc: OSError) -> int:
+        # exec/spawn only returns control on failure (e.g. skillopt-train not on
+        # PATH). Record a sanitized summary -- never str(exc), which embeds a
+        # PATH-resolved absolute path.
+        _emit_event(
+            level=logging.ERROR,
+            message=(f"failed to launch {UPSTREAM_TRAIN!r}: {_safe_exc(exc)}; is "
+                     f"upstream `skillopt` installed and on PATH?"),
+            record=_record("exec_failed", error=_safe_exc(exc)),
+            log_dir=ldir, log_enabled=log_enabled)
+        return 127
+
     # 6a) Supervise (opt-in): run to completion and record exit code + duration.
+    #     A spawn-time OSError is surfaced the same way as the exec path (symmetric
+    #     exec_failed record + rc 127) instead of crashing with a traceback.
     if do_supervise:
         start = time.monotonic()
-        rc = _supervise(UPSTREAM_TRAIN, full_argv, child_env)
+        try:
+            rc = _supervise(UPSTREAM_TRAIN, full_argv, child_env)
+        except OSError as exc:
+            return _emit_exec_failed(exc)
         duration_s = round(time.monotonic() - start, 6)
         _emit_event(
             level=logging.INFO,
@@ -750,14 +976,7 @@ def main(argv: list[str] | None = None, *,
     try:
         exec_fn(UPSTREAM_TRAIN, full_argv, child_env)
     except OSError as exc:
-        # exec only returns control on failure (e.g. skillopt-train not on PATH).
-        _emit_event(
-            level=logging.ERROR,
-            message=(f"failed to exec {UPSTREAM_TRAIN!r}: {exc}; is upstream "
-                     f"`skillopt` installed and on PATH?"),
-            record=_record("exec_failed", error=str(exc)),
-            log_dir=ldir, log_enabled=log_enabled)
-        return 127
+        return _emit_exec_failed(exc)
     # A real ``os.execvpe`` never returns here; an injected stub (tests) may.
     return 0
 

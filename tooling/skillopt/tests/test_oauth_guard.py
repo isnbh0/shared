@@ -55,12 +55,14 @@ def _boom_redact(_argv):
 class _FakeProc:
     """A subprocess.Popen stand-in for hermetic supervise tests."""
 
-    def __init__(self, *, returncode=0, wait_raises=None, on_wait_signal=None):
+    def __init__(self, *, returncode=0, wait_raises=None, on_wait_signal=None, pid=None):
         self.returncode = returncode
         self._wait_raises = wait_raises
         self._on_wait_signal = on_wait_signal
         self.signals: list[int] = []
-        self.pid = 4321
+        # Default pid=None makes _signal_child skip the os.killpg group path and use
+        # send_signal, so the forwarding test is deterministic with no real OS call.
+        self.pid = pid
 
     def send_signal(self, signum):
         self.signals.append(signum)
@@ -653,11 +655,31 @@ def test_no_secret_values_leak_across_all_paths(tmp_path, monkeypatch, capsys):
         (["--azure_api_k", "sk-abbrev-SECRET", "--backend", "claude_code_exec"], "oauth"),
         (["--minimax_api", "sk-mini-SECRET"], "oauth"),
         (["--target_qwen_chat_api_key=sk-eq-SECRET"], "oauth"),
+        # bare key=value via upstream's preferred --cfg-options channel (dotted + flat)
+        (["--cfg-options", "model.azure_api_key=sk-cfg-SECRET"], "oauth"),
+        (["--cfg-options", "optimizer.api_key=sk-cfgflat-SECRET", "--config", "x"], "oauth"),
+        # eq directly on the --cfg-options option (single token)
+        (["--cfg-options=model.azure_api_key=sk-cfgeq-SECRET"], "oauth"),
+        # secret-term flag that also ends in a numeric-denylist suffix
+        (["--password_max_tokens", "sk-deny-SECRET"], "oauth"),
+        # value that itself starts with -- (only valid via eq form)
+        (["--azure_api_key=--sk-dash-SECRET"], "oauth"),
         (["--config", "x.yaml"], "none"),  # refused path
     ]
     for argv, verdict in cases:
         main(argv, probe=lambda _p, v=verdict: v, exec_fn=_RecordingExec(),
              now=lambda: "t", run_id_fn=lambda: "rid")
+    # exec_failed path: a PATH-resolved path in the exception must not leak.
+    def _boom_exec(file, args, env):
+        exc = FileNotFoundError(2, "No such file or directory")
+        exc.filename = "/tmp/sk-path-SECRET/skillopt-train"
+        raise exc
+    main(["--config", "x"], probe=lambda _p: "oauth", exec_fn=_boom_exec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    # pathological env NAME embedding a secret (only names are recorded).
+    monkeypatch.setenv("LEAK_sk-name-SECRET_API_KEY", "v")
+    main(["--config", "x"], probe=lambda _p: "oauth", exec_fn=_RecordingExec(),
+         now=lambda: "t", run_id_fn=lambda: "rid")
     # redaction-failure path: the sentinel must appear, the raw value must not.
     monkeypatch.setattr(oauth_guard, "redact_argv", _boom_redact)
     main(["--azure_api_key", "sk-fail-SECRET"], probe=lambda _p: "oauth",
@@ -666,6 +688,298 @@ def test_no_secret_values_leak_across_all_paths(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     record_text = (tmp_path / "records" / "runs.jsonl").read_text()
     blob = record_text + captured.err + captured.out
-    for needle in ("SECRET", "sk-azure", "sk-abbrev", "sk-mini", "sk-eq",
-                   "sk-fail", "sk-anthropic", "sk-openai"):
+    for needle in ("SECRET", "sk-azure", "sk-abbrev", "sk-mini", "sk-eq", "sk-cfg",
+                   "sk-cfgflat", "sk-cfgeq", "sk-deny", "sk-dash", "sk-path",
+                   "sk-name", "sk-fail", "sk-anthropic", "sk-openai"):
         assert needle not in blob, f"secret leaked: {needle!r}"
+
+
+# -- redaction: --cfg-options bare key=value + denylist collision ----------- #
+
+
+@pytest.mark.parametrize("argv,expected", [
+    (["--cfg-options", "model.azure_api_key=sk-x"],
+     ["--cfg-options", "model.azure_api_key=<redacted>"]),
+    (["--cfg-options", "optimizer.api_key=sk-x", "--config", "y"],
+     ["--cfg-options", "optimizer.api_key=<redacted>", "--config", "y"]),
+    (["--cfg-options", "model.target_qwen_chat_api_key=sk-x"],
+     ["--cfg-options", "model.target_qwen_chat_api_key=<redacted>"]),
+    # eq directly on the option (single token, valid via argparse nargs="+"):
+    # the secret is keyed by the value's own k=v, not by --cfg-options.
+    (["--cfg-options=model.azure_api_key=sk-x"],
+     ["--cfg-options=model.azure_api_key=<redacted>"]),
+])
+def test_redact_cfg_options_bare_key_value(argv, expected):
+    assert redact_argv(argv) == expected
+
+
+@pytest.mark.parametrize("argv", [
+    ["--cfg-options", "model.qwen_chat_max_tokens=4096"],
+    ["--cfg-options", "model.rewrite_max_completion_tokens=100"],
+])
+def test_redact_cfg_options_numeric_left_intact(argv):
+    assert redact_argv(argv) == argv  # bias to over-redact must not hit integers
+
+
+@pytest.mark.parametrize("argv,expected", [
+    # secret term wins over the numeric denylist suffix (forward-compat).
+    (["--password_max_tokens", "sk-x"], ["--password_max_tokens", "<redacted>"]),
+    (["--credential_completion_tokens", "sk-x"], ["--credential_completion_tokens", "<redacted>"]),
+    (["--secret_max_tokens", "sk-x"], ["--secret_max_tokens", "<redacted>"]),
+])
+def test_redact_secret_term_beats_numeric_denylist(argv, expected):
+    assert redact_argv(argv) == expected
+
+
+def test_redact_adjacent_secret_flags_does_not_leak_trailing_value():
+    # The first flag's "value" is itself a flag -> argparse rejects it; we must not
+    # consume it and desync, leaving the real trailing value un-redacted.
+    out = redact_argv(["--azure_api_key", "--minimax_api_key", "sk-TRAIL"])
+    assert out == ["--azure_api_key", "--minimax_api_key", "<redacted>"]
+
+
+def test_redact_dash_starting_value_via_eq_form():
+    # A secret value that itself starts with -- is only valid via the eq form.
+    assert redact_argv(["--azure_api_key=--sk-x"]) == ["--azure_api_key=<redacted>"]
+
+
+# -- resolve_target: abbreviation + target precedence + last-wins ----------- #
+
+
+@pytest.mark.parametrize("argv,expected", [
+    (["--back", "codex_exec"], "codex"),                       # allow_abbrev
+    (["--target_back", "codex_exec"], "codex"),
+    (["--back=codex_exec"], "codex"),
+    (["--backend", "claude_code_exec", "--target_backend", "codex_exec"], "codex"),  # target wins
+    (["--backend", "claude_code_exec", "--backend", "codex_exec"], "codex"),         # last wins
+    (["--target_backend", "codex_exec", "--target_backend", "claude_code_exec"], "claude"),
+])
+def test_resolve_target_argparse_faithful(argv, expected):
+    assert resolve_target(argv, environ={}) == expected
+
+
+def test_main_routes_codex_via_abbreviation(tmp_path):
+    rec = _RecordingExec()
+    main(["--back", "codex_exec"], probe=lambda _p: "oauth", exec_fn=rec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    assert rec.env["TARGET_BACKEND"] == "codex_exec"
+    assert _read_records(tmp_path)[0]["provider"] == "codex"
+
+
+# -- extract_out_root: argparse-faithful ------------------------------------ #
+
+
+@pytest.mark.parametrize("argv,expected", [
+    (["--out_root", "a", "--out_root", "b"], "b"),     # last wins
+    (["--out_root", "--config"], None),                # dangling -> no value
+    (["--out_ro", "/d"], "/d"),                        # abbreviation
+    (["--out_root="], ""),                             # explicit empty
+])
+def test_extract_out_root_argparse_faithful(argv, expected):
+    assert extract_out_root(argv) == expected
+
+
+# -- build_record hardening ------------------------------------------------- #
+
+
+def test_build_record_reserved_fields_beat_extra():
+    rec = build_record(
+        event="completed", run_id="RID", ts="t", provider="claude", verdict="oauth",
+        probe_name="p", src_env={}, child_env={}, routing={}, argv=[],
+        resolved_path=None, out_root_arg=None, out_root_injected=False,
+        schema_version=999, cwd="HACK", exit_code=3,  # extra can't clobber reserved
+    )
+    assert rec["schema_version"] == oauth_guard.SCHEMA_VERSION
+    assert rec["cwd"] != "HACK"
+    assert rec["exit_code"] == 3  # genuine event-specific extra still lands
+
+
+def test_build_record_sanitizes_non_identifier_env_name():
+    rec = build_record(
+        event="handoff", run_id="r", ts="t", provider="claude", verdict="oauth",
+        probe_name="p", src_env={"LEAK_sk-SECRET_API_KEY": "v", "ANTHROPIC_API_KEY": "v"},
+        child_env={}, routing={}, argv=[], resolved_path=None,
+        out_root_arg=None, out_root_injected=False,
+    )
+    assert "ANTHROPIC_API_KEY" in rec["scrubbed_keys"]       # canonical name kept
+    assert "<non-identifier-key>" in rec["scrubbed_keys"]    # secret-bearing name redacted
+    assert "sk-SECRET" not in __import__("json").dumps(rec)
+
+
+def test_build_record_cwd_failsoft(monkeypatch):
+    def _raise():
+        raise FileNotFoundError(2, "cwd gone")
+    monkeypatch.setattr(oauth_guard.os, "getcwd", _raise)
+    rec = build_record(
+        event="handoff", run_id="r", ts="t", provider="claude", verdict="oauth",
+        probe_name="p", src_env={}, child_env={}, routing={}, argv=[],
+        resolved_path=None, out_root_arg=None, out_root_injected=False,
+    )
+    assert rec["cwd"] is None  # deleted cwd never raises into the record build
+
+
+def test_default_log_dir_failsoft_falls_back_to_home(monkeypatch):
+    monkeypatch.delenv("SKILLOPT_OAUTH_LOG_DIR", raising=False)
+    monkeypatch.setattr(oauth_guard.os, "getcwd",
+                        lambda: (_ for _ in ()).throw(OSError("cwd gone")))
+    monkeypatch.setenv("HOME", "/home/x")
+    assert oauth_guard._default_log_dir() == "/home/x/.agent-workspace/skillopt-oauth"
+
+
+# -- write_record hardening ------------------------------------------------- #
+
+
+def test_write_record_non_serializable_is_failsoft(tmp_path):
+    write_record({"bad": object()}, log_dir=str(tmp_path / "recs"), enabled=True)  # no raise
+    assert not (tmp_path / "recs" / "runs.jsonl").exists()
+
+
+def test_write_record_does_not_follow_symlink(tmp_path):
+    d = tmp_path / "recs"
+    d.mkdir()
+    target = tmp_path / "secret.txt"
+    target.write_text("orig")
+    (d / "runs.jsonl").symlink_to(target)
+    write_record({"a": 1}, log_dir=str(d), enabled=True)  # O_NOFOLLOW -> fail-soft
+    assert target.read_text() == "orig"  # never appended through the planted symlink
+
+
+def test_write_record_tightens_existing_permissive_file(tmp_path):
+    import os
+    import stat
+    d = tmp_path / "recs"
+    d.mkdir()
+    f = d / "runs.jsonl"
+    f.write_text("")
+    os.chmod(f, 0o644)
+    write_record({"a": 1}, log_dir=str(d), enabled=True)
+    assert stat.S_IMODE(os.stat(f).st_mode) == 0o600  # fchmod tightened it
+
+
+# -- exec_failed / supervise spawn failure: sanitized + symmetric ----------- #
+
+
+def test_main_exec_failed_sanitizes_exception(tmp_path):
+    def _boom_exec(file, args, env):
+        exc = FileNotFoundError(2, "No such file or directory")
+        exc.filename = "/tmp/sk-PATH-SECRET/skillopt-train"
+        raise exc
+
+    rc = main(["--config", "x"], probe=lambda _p: "oauth", exec_fn=_boom_exec,
+              now=lambda: "t", run_id_fn=lambda: "rid")
+    assert rc == 127
+    rec = _read_records(tmp_path)[-1]
+    assert rec["event"] == "exec_failed"
+    assert rec["error"] == "FileNotFoundError(errno=2)"  # class + errno only
+    import json as _json
+    assert "sk-PATH-SECRET" not in _json.dumps(rec)
+
+
+def test_main_supervise_spawn_failure_records_exec_failed(tmp_path, monkeypatch):
+    def _boom_popen(argv, **kwargs):
+        exc = FileNotFoundError(2, "No such file or directory")
+        exc.filename = "/tmp/sk-PATH-SECRET/skillopt-train"
+        raise exc
+
+    monkeypatch.setattr(oauth_guard.subprocess, "Popen", _boom_popen)
+    rc = main(["--config", "x"], probe=lambda _p: "oauth", now=lambda: "t",
+              run_id_fn=lambda: "rid", supervise=True)
+    assert rc == 127  # symmetric with the exec path, not a crash
+    events = [r["event"] for r in _read_records(tmp_path)]
+    assert events == ["handoff", "exec_failed"]
+
+
+def test_main_launch_proceeds_when_cwd_deleted(tmp_path, monkeypatch):
+    monkeypatch.setattr(oauth_guard.os, "getcwd",
+                        lambda: (_ for _ in ()).throw(FileNotFoundError(2, "gone")))
+    rec = _RecordingExec()
+    main(["--config", "x"], probe=lambda _p: "oauth", exec_fn=rec,
+         now=lambda: "t", run_id_fn=lambda: "rid")
+    assert rec.called is True  # launch proceeds despite a deleted cwd
+    assert _read_records(tmp_path)[0]["cwd"] is None
+
+
+def test_main_dry_run_redaction_failure_still_returns_zero(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("SKILLOPT_OAUTH_DRY_RUN", "1")
+    monkeypatch.setattr(oauth_guard, "redact_argv", _boom_redact)
+    rec = _RecordingExec()
+    rc = main(["--azure_api_key", "sk-SECRET"], probe=lambda _p: "oauth",
+              exec_fn=rec, now=lambda: "t", run_id_fn=lambda: "rid")
+    assert rc == 0
+    assert rec.called is False
+    out = capsys.readouterr().out
+    assert "argv-redaction-failed" in out  # sentinel, not the raw value
+    assert "sk-SECRET" not in out
+
+
+# -- supervise signal forwarding: process group + fallback ------------------ #
+
+
+def test_supervise_forwards_to_process_group(monkeypatch):
+    proc = _FakeProc(pid=4321, on_wait_signal=signal.SIGTERM)
+    calls: list[tuple[int, int]] = []
+    monkeypatch.setattr(oauth_guard.os, "getpgid", lambda pid: pid)
+    monkeypatch.setattr(oauth_guard.os, "killpg", lambda pgid, sig: calls.append((pgid, sig)))
+    rc = oauth_guard._supervise("p", ["p"], {}, run_fn=lambda *_a: proc)
+    assert calls == [(4321, signal.SIGTERM)]  # delivered to the whole group
+    assert proc.signals == []                 # killpg path, not the direct-child fallback
+    assert rc == 0
+
+
+def test_supervise_send_signal_fallback_when_no_pgid():
+    proc = _FakeProc(pid=None, on_wait_signal=signal.SIGINT)  # no pid -> skip killpg
+    oauth_guard._supervise("p", ["p"], {}, run_fn=lambda *_a: proc)
+    assert proc.signals == [signal.SIGINT]
+
+
+def test_supervise_send_signal_fallback_when_getpgid_raises(monkeypatch):
+    # Real pid but the group lookup fails (e.g. already-reaped) -> direct-child fallback.
+    proc = _FakeProc(pid=4321, on_wait_signal=signal.SIGINT)
+    monkeypatch.setattr(oauth_guard.os, "getpgid",
+                        lambda pid: (_ for _ in ()).throw(ProcessLookupError()))
+    oauth_guard._supervise("p", ["p"], {}, run_fn=lambda *_a: proc)
+    assert proc.signals == [signal.SIGINT]
+
+
+# -- redaction residuals (post-hardening) ----------------------------------- #
+
+
+def test_redact_normalizes_surrounding_whitespace():
+    # a cfg-options key with a space before '=' must still be recognized as secret.
+    assert redact_argv(["--cfg-options", "model.azure_api_key =sk-x"]) == \
+        ["--cfg-options", "model.azure_api_key =<redacted>"]
+
+
+@pytest.mark.parametrize("argv", [
+    ["--cfg-options", "optimizer=claude_chat"],   # prefix of optimizer_..._api_key
+    ["--cfg-options", "target=foo"],              # prefix of target_..._api_key
+    ["--cfg-options", "azure=x"],
+])
+def test_redact_bare_cfg_routing_keys_not_over_redacted(argv):
+    # The abbreviation/prefix rule applies only to --flags, not bare cfg keys, so
+    # legitimate routing facts stay legible in the audit record.
+    assert redact_argv(argv) == argv
+
+
+@pytest.mark.parametrize("flag", ["--session_key", "--bearer_token", "--anthropic_api_token"])
+def test_redact_forward_compat_token_key_suffixes(flag):
+    assert redact_argv([flag, "sk-x"]) == [flag, "<redacted>"]
+
+
+def test_redact_space_form_preserves_following_flag():
+    # argparse-consistent: a --prefixed next token is the next option, not a value,
+    # so it stays legible (not redacted) in the record. A --starting secret VALUE
+    # must use the eq form (covered elsewhere).
+    assert redact_argv(["--azure_api_key", "--config", "x.yaml"]) == \
+        ["--azure_api_key", "--config", "x.yaml"]
+
+
+def test_print_dry_run_swallows_broken_pipe(monkeypatch, capsys):
+    import builtins
+
+    def _broken(*_a, **_k):
+        raise BrokenPipeError("closed stdout")
+
+    monkeypatch.setattr(builtins, "print", _broken)
+    # must not raise into the launch path even when stdout is gone.
+    oauth_guard._print_dry_run("claude", ["--config", "x"], {}, {})
