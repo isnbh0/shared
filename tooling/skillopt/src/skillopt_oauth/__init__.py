@@ -9,15 +9,29 @@ impossible by construction, routes upstream at its ``claude_code_exec`` /
 """
 from __future__ import annotations
 
-from .oauth_guard import OAuthPreflightError, configure_backends, main, preflight, scrub_env
+from .oauth_guard import (
+    OAuthPreflightError,
+    build_record,
+    configure_backends,
+    extract_out_root,
+    main,
+    preflight,
+    redact_argv,
+    scrub_env,
+    write_record,
+)
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "OAuthPreflightError",
+    "build_record",
     "configure_backends",
+    "extract_out_root",
     "main",
     "preflight",
+    "redact_argv",
     "scrub_env",
+    "write_record",
     "__version__",
 ]

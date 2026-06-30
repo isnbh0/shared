@@ -1,6 +1,6 @@
 [project]
 name = "skillopt-oauth"
-version = "0.2.0"
+version = "0.3.0"
 description = "Run Microsoft SkillOpt safely on claude/codex OAuth subscription CLIs: a fail-closed OAuth preflight + env scrub guard around upstream's exec backends."
 readme = "README.md"
 requires-python = ">=3.11"
