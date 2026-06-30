@@ -13,6 +13,7 @@ from .oauth_guard import (
     OAuthPreflightError,
     build_record,
     configure_backends,
+    extract_optimizer_backend,
     extract_out_root,
     main,
     preflight,
@@ -21,12 +22,13 @@ from .oauth_guard import (
     write_record,
 )
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 __all__ = [
     "OAuthPreflightError",
     "build_record",
     "configure_backends",
+    "extract_optimizer_backend",
     "extract_out_root",
     "main",
     "preflight",

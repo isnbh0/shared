@@ -3,11 +3,14 @@
 Run [Microsoft SkillOpt](https://github.com/microsoft/SkillOpt) safely on your
 `claude` / `codex` **OAuth subscription** CLIs.
 
-This is a thin env-scrub + OAuth-preflight guard around upstream's
-`claude_code_exec` / `codex_exec` backends — **not a fork**. Upstream owns the
-training loop (rollout → reflect → gate → checkpoint), the scorers, and the CLI
-exec backends; this package adds only the billing-safety upstream omits, then
-hands off.
+It is two parts: a thin env-scrub + OAuth-preflight **guard** that wraps upstream's
+`skillopt-train`, and a minimal **vendored fork** of SkillOpt (`vendor/skillopt`,
+pinned to v0.1.0) that adds a `codex_chat` optimizer backend. Together they let the
+**whole** optimize loop — both the target (rollout) and the optimizer (reflect)
+legs — run on the `claude` / `codex` subscription CLI, with no metered API call
+possible. Upstream owns the training loop (rollout → reflect → gate → checkpoint),
+the scorers, and the CLI exec backends; this package adds the billing-safety
+upstream omits and the one optimizer backend it was missing, then hands off.
 
 ## Why this exists
 
@@ -31,8 +34,12 @@ open by default.
 2. **Env scrub** — strip every `*_API_KEY` / `*_AUTH_TOKEN` from the environment the
    child inherits, so a metered fallback is impossible. `CLAUDE_CODE_OAUTH_TOKEN`
    (an OAuth token, not an API key) is preserved.
-3. **Route to the CLI backends** — point `TARGET_BACKEND` / `OPTIMIZER_BACKEND` and
-   `CLAUDE_CODE_EXEC_PATH` / `CODEX_EXEC_PATH` at the OAuth CLIs.
+3. **Route both legs onto the CLI** — point `CLAUDE_CODE_EXEC_PATH` /
+   `CODEX_EXEC_PATH` at the OAuth CLI, and inject an explicit `--optimizer_backend`
+   (`codex_chat` / `claude_chat`) so the optimizer/reflect leg rides the
+   subscription too. Upstream's `--backend` macro otherwise defaults the optimizer
+   to the metered `openai_chat`, and env is inert for upstream's selection — so the
+   injected flag is what actually keeps the whole loop off the metered API.
 
 Then it `exec`s upstream's `skillopt-train`, passing through all of your arguments.
 
@@ -40,7 +47,7 @@ Then it `exec`s upstream's `skillopt-train`, passing through all of your argumen
 
 ```bash
 cd tooling/skillopt
-uv sync                      # installs upstream skillopt[claude] + this guard
+uv sync                      # builds the vendored skillopt fork (editable) + this guard
 uv run pytest                # hermetic; spends nothing
 
 # Drive an upstream run safely. All args after `skillopt-oauth` pass straight
@@ -63,6 +70,35 @@ refusing to launch so the run cannot be silently billed to a metered API. …
 
 To pick an env, supply data, and configure the loop, see upstream's docs
 (`skillopt-train --help`, `EnvAdapter`, `SplitDataLoader`, and `configs/`).
+
+## The whole loop on the subscription (`codex_chat`)
+
+SkillOpt splits each run into a **target** (executes the task) and an **optimizer**
+(reflects on failures and rewrites the skill). Upstream ships CLI *target* backends
+(`codex_exec`, `claude_code_exec`) but restricts the *optimizer* to chat/API
+backends — for codex it defaults to the metered `openai_chat`. So out of the box the
+optimizer leg can't run on the codex subscription, and once the keys are scrubbed it
+fails closed.
+
+The vendored fork (`vendor/skillopt`) closes that gap with a `codex_chat` optimizer
+that shells `codex exec` (no API key), wired into the live dispatcher next to the
+existing `claude_chat`. The guard then **injects** `--optimizer_backend` so the
+optimizer rides the same OAuth CLI as the target — making every target×optimizer
+combination subscription-native:
+
+| target ↓ / optimizer → | `claude_chat` | `codex_chat` |
+| --- | --- | --- |
+| `claude_code_exec` | ✓ | ✓ |
+| `codex_exec` | ✓ | ✓ |
+
+Pass `--target_backend` / `--optimizer_backend` explicitly, or let the guard pick the
+per-provider default (`codex` → `codex_chat`, `claude` → `claude_chat`); override with
+`SKILLOPT_OAUTH_OPTIMIZER`. A worked before→after run lives in
+[`demo/searchqa_codex/`](demo/searchqa_codex/): a deliberately-bad seed prompt
+optimized on the codex/codex loop, entirely on the subscription.
+
+The fork is a pinned, trimmed snapshot of upstream (`vendor/skillopt/PINNED_UPSTREAM.md`);
+the local delta is just the `codex_chat` wiring under `skillopt/model/`.
 
 ## Records & observability
 
@@ -105,6 +141,8 @@ non-intrusive hook for correlating the guard's record with upstream's own output
 
 | Var | Effect |
 | --- | --- |
+| `SKILLOPT_OAUTH_TARGET` | Pin the provider to guard/route (`claude`\|`codex`) when the args don't say. |
+| `SKILLOPT_OAUTH_OPTIMIZER` | Optimizer backend to inject (default `codex_chat`/`claude_chat` per provider); `off`\|`none`\|empty disables injection so upstream/config decides. |
 | `SKILLOPT_OAUTH_LOG_DIR` | Record dir. Default `.agent-workspace/skillopt-oauth`. |
 | `SKILLOPT_OAUTH_LOG=0\|off` | Disable the **file** write (the stderr line still emits). |
 | `SKILLOPT_OAUTH_LOG_LEVEL` | stderr verbosity (default `INFO`). Decision lines log at `INFO`; refusals and launch failures at `ERROR` (so `LOG_LEVEL=ERROR` keeps those, `CRITICAL` silences stderr). The record file is unaffected by this. |
