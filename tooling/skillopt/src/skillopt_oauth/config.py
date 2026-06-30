@@ -47,7 +47,7 @@ class Config:
     # --- model pinning (Phase 2) ---
     model_claude: Optional[str] = None
     model_codex: Optional[str] = None
-    reasoning_effort: str = "xhigh"
+    reasoning_effort: str = "high"      # codex `model_reasoning_effort` (minimal|low|medium|high)
 
     # --- safety ---
     forbid_api_keys: bool = True

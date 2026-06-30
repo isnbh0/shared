@@ -21,7 +21,7 @@ def test_defaults_match_spec():
     assert cfg.n_samples == 3
     assert cfg.model_claude is None
     assert cfg.model_codex is None
-    assert cfg.reasoning_effort == "xhigh"
+    assert cfg.reasoning_effort == "high"
     assert cfg.forbid_api_keys is True
 
 

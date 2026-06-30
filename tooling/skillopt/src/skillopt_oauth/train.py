@@ -54,10 +54,10 @@ from __future__ import annotations
 import argparse
 import asyncio
 import importlib
-import json
+import shutil
 import sys
 import tempfile
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
@@ -82,7 +82,7 @@ class EnvConfig:
     tasks_dir: str
     rollout_provider: str = "claude"   # providers.rollout
     reflect_provider: str = "codex"    # providers.reflect
-    reasoning_effort: str = "xhigh"
+    reasoning_effort: str = "high"     # codex model_reasoning_effort (minimal|low|medium|high)
     n_samples: int = 3                 # rollout.n_samples
     rollout_timeout: float = 600.0     # rollout.timeout
     batch_size: int = 40               # train.batch_size
@@ -117,7 +117,7 @@ def load_env_config(env_name: str, *, configs_dir: str | Path | None = None) -> 
         tasks_dir=str(data.get("tasks_dir", f"tasks/{env_name}")),
         rollout_provider=str(providers.get("rollout", "claude")),
         reflect_provider=str(providers.get("reflect", "codex")),
-        reasoning_effort=str(data.get("reasoning_effort", "xhigh")),
+        reasoning_effort=str(data.get("reasoning_effort", "high")),
         n_samples=int(rollout.get("n_samples", 3)),
         rollout_timeout=float(rollout.get("timeout", 600.0)),
         batch_size=int(trn.get("batch_size", 40)),
@@ -133,17 +133,24 @@ def load_env_config(env_name: str, *, configs_dir: str | Path | None = None) -> 
 # --------------------------------------------------------------------------- #
 def reconcile_loop_config(base: Config, env: EnvConfig, *, out_dir: str,
                           steps_per_epoch: int = 5, checkpoint_path: str = "checkpoint.json",
-                          seed: int | None = None) -> LoopConfig:
+                          seed: int | None = None, batch_size: int | None = None,
+                          n_samples: int | None = None, val_n_samples: int | None = None,
+                          rollout_provider: str | None = None,
+                          reflect_provider: str | None = None) -> LoopConfig:
     """Fold the flat P1 ``Config`` and the nested P4 ``EnvConfig`` into one ``LoopConfig``.
 
     Precedence: explicit override > P4 env YAML > P1 Config default. See the module
-    docstring for the full field-by-field mapping table.
+    docstring for the full field-by-field mapping table. The keyword overrides
+    (batch_size / n_samples / val_n_samples / rollout_provider / reflect_provider)
+    sit at the top of that precedence so a CLI flag can shrink a run or re-route a
+    provider without editing the committed env YAML.
     """
+    n_eff = n_samples if n_samples is not None else env.n_samples
     return LoopConfig(
-        batch_size=env.batch_size,
+        batch_size=batch_size if batch_size is not None else env.batch_size,
         minibatch_size=base.minibatch_size,
-        n_samples=env.n_samples,
-        val_n_samples=env.n_samples,
+        n_samples=n_eff,
+        val_n_samples=val_n_samples if val_n_samples is not None else n_eff,
         steps_per_epoch=steps_per_epoch,
         lr0=base.lr,
         min_lr=base.min_lr,
@@ -151,8 +158,8 @@ def reconcile_loop_config(base: Config, env: EnvConfig, *, out_dir: str,
         gate_mode=env.gate_mode or base.gate_mode,
         reflection_mode=base.reflection_mode,
         metric="mixed",
-        rollout_provider=env.rollout_provider or base.rollout_provider,
-        reflect_provider=env.reflect_provider or base.reflect_provider,
+        rollout_provider=rollout_provider or env.rollout_provider or base.rollout_provider,
+        reflect_provider=reflect_provider or env.reflect_provider or base.reflect_provider,
         model=base.model_claude or "claude",
         seed=int(seed if seed is not None else env.split_seed),
         out_dir=out_dir,
@@ -203,6 +210,83 @@ def build_scheduler(base: Config, providers: list[str]) -> Scheduler:
 # their CLI call through cli_job so classify_cli_result + the pool's backoff /
 # retry / circuit-breaker engage uniformly (README known-risk #2, P5 note #5).
 # --------------------------------------------------------------------------- #
+def _rollout_prompt(skill_doc: str, task: dict) -> str:
+    """The instruction sent to the rollout CLI.
+
+    The candidate skill is INLINED (real ``claude`` does not auto-load a workspace
+    ``.agents/skills/`` dir, so the doc must reach the model in the prompt), and the
+    model is told to create the task's artifacts at the TOP LEVEL of its working
+    directory so the deterministic scorer can grade their names.
+    """
+    return (
+        "You are an automated file-creation agent. Apply the following skill "
+        "exactly when naming anything you create.\n"
+        "=== SKILL ===\n"
+        f"{skill_doc.strip()}\n"
+        "=== END SKILL ===\n\n"
+        f"Task: {task.get('prompt', '')}\n\n"
+        "Create the requested file(s) and/or folder(s) directly at the TOP LEVEL "
+        "of your current working directory. Do not nest them inside a new "
+        "subfolder, and do not create any extra files. Apply the skill's naming "
+        "rules to every name you create. Do not ask questions; just create them "
+        "and stop."
+    )
+
+
+def _reflect_prompt(skill_doc: str, minibatch: list[dict]) -> str:
+    """The instruction sent to the reflect CLI: improve the skill, return edit ops.
+
+    States the reward signal explicitly (the deterministic scorer's prefix rule)
+    and pins the exact ``{kind, anchor, text}`` edit-op JSON the reflect parser
+    (``reflect.parse_edit_ops``) consumes. The edit engine (``reflect.apply_edits``)
+    is LINE-BASED -- an op's ``anchor`` is matched only within a single existing
+    line -- so we tell the model that and steer it to an anchor-free ``add``
+    (append), which always applies regardless of how the skill is wrapped.
+    """
+    examples = "\n".join(
+        f"  - {m.get('prompt') or m.get('id') or ''}" for m in minibatch
+    ) or "  (none)"
+    return (
+        "You are improving the SKILL document an automated agent reads before it "
+        "creates files for a task. The agent's output is scored programmatically: "
+        "a task scores 1.0 only if EVERY top-level file or folder it creates has a "
+        "name beginning with a YYMMDD-HHMMSS- timestamp prefix (six digits, dash, "
+        "six digits, dash), e.g. 260630-142210-summary.md; otherwise it scores 0. "
+        "The current skill does NOT achieve this.\n\n"
+        "Current SKILL:\n=== SKILL ===\n"
+        f"{skill_doc.strip()}\n=== END SKILL ===\n\n"
+        "Recent tasks the agent attempted:\n"
+        f"{examples}\n\n"
+        "Propose edits so the agent RELIABLY prefixes every new file AND folder "
+        "name with that exact YYMMDD-HHMMSS- timestamp.\n\n"
+        "Edits are applied by a LINE-BASED engine: each edit's \"anchor\" must be a "
+        "substring of a SINGLE existing line (it can NOT span multiple lines). "
+        "STRONGLY PREFER one \"add\" edit with an empty anchor -- it appends your "
+        "\"text\" as a new final line -- and make that text an assertive, "
+        "self-contained rule that OVERRIDES any earlier naming guidance (state the "
+        "exact YYMMDD-HHMMSS- format and that it applies to every file and folder). "
+        "Respond with ONLY a JSON object (no prose, no code fence) of the form:\n"
+        '{"edits": [{"kind": "add", "anchor": "", "text": "<rule to append>"}]}\n'
+        'where "kind" is "add" (append "text" as a new line; anchor ""), "replace" '
+        '(replace the first line containing the single-line "anchor" with "text"), '
+        'or "delete" (remove the first line containing the single-line "anchor"). '
+        "Output the JSON object and nothing else."
+    )
+
+
+def _extract_edits_json(raw: str) -> str:
+    """Recover the edit-op JSON object from a CLI's (possibly prose/fenced) stdout.
+
+    Returns the bare ``{...}`` substring when found, else the raw text -- the
+    downstream parser then yields zero edits (a no-op step) rather than crashing.
+    """
+    from .executor import PatchParseError, extract_json_object
+    try:
+        return extract_json_object(raw)
+    except (PatchParseError, ValueError):
+        return raw
+
+
 def make_rollout_fn(executor, env: EnvConfig, cfg: LoopConfig):
     """Build ``rollout_fn(skill_doc, task) -> {id, stdout, workspace_dir}``.
 
@@ -210,6 +294,8 @@ def make_rollout_fn(executor, env: EnvConfig, cfg: LoopConfig):
     is materialized to a file, injected into a fresh per-rollout workspace, and the
     CLI call goes through ``cli_job`` (so a rate-limit / timeout / auth-billing
     signal is classified and the wrapping pool retries or fails closed).
+    ``allow_writes=True`` widens the rollout CLI's sandbox so the model can create
+    the task's files in the workspace the scorer then scans.
     """
     async def rollout_fn(skill_doc: str, task: dict) -> dict:
         base_dir = tempfile.mkdtemp(prefix="skillopt_roll_")
@@ -219,10 +305,10 @@ def make_rollout_fn(executor, env: EnvConfig, cfg: LoopConfig):
         skill_file.write_text(skill_doc, encoding="utf-8")
         ws = Path(base_dir) / "ws"
         ws.mkdir(parents=True, exist_ok=True)
-        prompt = json.dumps({"mode": "rollout", "task": task})
+        prompt = _rollout_prompt(skill_doc, task)
         factory = cli_job(executor, provider=cfg.rollout_provider, prompt=prompt,
                           skill_path=str(skill_file), workdir=str(ws),
-                          timeout=env.rollout_timeout)
+                          timeout=env.rollout_timeout, allow_writes=True)
         res = await factory()
         return {"id": task["id"], "stdout": getattr(res, "stdout", ""),
                 "workspace_dir": str(ws)}
@@ -231,19 +317,23 @@ def make_rollout_fn(executor, env: EnvConfig, cfg: LoopConfig):
 
 
 def make_propose_fn(executor, env: EnvConfig, cfg: LoopConfig):
-    """Build ``propose_fn(skill_doc, minibatch) -> raw patch JSON``, routed via cli_job.
+    """Build ``propose_fn(skill_doc, minibatch) -> edit-op JSON``, routed via cli_job.
 
-    Production swaps this for ``reflect.make_upstream_propose_fn`` wrapping
-    ``gradient.run_minibatch_reflect``; here the proposer is the same OAuth CLI on
-    the reflect identity, classified through ``cli_job`` like the rollout path.
+    The proposer is the OAuth CLI on the reflect identity. It runs in an isolated,
+    empty workspace under the read-only sandbox so it never scans the surrounding
+    repo, and its stdout is reduced to the bare edit-op JSON object for the reflect
+    parser (real CLI output may wrap the JSON in prose or a code fence).
     """
     async def propose_fn(skill_doc: str, minibatch: list[dict]) -> str:
-        ids = [m.get("id") for m in minibatch]
-        prompt = json.dumps({"mode": "reflect", "skill": skill_doc, "minibatch": ids})
-        factory = cli_job(executor, provider=cfg.reflect_provider, prompt=prompt,
-                          timeout=env.rollout_timeout)
-        res = await factory()
-        return getattr(res, "stdout", "")
+        prompt = _reflect_prompt(skill_doc, minibatch)
+        reflect_ws = tempfile.mkdtemp(prefix="skillopt_reflect_")
+        try:
+            factory = cli_job(executor, provider=cfg.reflect_provider, prompt=prompt,
+                              workdir=reflect_ws, timeout=env.rollout_timeout)
+            res = await factory()
+        finally:
+            shutil.rmtree(reflect_ws, ignore_errors=True)
+        return _extract_edits_json(getattr(res, "stdout", ""))
 
     return propose_fn
 
@@ -253,10 +343,26 @@ def make_propose_fn(executor, env: EnvConfig, cfg: LoopConfig):
 # --------------------------------------------------------------------------- #
 async def run_training(base: Config, env: EnvConfig, *, out_dir: str, epochs: int = 1,
                        steps_per_epoch: int = 5, checkpoint_path: str = "checkpoint.json",
-                       stub_bin: str | None = None, fake_oauth: bool = False) -> TrainState:
-    """Reconcile config, build the executor/scheduler/deps, and run the loop."""
-    cfg = reconcile_loop_config(base, env, out_dir=out_dir, steps_per_epoch=steps_per_epoch,
-                                checkpoint_path=checkpoint_path)
+                       stub_bin: str | None = None, fake_oauth: bool = False,
+                       batch_size: int | None = None, n_samples: int | None = None,
+                       val_n_samples: int | None = None, initial_skill: str | None = None,
+                       rollout_provider: str | None = None,
+                       reflect_provider: str | None = None,
+                       reasoning_effort: str | None = None) -> TrainState:
+    """Reconcile config, build the executor/scheduler/deps, and run the loop.
+
+    The optional keyword overrides (also exposed as CLI flags) take precedence over
+    the env YAML so a run can be shrunk, re-routed to other providers, or pointed
+    at a different initial skill without editing committed config.
+    """
+    if reasoning_effort is not None:
+        env = replace(env, reasoning_effort=reasoning_effort)
+    cfg = reconcile_loop_config(
+        base, env, out_dir=out_dir, steps_per_epoch=steps_per_epoch,
+        checkpoint_path=checkpoint_path, batch_size=batch_size, n_samples=n_samples,
+        val_n_samples=val_n_samples, rollout_provider=rollout_provider,
+        reflect_provider=reflect_provider,
+    )
 
     executor = build_executor(base, env, stub_bin=stub_bin, fake_oauth=fake_oauth)
     scheduler = build_scheduler(base, [cfg.rollout_provider, cfg.reflect_provider])
@@ -274,10 +380,15 @@ async def run_training(base: Config, env: EnvConfig, *, out_dir: str, epochs: in
         val_tasks=loader.val_split(),
     )
 
-    initial_path = _io.project_root() / env.initial_skill
-    initial_skill = Path(initial_path).read_text(encoding="utf-8")
+    if initial_skill:
+        initial_path = Path(initial_skill)
+        if not initial_path.is_absolute():
+            initial_path = _io.project_root() / initial_path
+    else:
+        initial_path = _io.project_root() / env.initial_skill
+    initial_skill_text = Path(initial_path).read_text(encoding="utf-8")
     try:
-        return await run_loop(cfg, deps, initial_skill=initial_skill, epochs=epochs)
+        return await run_loop(cfg, deps, initial_skill=initial_skill_text, epochs=epochs)
     finally:
         await scheduler.aclose()
 
@@ -303,6 +414,21 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="run directory for the checkpoint WAL + best_skill.md")
     parser.add_argument("--checkpoint", default="checkpoint.json",
                         help="checkpoint filename inside --out-dir")
+    # Run-shaping overrides (precedence over the env YAML); omit to use the YAML.
+    parser.add_argument("--batch-size", type=int, default=None,
+                        help="override train.batch_size (rollout tasks per step)")
+    parser.add_argument("--n-samples", type=int, default=None,
+                        help="override rollout.n_samples (samples per task; rollout + val)")
+    parser.add_argument("--val-n-samples", type=int, default=None,
+                        help="override validation samples per task (defaults to --n-samples)")
+    parser.add_argument("--initial-skill", default=None,
+                        help="override the initial skill doc path (absolute or repo-relative)")
+    parser.add_argument("--rollout-provider", default=None,
+                        help="override providers.rollout (e.g. claude)")
+    parser.add_argument("--reflect-provider", default=None,
+                        help="override providers.reflect (e.g. codex)")
+    parser.add_argument("--reasoning-effort", default=None,
+                        help="override codex model_reasoning_effort (minimal|low|medium|high)")
     # Hermetic smoke knobs (offline): point both CLIs at the stub + fake the OAuth probe.
     parser.add_argument("--stub", default=None,
                         help="hermetic: use this stub CLI as both claude_bin and codex_bin")
@@ -334,6 +460,10 @@ def main(argv: list[str] | None = None) -> int:
         config, env, out_dir=args.out_dir, epochs=args.epochs,
         steps_per_epoch=args.steps_per_epoch, checkpoint_path=args.checkpoint,
         stub_bin=args.stub, fake_oauth=args.fake_oauth,
+        batch_size=args.batch_size, n_samples=args.n_samples,
+        val_n_samples=args.val_n_samples, initial_skill=args.initial_skill,
+        rollout_provider=args.rollout_provider, reflect_provider=args.reflect_provider,
+        reasoning_effort=args.reasoning_effort,
     ))
     print(f"done: env={env.env} epoch={state.epoch} step={state.step} "
           f"best_score={state.best_score}")

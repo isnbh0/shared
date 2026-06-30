@@ -7,7 +7,7 @@ tasks_dir: tasks/spex_write_phased
 providers:
   rollout: claude
   reflect: codex
-reasoning_effort: xhigh
+reasoning_effort: high   # codex model_reasoning_effort (minimal|low|medium|high)
 
 rollout:
   n_samples: 3

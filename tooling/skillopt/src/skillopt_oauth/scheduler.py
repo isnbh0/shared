@@ -140,6 +140,7 @@ def cli_job(
     skill_path: str | None = None,
     workdir: str | None = None,
     timeout: float = 600.0,
+    allow_writes: bool = False,
 ) -> CoroFactory:
     """Build a ``coro_factory`` that runs the sync ``run_cli`` off-loop.
 
@@ -161,6 +162,7 @@ def cli_job(
             skill_path=skill_path,
             workdir=workdir,
             timeout=timeout,
+            allow_writes=allow_writes,
         )
         return classify_cli_result(result)
 

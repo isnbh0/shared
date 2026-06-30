@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import platform
 import shutil
 import subprocess
 import tempfile
@@ -47,7 +48,22 @@ _MODEL_MARKER_RE = re.compile(r"\[\[SKILLOPT_MODEL:([^\]]*)\]\]")
 # surfaced as ``CliResult.auth_billing_warning`` and treated as a failure even on
 # a clean (exit 0) run.
 _AUTH_BILLING_RE = re.compile(
-    r"api[ -]?key|rate limit|usage limit|quota|bill(?:ed|ing)|credit",
+    # Targeted signatures of an actual metered-API slip / billing / usage-limit
+    # condition. Deliberately narrower than a bare "api key" / "credit" /
+    # "billing" match: a model's benign prose (or a JSON usage field like
+    # "modelUsage") must not false-positive and abort an otherwise-clean run.
+    # Still catches the real warnings a metered fallback or a hit limit emits
+    # (including the hermetic stub's auth_warning text).
+    r"api[_ -]?key\s+(?:detected|present|set|found|required|invalid|missing)"
+    r"|billed?\s+to\s+(?:your\s+)?(?:api|account|credits?)"
+    r"|api\s+credits?"
+    r"|credit\s+balance"
+    r"|insufficient\s+(?:credit|quota|funds|balance)"
+    r"|rate[_ -]?limit"
+    r"|usage\s+limit"
+    r"|too\s+many\s+requests"
+    r"|quota\s+(?:exceeded|reached)"
+    r"|billing\s+(?:error|issue|required|problem)",
     re.IGNORECASE,
 )
 
@@ -139,11 +155,40 @@ def _probe_claude_oauth() -> str:
             return "oauth"
         if data.get("apiKey") or data.get("ANTHROPIC_API_KEY"):
             return "api_key"
-    # A real probe would also query the macOS keychain here; absent a confirmed
-    # subscription credential, refuse to assume OAuth.
+    # On macOS there is no .credentials.json: the subscription credential lives
+    # in the login Keychain. Consult it before falling back to "api_key"/"none".
+    if _probe_claude_keychain() == "oauth":
+        return "oauth"
     if os.environ.get("ANTHROPIC_API_KEY"):
         return "api_key"
     return "none"
+
+
+def _probe_claude_keychain() -> str | None:
+    """Return ``'oauth'`` iff the macOS login Keychain holds a Claude Code OAuth
+    credential, else ``None``.
+
+    Claude Code stores a subscription (``/login`` OAuth) credential under the
+    generic-password service ``"Claude Code-credentials"``; an API-key login uses
+    the distinct service ``"Claude Code"``. So the mere *presence* of the former
+    item is the subscription signal. We intentionally do an existence/attribute
+    lookup only -- NOT ``-g``/``-w`` -- because decrypting the secret can trigger
+    a Keychain ACL prompt that would hang a headless run, whereas listing the
+    item does not. Best-effort and fail-safe: any error (non-macOS, missing
+    ``security``, locked keychain) returns ``None`` so the caller falls through
+    rather than crashing the preflight.
+    """
+    if platform.system() != "Darwin":
+        return None
+    cmd = ["security", "find-generic-password", "-s", "Claude Code-credentials"]
+    account = os.environ.get("USER")
+    if account:
+        cmd += ["-a", account]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return "oauth" if proc.returncode == 0 else None
 
 
 def _probe_codex_oauth() -> str:
@@ -165,7 +210,7 @@ class OAuthCLIExecutor:
     """Shell out to the OAuthed ``claude`` / ``codex`` CLIs. No API path exists."""
 
     def __init__(self, *, claude_bin="claude", codex_bin="codex",
-                 model_claude=None, model_codex=None, reasoning_effort="xhigh",
+                 model_claude=None, model_codex=None, reasoning_effort="high",
                  forbid_api_keys=True, require_oauth=True, scrub_child_env=True,
                  oauth_probe=None):
         # The old construction-time parent-env API-key *scan* is intentionally
@@ -189,11 +234,14 @@ class OAuthCLIExecutor:
     # -- public -----------------------------------------------------------
 
     def run_cli(self, *, provider: str, prompt: str, skill_path: str | None = None,
-                workdir: str | None = None, timeout: float = 600.0) -> "CliResult":
+                workdir: str | None = None, timeout: float = 600.0,
+                allow_writes: bool = False) -> "CliResult":
         """Run one non-interactive CLI call and return its :class:`CliResult`.
 
         ``provider`` is ``"claude"`` or ``"codex"``. The candidate skill, if
         given, is injected as a read-only workspace file before the call.
+        ``allow_writes`` widens the CLI's sandbox so the model may create files
+        in ``workdir`` (rollouts need this; reflect/judge calls do not).
         """
         if provider not in ("claude", "codex"):
             raise ValueError(f"unknown provider {provider!r}; expected 'claude' or 'codex'")
@@ -207,7 +255,7 @@ class OAuthCLIExecutor:
         if skill_path is not None and workdir is not None:
             self._inject_skill(workdir, skill_path)
 
-        cmd, stdin_data = self._build_command(provider, prompt, requested)
+        cmd, stdin_data = self._build_command(provider, prompt, requested, allow_writes)
 
         env = self._build_child_env(provider, requested)
 
@@ -235,7 +283,7 @@ class OAuthCLIExecutor:
             if created_tmp is not None:
                 shutil.rmtree(created_tmp, ignore_errors=True)
 
-        reported = self._extract_model_marker(stdout)
+        reported = self._extract_model(provider, stdout)
         model_asserted = self._assert_model(requested, reported) if exit_code == 0 else None
         auth_billing_warning = bool(_AUTH_BILLING_RE.search(f"{stdout}\n{stderr}"))
         return CliResult(stdout, exit_code, duration, model_asserted, stderr,
@@ -243,21 +291,38 @@ class OAuthCLIExecutor:
 
     # -- internals --------------------------------------------------------
 
-    def _build_command(self, provider, prompt, requested):
-        """Return ``(argv, stdin_data)`` for the given provider."""
+    def _build_command(self, provider, prompt, requested, allow_writes=False):
+        """Return ``(argv, stdin_data)`` for the given provider.
+
+        ``allow_writes`` widens the sandbox so the model may create files in its
+        working directory: claude gains ``--permission-mode acceptEdits``; codex
+        runs under ``--sandbox workspace-write`` instead of ``read-only``.
+        """
         if provider == "claude":
             # Headless subscription path is `claude -p`. NEVER `--bare`: that flag
             # skips OAuth/keychain and *requires* an API key (metered), and is
             # slated to become the `-p` default in a future release -- so pin the
             # CLI version (config) and assert `--bare` is absent from the argv.
-            cmd = [self.claude_bin, "-p", prompt]
+            # `--output-format json` makes stdout a single machine-readable result
+            # object (so the model that actually ran is recoverable from
+            # `modelUsage`) instead of free-form prose. `--permission-mode
+            # acceptEdits` is the minimal grant that lets a non-interactive `-p`
+            # run create/edit files inside its working directory.
+            cmd = [self.claude_bin, "-p", prompt, "--output-format", "json"]
+            if allow_writes:
+                cmd += ["--permission-mode", "acceptEdits"]
             if requested:
                 cmd += ["--model", requested]
             self._guard_no_bare(cmd)
             return cmd, None
-        # codex: read-only sandbox, reasoning effort + model via -c flags, prompt on stdin
-        cmd = [self.codex_bin, "exec", "-s", "read-only",
-               "-c", f"model_reasoning_effort={self.reasoning_effort}"]
+        # codex exec: read-only by default; widen to workspace-write only when the
+        # call must produce files. `--skip-git-repo-check` keeps `exec` from
+        # refusing to run in a non-repo workspace. reasoning effort + model via -c
+        # flags (effort omitted when unset); prompt on stdin.
+        sandbox = "workspace-write" if allow_writes else "read-only"
+        cmd = [self.codex_bin, "exec", "-s", sandbox, "--skip-git-repo-check"]
+        if self.reasoning_effort:
+            cmd += ["-c", f"model_reasoning_effort={self.reasoning_effort}"]
         if requested:
             cmd += ["-c", f"model={requested}"]
         cmd += ["-"]
@@ -345,15 +410,74 @@ class OAuthCLIExecutor:
         return value or None
 
     @staticmethod
+    def _extract_model(provider: str, stdout: str) -> str | None:
+        """Recover the model the CLI actually ran on, if discoverable.
+
+        Order: the explicit ``[[SKILLOPT_MODEL:...]]`` marker first (the hermetic
+        stub and any CLI that echoes it), then provider-specific structured
+        output. ``claude -p --output-format json`` returns an SDKResultMessage
+        whose ``modelUsage`` is keyed by the real model id(s) -- there is no
+        top-level ``model`` field -- so the first key is the model that ran.
+        ``codex exec`` emits no machine-readable model field, so the ``-m`` pin is
+        the contract and we report ``None``.
+        """
+        marked = OAuthCLIExecutor._extract_model_marker(stdout)
+        if marked:
+            return marked
+        if provider == "claude":
+            return OAuthCLIExecutor._model_from_claude_json(stdout)
+        return None
+
+    @staticmethod
+    def _model_from_claude_json(stdout: str) -> str | None:
+        text = (stdout or "").strip()
+        if not text:
+            return None
+        try:
+            obj = json.loads(text)
+        except ValueError:
+            try:
+                obj = json.loads(extract_json_object(text))
+            except (PatchParseError, ValueError):
+                return None
+        if not isinstance(obj, dict):
+            return None
+        usage = obj.get("modelUsage")
+        if isinstance(usage, dict) and usage:
+            return next(iter(usage))
+        model = obj.get("model")
+        return model if isinstance(model, str) and model else None
+
+    @staticmethod
+    def _model_family(name: str | None) -> str | None:
+        """The coarse model family token in ``name`` (e.g. 'opus' in
+        'claude-opus-4-8'), or ``None`` if no known family is present."""
+        n = (name or "").lower()
+        for fam in ("opus", "sonnet", "haiku", "fable", "gpt", "o3", "o4"):
+            if fam in n:
+                return fam
+        return None
+
+    @staticmethod
     def _assert_model(requested: str | None, reported: str | None) -> str | None:
-        """Verify the pinned model against what the CLI reported."""
+        """Verify the pinned model against what the CLI reported.
+
+        A real CLI reports a concrete id (``claude-opus-4-8``) while the pin may
+        be an alias (``opus``); these are treated as a match (same family) and
+        the concrete id is preferred. Only a cross-family report -- e.g. pinned
+        ``opus`` but ``haiku`` ran (a silent downgrade) -- is a hard error.
+        """
         if requested is None:
             return reported
-        if reported is not None and reported != requested:
-            raise ModelAssertionError(
-                f"model assertion failed: pinned {requested!r} but CLI reported {reported!r}"
-            )
-        return requested
+        if reported is None or reported == requested:
+            return reported if reported is not None else requested
+        rf = OAuthCLIExecutor._model_family(requested)
+        pf = OAuthCLIExecutor._model_family(reported)
+        if rf and pf and rf == pf:
+            return reported
+        raise ModelAssertionError(
+            f"model assertion failed: pinned {requested!r} but CLI reported {reported!r}"
+        )
 
 
 # -- structured-output helpers --------------------------------------------
