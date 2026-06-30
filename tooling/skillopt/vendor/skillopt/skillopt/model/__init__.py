@@ -6,6 +6,7 @@ from typing import Any
 
 from skillopt.model import azure_openai as _openai
 from skillopt.model import claude_backend as _claude
+from skillopt.model import codex_backend as _codex
 from skillopt.model import minimax_backend as _minimax
 from skillopt.model import qwen_backend as _qwen
 from skillopt.model.backend_config import (  # noqa: F401
@@ -105,6 +106,15 @@ def chat_optimizer(
             reasoning_effort=reasoning_effort,
             timeout=timeout,
         )
+    if get_optimizer_backend() == "codex_chat":
+        return _codex.chat_optimizer(
+            system=system,
+            user=user,
+            max_completion_tokens=max_completion_tokens,
+            retries=retries,
+            stage=stage,
+            timeout=timeout,
+        )
     return _openai.chat_optimizer(
         system=system,
         user=user,
@@ -198,6 +208,17 @@ def chat_optimizer_messages(
             retries=retries,
             stage=stage,
             reasoning_effort=reasoning_effort,
+            tools=tools,
+            tool_choice=tool_choice,
+            return_message=return_message,
+            timeout=timeout,
+        )
+    if get_optimizer_backend() == "codex_chat":
+        return _codex.chat_optimizer_messages(
+            messages=messages,
+            max_completion_tokens=max_completion_tokens,
+            retries=retries,
+            stage=stage,
             tools=tools,
             tool_choice=tool_choice,
             return_message=return_message,
@@ -329,6 +350,9 @@ def chat_with_deployment(
 
 
 def get_token_summary() -> dict:
+    # codex_backend records into the shared common.tracker that claude_backend
+    # also uses, so codex usage is already counted via the claude summary below.
+    # Merging _codex.get_token_summary() here would double-count it.
     summary = _openai.get_token_summary()
     claude_summary = _claude.get_token_summary()
     for stage, values in claude_summary.items():
@@ -382,7 +406,7 @@ def get_token_summary() -> dict:
 
 def reset_token_tracker() -> None:
     _openai.reset_token_tracker()
-    _claude.reset_token_tracker()
+    _claude.reset_token_tracker()  # also clears the shared common.tracker used by codex_backend
     _qwen.reset_token_tracker()
     _minimax.reset_token_tracker()
 
@@ -497,6 +521,7 @@ def set_reasoning_effort(effort: str | None) -> None:
     _claude.set_reasoning_effort(effort)
     _qwen.set_reasoning_effort(effort)
     _minimax.set_reasoning_effort(effort)
+    _codex.set_reasoning_effort(effort)
 
 
 def set_target_deployment(deployment: str) -> None:
@@ -504,9 +529,11 @@ def set_target_deployment(deployment: str) -> None:
     _claude.set_target_deployment(deployment)
     _qwen.set_target_deployment(deployment)
     _minimax.set_target_deployment(deployment)
+    _codex.set_target_deployment(deployment)
 
 
 def set_optimizer_deployment(deployment: str) -> None:
     _openai.set_optimizer_deployment(deployment)
     _claude.set_optimizer_deployment(deployment)
     _qwen.set_optimizer_deployment(deployment)
+    _codex.set_optimizer_deployment(deployment)
