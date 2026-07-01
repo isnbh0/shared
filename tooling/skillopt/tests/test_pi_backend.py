@@ -307,3 +307,120 @@ def test_billing_error_is_not_retried(monkeypatch):
     with pytest.raises(P.PiBillingError):
         P._chat_messages_impl("gpt-5.5", [{"role": "user", "content": "hi"}], 100, 5, "optimizer")
     assert calls["n"] == 1  # fatal on the first attempt, never retried
+
+
+# ==========================================================================
+# Phase 2: pi_exec agentic rollout target.
+# ==========================================================================
+import os
+
+from skillopt.model import codex_harness as H
+from skillopt.model.backend_config import is_target_exec_backend
+from skillopt.model.codex_harness import render_skill_md
+
+
+def test_pi_exec_is_a_target_exec_backend():
+    set_target_backend("pi_exec")
+    assert is_target_exec_backend() is True
+    assert is_target_chat_backend() is False
+
+
+def test_run_target_exec_dispatches_to_pi_exec(monkeypatch, tmp_path):
+    set_target_backend("pi_exec")
+    seen: dict = {"calls": 0}
+
+    def fake_run_pi_exec(**kwargs):
+        seen["calls"] += 1
+        seen["work_dir"] = kwargs["work_dir"]
+        return ("ANSWER", "raw")
+
+    monkeypatch.setattr(P, "run_pi_exec", fake_run_pi_exec)
+    out, _raw = H.run_target_exec(
+        work_dir=str(tmp_path), prompt="solve it", model="gpt-5.5", timeout=60,
+    )
+    assert out == "ANSWER"
+    assert seen["calls"] == 1
+
+
+def test_pi_exec_stages_external_files_and_emits_no_allow_dir(monkeypatch, tmp_path):
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    ext = tmp_path / "external.txt"
+    ext.write_text("payload")
+    captured: dict = {}
+
+    def fake_run(command, **kwargs):
+        captured["cmd"] = list(command)
+        return _FakeProc(stdout=_message_end("DONE"), returncode=0)
+
+    monkeypatch.setattr(P.subprocess, "run", fake_run)
+    out, _raw = P._run_pi_cli_exec(
+        work_dir=str(work_dir), prompt="task", model="gpt-5.5", timeout=60,
+        data_dirs=[str(ext)],
+    )
+    assert out == "DONE"
+    assert "--allow-dir" not in captured["cmd"]  # pi has no dir-mount flag
+    assert "--add-dir" not in captured["cmd"]
+    # the external file was staged under <work_dir>/_staged/
+    assert (work_dir / "_staged" / "external.txt").read_text() == "payload"
+    # the /skill: force-execute prefix rides the positional prompt
+    assert any(str(tok).startswith("/skill:skillopt-target") for tok in captured["cmd"])
+    assert "--skill" in captured["cmd"]
+
+
+def test_run_pi_exec_sums_multi_turn_usage(monkeypatch, tmp_path):
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    stream = "\n".join([
+        _message_end("turn-1 partial", usage={"output": 2, "totalTokens": 10}),
+        _message_end("turn-2 final", usage={"output": 4, "totalTokens": 20}),
+        _AGENT_END,
+    ])
+
+    def fake_run(command, **kwargs):
+        return _FakeProc(stdout=stream, returncode=0)
+
+    monkeypatch.setattr(P.subprocess, "run", fake_run)
+    out, _raw = P.run_pi_exec(work_dir=str(work_dir), prompt="t", model="gpt-5.5", timeout=60)
+    assert out == "turn-2 final"  # last assistant text
+    rollout = P.get_token_summary()["rollout"]
+    assert rollout["total_tokens"] == 30      # 10 + 20 summed across turns
+    assert rollout["completion_tokens"] == 6  # 2 + 4
+
+
+def test_pi_exec_guard_applies_to_rollout(monkeypatch, tmp_path):
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    # pin resolves to openai-codex (config default) but the stream came from zai -> fallback.
+    fallback = _message_end("oops", provider="zai", model="glm-5.2")
+
+    def fake_run(command, **kwargs):
+        return _FakeProc(stdout=fallback, returncode=0)
+
+    monkeypatch.setattr(P.subprocess, "run", fake_run)
+    with pytest.raises(P.PiBillingError):
+        P._run_pi_cli_exec(work_dir=str(work_dir), prompt="t", model="gpt-5.5", timeout=60)
+
+
+def test_pi_tools_mapping():
+    assert P._pi_tools(["Read", "Bash", "Edit"], allow_file_edits=False) == "read,bash,edit"
+    got = P._pi_tools(["Read"], allow_file_edits=True)
+    assert got.split(",")[0] == "read" and "write" in got and "edit" in got
+
+
+def test_normalize_pi_exec_prompt_strips_anti_skill_wording():
+    dirty = "Read the file. do not call a Skill tool. Then answer."
+    assert "do not call a Skill tool" not in P._normalize_pi_exec_prompt(dirty)
+
+
+def test_render_skill_md_frontmatter_name_is_skillopt_target():
+    md = render_skill_md("Dynamic body here.")
+    assert 'name: "skillopt-target"' in md
+    assert "Dynamic body here." in md
+
+
+def test_legacy_set_backend_pi_exec_and_name():
+    M.set_backend("pi_exec")
+    assert BC.get_optimizer_backend() == "pi_chat"
+    assert BC.get_target_backend() == "pi_exec"
+    assert M.get_backend_name() == "pi"

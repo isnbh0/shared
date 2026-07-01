@@ -21,7 +21,6 @@ import time
 from typing import Any
 
 from skillopt.model.common import (
-    CompatAssistantMessage,  # noqa: F401  (re-exported shape used by callers)
     tracker,
 )
 # Reuse the codex prompt/compat plumbing verbatim (identical OpenAI-message contract).
@@ -481,8 +480,175 @@ def set_reasoning_effort(effort):
 
 
 # ============================================================================
-# FUTURE (Phase 2): the EXEC role (pi_exec) -- agentic rollout target -- is
-# appended below this marker: _PI_TOOL_MAP, _pi_tools, _stage_into_workdir,
-# _normalize_pi_exec_prompt, _run_pi_cli_exec, run_pi_exec. It reuses codex_harness
-# plumbing via lazy imports (keep those edges lazy to avoid a circular import).
+# EXEC role (pi_exec) -- agentic rollout target. Reuses codex_harness plumbing.
+# Keep every codex_harness import LAZY (inside functions) -- hoisting to module
+# scope deadlocks `import skillopt.model` (codex_harness imports back into model).
 # ============================================================================
+_PI_TOOL_MAP = {
+    "read": "read", "bash": "bash", "write": "write", "edit": "edit",
+    "grep": "grep", "find": "find", "ls": "ls", "glob": "find",
+}
+
+
+def _pi_tools(allowed_tools: Any, allow_file_edits: bool) -> str:
+    from skillopt.model.codex_harness import _normalize_tools
+    raw = "Read,Bash" if allowed_tools is None else _normalize_tools(allowed_tools)
+    names: list[str] = []
+    for t in str(raw).split(","):
+        pi_name = _PI_TOOL_MAP.get(t.strip().lower())
+        if pi_name and pi_name not in names:
+            names.append(pi_name)
+    if allow_file_edits:
+        for extra in ("write", "edit"):
+            if extra not in names:
+                names.append(extra)
+    return ",".join(names) or "read,bash"
+
+
+def _stage_into_workdir(work_dir: str, paths: list[str] | None) -> None:
+    """pi has NO dir-mount flag; make external files reachable by copying them under work_dir.
+
+    Copies each path into <work_dir>/_staged/<basename> if it is not already inside work_dir.
+    (Directories are copied recursively.) This replaces the invalid --allow-dir approach: pi has
+    no --allow-dir/--add-dir flag of any kind, and emitting one produces an unknown-option argv
+    error that fails the whole rollout.
+    """
+    if not paths:
+        return
+    staged_root = os.path.join(work_dir, "_staged")
+    work_real = os.path.realpath(work_dir)
+    for src in paths:
+        if not src or not os.path.exists(src):
+            continue
+        if os.path.realpath(src).startswith(work_real + os.sep):
+            continue  # already reachable
+        os.makedirs(staged_root, exist_ok=True)
+        dst = os.path.join(staged_root, os.path.basename(src.rstrip(os.sep)))
+        if os.path.isdir(src):
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+        else:
+            shutil.copy2(src, dst)
+
+
+def _normalize_pi_exec_prompt(prompt: str) -> str:
+    """pi-specific prompt normalizer.
+
+    The harness's generic _exec_prompt steers CLI agents to 'Read the skill file directly;
+    do not call a Skill tool.' That wording is correct for codex/claude but CONTRADICTS pi's
+    native /skill: mechanism. Strip the anti-Skill-tool guidance so the /skill:skillopt-target
+    prefix (which expands SKILL.md inline as pi's sanctioned force-execute form) is not
+    self-contradictory.
+    """
+    banned = (
+        "Do not call a Skill tool; the ReflACT guidance is a local markdown file.",
+        "do not call a Skill tool",
+        "Read .agents/skills/skillopt-target/SKILL.md directly; do not call a Skill tool.",
+    )
+    out = prompt
+    for phrase in banned:
+        out = out.replace(phrase, "")
+    return " ".join(out.split())
+
+
+def _run_pi_cli_exec(
+    *, work_dir, prompt, model, timeout,
+    images=None, data_dirs=None, allowed_tools=None, allow_file_edits=False,
+) -> tuple[str, str]:
+    """One agentic pi rollout. Mirrors codex_harness._run_claude_code_cli_exec.
+
+    Skill recipe (confirmed on pi v0.79.10): `pi --no-skills --skill <skill_dir> -p --mode json
+    "/skill:skillopt-target <task>"` -- the explicit --skill is required for the /skill: prefix to
+    force-inject exactly that one skill.
+    """
+    from skillopt.model.backend_config import get_pi_exec_config
+    from skillopt.model.codex_harness import _exec_prompt, _validate_exec_path
+
+    config = get_pi_exec_config()
+    provider = str(config.get("provider") or PI_PROVIDER)
+    prov_from_model, model_id = _resolve_provider_model(model or "")
+    if "/" in str(model or ""):
+        provider = prov_from_model  # a provider/model deployment string wins over pi_exec_provider
+    _assert_allowed_provider(provider)  # refuse BEFORE spawning (wrapper-gated)
+
+    tools = _pi_tools(allowed_tools, allow_file_edits)
+
+    # pi has no dir-mount flag: stage external data/images INTO the sandbox instead.
+    _stage_into_workdir(work_dir, data_dirs)
+    _stage_into_workdir(work_dir, images)
+
+    skill_dir = os.path.join(work_dir, ".agents", "skills", "skillopt-target")
+    # Force EXACTLY this skill and force it to execute via the /skill: prefix. Use the
+    # pi-specific normalizer so the prompt does not carry the contradictory
+    # "do not call a Skill tool" wording.
+    exec_prompt = "/skill:skillopt-target " + _normalize_pi_exec_prompt(
+        _exec_prompt(prompt, allow_file_edits=allow_file_edits)
+    )
+
+    command = [
+        str(config.get("path") or PI_BIN), "-p", "--mode", "json",
+        "--no-session", "--approve",
+        "--no-context-files", "--no-extensions",
+        "--no-skills", "--skill", _validate_exec_path(skill_dir),
+        "--provider", provider, "--model", model_id,
+        "--thinking", str(config.get("thinking") or "off"),
+        "--tools", tools,
+        exec_prompt,
+    ]
+
+    try:
+        proc = subprocess.run(command, cwd=work_dir, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        stdout, stderr = exc.stdout or "", exc.stderr or ""
+        raw = stdout if not stderr else (f"{stdout}\n[stderr]\n{stderr}" if stdout else stderr)
+        return "", raw
+
+    stdout, stderr = proc.stdout or "", proc.stderr or ""
+    raw = stdout if not stderr else (f"{stdout}\n[stderr]\n{stderr}" if stdout else stderr)
+
+    parsed = _parse_pi_stream(stdout)
+    _guard_provider(parsed, provider, model_id)  # actual==intended; non-retryable on fallback
+    # Real usage (unlike codex_exec's 0/0 stub): SUM across assistant messages (per-turn; json
+    # mode has no cumulative-total event).
+    tracker.record("rollout", parsed["usage"]["prompt_tokens"], parsed["usage"]["completion_tokens"])
+
+    # Success from the STREAM, never proc.returncode (pi exits 0 even on a runtime failure and
+    # non-zero only on a CLI-parse error). An empty assembled final message is the failure
+    # signal; run_pi_exec's retry loop handles it.
+    response = parsed["last_text"]
+    if not response.strip():
+        return "", raw
+    return response, raw
+
+
+def run_pi_exec(
+    *, work_dir, prompt, model, timeout,
+    images=None, data_dirs=None, allowed_tools=None,
+    permission_mode=None, allow_file_edits=False,
+) -> tuple[str, str]:
+    """Exec entry point. Retry/backoff shape mirrors run_claude_code_exec (CLI-only)."""
+    from skillopt.model.backend_config import get_pi_exec_config
+    from skillopt.model.codex_harness import _retry_prompt, _persist_claude_artifacts
+
+    del permission_mode  # pi trust is handled by --approve; no per-tool prompt mode
+    config = get_pi_exec_config()
+    retries = int(config.get("empty_response_retries", 0) or 0)
+    last_response = ""
+    all_raw: list[str] = []
+
+    for attempt in range(retries + 1):
+        attempt_prompt = _retry_prompt(prompt, attempt)
+        response, raw = _run_pi_cli_exec(
+            work_dir=work_dir, prompt=attempt_prompt, model=model, timeout=timeout,
+            images=images, data_dirs=data_dirs, allowed_tools=allowed_tools,
+            allow_file_edits=allow_file_edits,
+        )
+        all_raw.append(f"===== PI CLI ATTEMPT {attempt + 1} =====\n{raw}")
+        last_response = response
+        if response.strip():
+            combined = "\n\n".join(all_raw)
+            _persist_claude_artifacts(work_dir, combined, response)
+            return response, combined
+
+    combined = "\n\n".join(all_raw)
+    _persist_claude_artifacts(work_dir, combined, last_response)
+    return last_response, combined

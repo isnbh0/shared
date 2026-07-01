@@ -1054,4 +1054,17 @@ def run_target_exec(
             permission_mode=permission_mode,
             allow_file_edits=allow_file_edits,
         )
+    if backend == "pi_exec":
+        from skillopt.model.pi_backend import run_pi_exec  # lazy: keeps the edge non-circular
+        return run_pi_exec(
+            work_dir=work_dir,
+            prompt=prompt,
+            model=model,
+            timeout=timeout,
+            images=images,
+            data_dirs=data_dirs,
+            allowed_tools=allowed_tools,
+            permission_mode=permission_mode,
+            allow_file_edits=allow_file_edits,
+        )
     raise ValueError(f"Unsupported exec backend: {backend}")

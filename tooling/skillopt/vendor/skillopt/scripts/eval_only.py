@@ -28,6 +28,7 @@ from skillopt.model import (
     configure_azure_openai,
     configure_claude_code_exec,
     configure_codex_exec,
+    configure_pi_exec,
     set_reasoning_effort,
     set_target_backend,
     set_target_deployment,
@@ -400,6 +401,12 @@ def main() -> None:
         use_sdk=cfg.get("claude_code_exec_use_sdk", None),
         effort=cfg.get("claude_code_exec_effort", cfg.get("reasoning_effort", "medium")),
         max_thinking_tokens=cfg.get("claude_code_exec_max_thinking_tokens", 16384),
+    )
+    configure_pi_exec(
+        path=cfg.get("pi_exec_path", "pi"),
+        provider=cfg.get("pi_exec_provider", "openai-codex"),
+        thinking=cfg.get("pi_exec_thinking", "off"),
+        use_sdk=cfg.get("pi_exec_use_sdk", "cli"),
     )
     set_reasoning_effort(cfg.get("reasoning_effort", "") or None)
 

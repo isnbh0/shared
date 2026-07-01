@@ -13,8 +13,10 @@ from skillopt.model import pi_backend as _pi
 from skillopt.model.backend_config import (  # noqa: F401
     configure_claude_code_exec,
     configure_codex_exec,
+    configure_pi_exec,
     get_claude_code_exec_config,
     get_codex_exec_config,
+    get_pi_exec_config,
     get_target_backend,
     get_optimizer_backend,
     is_target_chat_backend,
@@ -61,6 +63,10 @@ def set_backend(name: str | None) -> str:
         set_optimizer_backend("pi_chat")
         set_target_backend("pi_chat")
         return "pi_chat"
+    if normalized == "pi_exec":
+        set_optimizer_backend("pi_chat")
+        set_target_backend("pi_exec")
+        return "pi_exec"
     raise ValueError(f"Unsupported legacy backend: {name!r}")
 
 
@@ -80,6 +86,8 @@ def get_backend_name() -> str:
         return "qwen_chat"
     if optimizer == "openai_chat" and target == "minimax_chat":
         return "minimax_chat"
+    if optimizer == "pi_chat" and target == "pi_exec":
+        return "pi"
     return f"{optimizer}+{target}"
 
 

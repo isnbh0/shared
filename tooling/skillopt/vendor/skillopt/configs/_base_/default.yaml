@@ -25,6 +25,10 @@ model:
   claude_code_exec_effort: medium
   claude_code_exec_max_thinking_tokens: 16384
   pi_allowed_metered_providers: []   # e.g. [zai] for GLM, or [anthropic] for Claude-OAuth, under skillopt-oauth
+  pi_exec_path: pi
+  pi_exec_provider: openai-codex
+  pi_exec_thinking: "off"      # MUST be quoted: bare off -> PyYAML False -> "--thinking false"
+  pi_exec_use_sdk: cli
   codex_trace_to_optimizer: true
   azure_openai_endpoint: ""           # e.g. "https://your-resource.openai.azure.com/"
   azure_openai_api_version: "2024-12-01-preview"

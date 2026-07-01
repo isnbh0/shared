@@ -52,6 +52,7 @@ from skillopt.model import (
     configure_claude_code_exec,
     configure_codex_exec,
     configure_minimax_chat,
+    configure_pi_exec,
     configure_qwen_chat,
     get_token_summary,
     reset_token_tracker,
@@ -628,6 +629,12 @@ class ReflACTTrainer:
             use_sdk=cfg.get("claude_code_exec_use_sdk", None),
             effort=cfg.get("claude_code_exec_effort", cfg.get("reasoning_effort", "medium")),
             max_thinking_tokens=cfg.get("claude_code_exec_max_thinking_tokens", 16384),
+        )
+        configure_pi_exec(
+            path=cfg.get("pi_exec_path", "pi"),
+            provider=cfg.get("pi_exec_provider", "openai-codex"),
+            thinking=cfg.get("pi_exec_thinking", "off"),
+            use_sdk=cfg.get("pi_exec_use_sdk", "cli"),
         )
         configure_qwen_chat(
             base_url=cfg.get("qwen_chat_base_url") or None,

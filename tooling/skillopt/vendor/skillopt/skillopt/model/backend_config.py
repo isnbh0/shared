@@ -28,6 +28,10 @@ CLAUDE_CODE_EXEC_PATH = os.environ.get("CLAUDE_CODE_EXEC_PATH", "claude")
 CLAUDE_CODE_EXEC_PROFILE = os.environ.get("CLAUDE_CODE_EXEC_PROFILE", "")
 CLAUDE_CODE_EXEC_USE_SDK = os.environ.get("CLAUDE_CODE_EXEC_USE_SDK", "auto")
 CLAUDE_CODE_EXEC_EFFORT = os.environ.get("CLAUDE_CODE_EXEC_EFFORT", "medium")
+PI_EXEC_PATH = os.environ.get("PI_EXEC_PATH", "pi")
+PI_EXEC_PROVIDER = os.environ.get("PI_EXEC_PROVIDER", "openai-codex")
+PI_EXEC_THINKING = os.environ.get("PI_EXEC_THINKING", "off")
+PI_EXEC_USE_SDK = os.environ.get("PI_EXEC_USE_SDK", "cli")
 
 
 def _parse_int(value: str | None, default: int) -> int:
@@ -65,11 +69,11 @@ def get_optimizer_backend() -> str:
 def set_target_backend(backend: str) -> None:
     global TARGET_BACKEND
     TARGET_BACKEND = normalize_backend_name(backend or "openai_chat")
-    if TARGET_BACKEND not in {"openai_chat", "claude_chat", "qwen_chat", "minimax_chat", "codex_exec", "claude_code_exec", "pi_chat"}:
+    if TARGET_BACKEND not in {"openai_chat", "claude_chat", "qwen_chat", "minimax_chat", "codex_exec", "claude_code_exec", "pi_chat", "pi_exec"}:
         raise ValueError(
             f"Unsupported target backend: {TARGET_BACKEND!r}. "
             "Supported values are 'openai_chat', 'claude_chat', 'qwen_chat', 'minimax_chat', "
-            "'codex_exec', 'claude_code_exec', and 'pi_chat'."
+            "'codex_exec', 'claude_code_exec', 'pi_chat', and 'pi_exec'."
         )
     os.environ["TARGET_BACKEND"] = TARGET_BACKEND
 
@@ -79,7 +83,7 @@ def get_target_backend() -> str:
 
 
 def is_target_exec_backend() -> bool:
-    return TARGET_BACKEND in {"codex_exec", "claude_code_exec"}
+    return TARGET_BACKEND in {"codex_exec", "claude_code_exec", "pi_exec"}
 
 
 def is_optimizer_chat_backend() -> bool:
@@ -183,5 +187,42 @@ def get_claude_code_exec_config() -> dict[str, str | int]:
         "use_sdk": CLAUDE_CODE_EXEC_USE_SDK,
         "effort": CLAUDE_CODE_EXEC_EFFORT,
         "max_thinking_tokens": CLAUDE_CODE_EXEC_MAX_THINKING_TOKENS,
+        "empty_response_retries": EXEC_EMPTY_RESPONSE_RETRIES,
+    }
+
+
+def configure_pi_exec(
+    *,
+    path: str | None = None,
+    provider: str | None = None,
+    thinking: str | None = None,
+    use_sdk: str | None = None,
+) -> None:
+    global PI_EXEC_PATH, PI_EXEC_PROVIDER, PI_EXEC_THINKING, PI_EXEC_USE_SDK
+    if path is not None:
+        PI_EXEC_PATH = str(path).strip() or "pi"
+        os.environ["PI_EXEC_PATH"] = PI_EXEC_PATH
+    if provider is not None:
+        PI_EXEC_PROVIDER = str(provider).strip() or "openai-codex"
+        os.environ["PI_EXEC_PROVIDER"] = PI_EXEC_PROVIDER
+    if thinking is not None:
+        # Clamp to a level pi/gpt-5.x accepts so a stray config value can never reach argv.
+        # (The pi CLI itself also accepts "xhigh", but we keep the conservative set here.)
+        level = str(thinking).strip().lower() or "off"
+        if level not in {"off", "minimal", "low", "medium", "high"}:
+            level = "off"
+        PI_EXEC_THINKING = level
+        os.environ["PI_EXEC_THINKING"] = PI_EXEC_THINKING
+    if use_sdk is not None:
+        PI_EXEC_USE_SDK = str(use_sdk).strip().lower() or "cli"
+        os.environ["PI_EXEC_USE_SDK"] = PI_EXEC_USE_SDK
+
+
+def get_pi_exec_config() -> dict[str, str | int]:
+    return {
+        "path": PI_EXEC_PATH,
+        "provider": PI_EXEC_PROVIDER,
+        "thinking": PI_EXEC_THINKING,
+        "use_sdk": PI_EXEC_USE_SDK,
         "empty_response_retries": EXEC_EMPTY_RESPONSE_RETRIES,
     }
