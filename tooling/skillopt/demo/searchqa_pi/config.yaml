@@ -1,0 +1,58 @@
+# Before→after SkillOpt demo: SearchQA, fully on the pi backend routed to zai/glm-5.2.
+# target = pi_exec (agentic rollout, tools on, one skill loaded),
+# optimizer = pi_chat (single-shot chat optimizer). Both legs run GLM-5.2 via pi.
+# The pi provider/model comes from the `zai/glm-5.2` deployment slug; pi_allowed_metered_providers
+# opts zai into the wrapper's allowed-metered set (a no-op under plain train.py, which applies no
+# pre-spawn gate). The actual==intended runtime guard verifies zai/glm-5.2 served every response.
+_base_: ../../vendor/skillopt/configs/_base_/default.yaml
+model:
+  optimizer: zai/glm-5.2
+  target: zai/glm-5.2
+  optimizer_backend: pi_chat            # single-shot pi chat optimizer
+  target_backend: pi_exec               # agentic pi rollout target
+  reasoning_effort: low                 # optimizer (pi_chat) thinking level
+  pi_exec_thinking: "off"               # target (pi_exec) thinking level; quoted so YAML keeps the string
+  pi_allowed_metered_providers: [zai]   # opt zai/GLM into the allowed-metered set (deliberate)
+
+train:
+  num_epochs: 1
+  train_size: 3                         # == train-split item count
+  batch_size: 1
+  accumulation: 1
+  seed: 0
+
+gradient:
+  minibatch_size: 1
+  merge_batch_size: 1
+  analyst_workers: 1
+  max_analyst_rounds: 1
+  failure_only: false
+
+optimizer:
+  learning_rate: 2                      # edit_budget (max edits/step)
+  min_learning_rate: 2
+  lr_scheduler: constant
+  lr_control_mode: fixed
+  skill_update_mode: patch              # deterministic apply, no extra optimizer call
+  use_slow_update: false
+  use_meta_skill: false
+
+evaluation:
+  use_gate: true                        # mandatory in this branch
+  gate_metric: soft                     # accept incremental F1 gains on a tiny split
+  sel_env_num: 3                        # == val count
+  test_env_num: 2                       # == test count
+  eval_test: true
+
+env:
+  name: searchqa
+  # paths are relative to tooling/skillopt, the documented run CWD (see README "Reproduce")
+  skill_init: demo/searchqa_pi/seed_skill_bad.md
+  split_mode: split_dir
+  split_dir: demo/searchqa_pi/data
+  data_path: ""
+  max_turns: 1
+  max_completion_tokens: 16384
+  workers: 4
+  exec_timeout: 180
+  limit: 0

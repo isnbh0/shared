@@ -1,0 +1,41 @@
+SkillOpt pi/pi routing proof — SearchQA demo (demo/searchqa_pi)
+================================================================
+
+Both legs route to zai/glm-5.2 via the `pi` CLI. This run used
+`PI_ALLOW_METERED=zai skillopt-train` (direct trainer, NOT the skillopt-oauth
+wrapper), so there is no oauth_runs.jsonl. Routing is proven from (1) the
+resolved config backends and (2) the provider/model that pi actually served,
+echoed verbatim in every assistant message_end event of the persisted streams.
+
+1) Resolved config (config.json):
+   optimizer_backend: 'pi_chat'
+   target_backend: 'pi_exec'
+   optimizer_model: 'zai/glm-5.2'
+   target_model: 'zai/glm-5.2'
+   pi_exec_thinking: 'off'
+   pi_exec_provider: 'openai-codex'
+   pi_allowed_metered_providers: ['zai']
+   reasoning_effort: 'low'
+
+2) Provider/model pi actually served (from persisted pi JSON streams):
+   assistant message_end events scanned across 13 rollout stream files
+   distinct providers seen: ['zai']
+   distinct models seen:    ['glm-5.2']
+   provider-tagged assistant messages: 27  (all zai)
+   model-tagged assistant messages:    27  (all glm-5.2)
+
+   sample assistant message_end events:
+     selection_eval_baseline/predictions/v1/claude_raw.txt: provider='zai' model='glm-5.2' stopReason='toolUse'
+     selection_eval_baseline/predictions/v1/claude_raw.txt: provider='zai' model='glm-5.2' stopReason='stop'
+     selection_eval_baseline/predictions/v2/claude_raw.txt: provider='zai' model='glm-5.2' stopReason='toolUse'
+
+   The pi_exec target streams are persisted (above). The pi_chat optimizer
+   (analyst stage, 3 calls in summary.json token_summary) runs single-shot and
+   is not persisted to disk, but every pi_chat spawn passes the SAME runtime
+   guard (_guard_provider: actual==intended) against the pinned zai/glm-5.2.
+
+3) Runtime guard (_guard_provider) status:
+   never tripped — no PiBillingError / provider-fallback / model-fallback
+   marker anywhere in the run dir or run.log. A mismatch would raise a
+   non-retryable PiBillingError and abort the run; the run finished clean.
+
