@@ -98,7 +98,100 @@ per-provider default (`codex` → `codex_chat`, `claude` → `claude_chat`); ove
 optimized on the codex/codex loop, entirely on the subscription.
 
 The fork is a pinned, trimmed snapshot of upstream (`vendor/skillopt/PINNED_UPSTREAM.md`);
-the local delta is just the `codex_chat` wiring under `skillopt/model/`.
+the local delta is the additive backend wiring under `skillopt/model/` — `codex_chat` and
+the `pi` backends (below).
+
+## pi backend (multi-model routing)
+
+`codex_chat` / `claude_chat` each reach one subscription model. The `pi` (Earendil) backend
+reaches **every model pi has wired** — GLM (z.ai, provider `zai`, model `glm-5.2`),
+`openai-codex`, `github-copilot`, Claude-OAuth (`anthropic`), and anything in
+`pi --list-models` — through one adapter, with per-role provider/model routing and zero new
+per-provider backend code.
+
+It drives both SkillOpt roles:
+
+- **`pi_chat`** — optimizer and optional chat-target. One-shot `pi -p --mode json --no-tools`,
+  registered in both the optimizer and target-chat allowlists. Text-first: it has no vision
+  flag, so image attachments are refused — route vision tasks through `pi_exec` (files read
+  via tools).
+- **`pi_exec`** — the agentic rollout target. `pi -p --mode json` with tools ON and exactly
+  one skill loaded, dispatched from `run_target_exec` beside `codex_exec` / `claude_code_exec`.
+
+### Per-role provider/model
+
+Provider and model are a per-role knob carried by the deployment string as
+`"<provider>/<model>"` — `zai/glm-5.2`, `openai-codex/gpt-5.5`, `anthropic/claude-...`. A bare
+model with no `provider/` prefix falls back to `PI_PROVIDER` (default `openai-codex`). The
+optimizer and target resolve independently, so they can sit on different providers. This is the
+same per-role surface SkillOpt already exposes: `model.optimizer` / `model.target` in config,
+`OPTIMIZER_DEPLOYMENT` / `TARGET_DEPLOYMENT` in env, or the `set_optimizer_deployment()` /
+`set_target_deployment()` setters.
+
+### Routing recipes
+
+Each recipe is shown under `model:` with the env-var equivalent in a comment. Under plain
+`skillopt-train` these run as-is; under the `skillopt-oauth` wrapper each metered role needs the
+one-line opt-in (see Billing safety below).
+
+**(a) GLM target + Claude-OAuth optimizer:**
+
+```yaml
+model:
+  optimizer_backend: pi_chat
+  target_backend: pi_exec          # or pi_chat for a chat-target
+  optimizer: anthropic/claude-...  # Claude-OAuth optimizer (metered "extra usage")
+  target: zai/glm-5.2              # GLM target (metered)
+  pi_allowed_metered_providers: [zai, anthropic]  # under skillopt-oauth: BOTH roles metered (nested under model:)
+#   OPTIMIZER_DEPLOYMENT=anthropic/claude-...  TARGET_DEPLOYMENT=zai/glm-5.2  PI_ALLOW_METERED=zai,anthropic
+```
+
+**(b) Claude-OAuth target + GLM optimizer:**
+
+```yaml
+model:
+  optimizer_backend: pi_chat
+  target_backend: pi_exec
+  optimizer: zai/glm-5.2           # GLM optimizer (metered)
+  target: anthropic/claude-...     # Claude-OAuth target (metered "extra usage")
+  pi_allowed_metered_providers: [zai, anthropic]  # under skillopt-oauth: BOTH roles metered (nested under model:)
+#   OPTIMIZER_DEPLOYMENT=zai/glm-5.2  TARGET_DEPLOYMENT=anthropic/claude-...  PI_ALLOW_METERED=zai,anthropic
+```
+
+**(c) GLM for both roles:**
+
+```yaml
+model:
+  optimizer_backend: pi_chat
+  target_backend: pi_exec          # or pi_chat
+  optimizer: zai/glm-5.2
+  target: zai/glm-5.2
+  pi_allowed_metered_providers: [zai]  # under skillopt-oauth (nested under model:)
+#   OPTIMIZER_DEPLOYMENT=zai/glm-5.2  TARGET_DEPLOYMENT=zai/glm-5.2  PI_ALLOW_METERED=zai
+```
+
+### Billing safety
+
+`openai-codex` and `github-copilot` are the built-in **subscription set** — true never-metered
+OAuth. `zai` and `anthropic` are **opt-in-metered**: z.ai bills per token, and pi meters Claude
+Pro/Max OAuth as per-token "extra usage", so `anthropic` is treated as metered and is
+deliberately not in the subscription set.
+
+Under `skillopt-oauth`, a metered role runs only when its provider is opted into
+`model.pi_allowed_metered_providers`. The wrapper resolves the effective set once and exports it
+into the child as `PI_ALLOW_METERED` alongside `SKILLOPT_OAUTH_ENFORCE=1`, then refuses —
+*before* spawning pi — any provider outside the subscription set ∪ the opted-in set. On every
+spawn, in both modes, it re-verifies `actual == intended`: the streamed `provider`/`model` must
+match the pin, or the run fails closed (this catches a silent fallback to pi's ambient default).
+It never passes `--api-key`.
+
+Plain `skillopt-train` applies no pre-spawn gate — any pin is the operator's discretion — but the
+`actual == intended` guard still holds.
+
+> **`PI_ALLOW_METERED` (env) is the most robust opt-in path.** The config key
+> `model.pi_allowed_metered_providers` resolves from the **leaf** `--config` file only; the
+> resolver does not yet walk `_base_` inheritance. If a run inherits its opt-in from a base
+> config, set `PI_ALLOW_METERED` explicitly — the env var always wins and is authoritative.
 
 ## Records & observability
 

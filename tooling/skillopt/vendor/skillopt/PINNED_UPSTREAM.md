@@ -16,13 +16,43 @@ ChatGPT/codex OAuth subscription) without an upstream release.
 
 ## Local delta vs. upstream
 
-Our changes live in a single follow-up commit on top of the pristine snapshot, so
-`git log`/`git show` on the patch commit is the full diff. Summary:
+Our changes are additive commits on top of the pristine snapshot — a `codex_chat`
+optimizer, then the `pi` (Earendil) backend — each self-contained under `skillopt/model/`
+plus inert config/wiring, so `git log`/`git show` on the patch commits is the full diff.
+
+**`codex_chat` optimizer:**
 
 - `skillopt/model/__init__.py` — dispatch `codex_chat` optimizer to
   `codex_backend`; wire its deployment/reasoning-effort setters.
 - `skillopt/model/backend_config.py` — allow `codex_chat` as an optimizer backend.
 - `skillopt/model/common.py` — `codex_chat` default model.
+
+**`pi` backend (`pi_chat` + `pi_exec`):**
+
+- `skillopt/model/pi_backend.py` — NEW: the pi (Earendil) CLI backend. `pi_chat`
+  (one-shot `pi -p --mode json --no-tools` optimizer/chat-target) and `pi_exec`
+  (agentic `pi -p --mode json` rollout target). Includes JSONL stream parsing,
+  pi→SkillOpt usage mapping (pi's `totalTokens` as source of truth), stream-derived
+  success (pi's exit code is unreliable), and the billing guards (`PiBillingError`,
+  `_assert_allowed_provider`, `_guard_provider`).
+- `skillopt/model/__init__.py` — dispatch `pi_chat` (optimizer + chat-target) and
+  forward its deployment/reasoning-effort setters; `set_backend`/`get_backend_name`
+  legacy compat for `pi`/`pi_exec`.
+- `skillopt/model/backend_config.py` — allow `pi_chat` (optimizer + target) and
+  `pi_exec` (target); `configure_pi_exec`/`get_pi_exec_config` + `PI_EXEC_*` constants.
+- `skillopt/model/common.py` — `pi`/`pi_chat`/`pi_exec` default model + aliases.
+- `skillopt/model/codex_harness.py` — `run_target_exec` gains a `pi_exec` branch
+  (lazy import of `run_pi_exec`).
+- `configs/_base_/default.yaml` — inert `pi_exec_*` + `pi_allowed_metered_providers`
+  keys (read only when a user opts into pi).
+- `skillopt/config.py`, `scripts/train.py`, `skillopt/engine/trainer.py`,
+  `scripts/eval_only.py` — config/env wiring for `pi_exec_*` + `configure_pi_exec`.
+
+The pi tests (`tooling/skillopt/tests/test_pi_backend.py`,
+`tooling/skillopt/tests/test_pi_config_examples.py`) and the `skillopt-oauth` wrapper pi runs
+under (`src/skillopt_oauth/oauth_guard.py`, with `tests/conftest.py` and
+`tests/test_pi_oauth_guard.py`) live OUTSIDE this pinned snapshot, so they never conflict on
+re-vendor.
 
 ## Re-vendoring / rebasing onto a newer upstream
 
