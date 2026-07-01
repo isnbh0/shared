@@ -9,6 +9,7 @@ from skillopt.model import claude_backend as _claude
 from skillopt.model import codex_backend as _codex
 from skillopt.model import minimax_backend as _minimax
 from skillopt.model import qwen_backend as _qwen
+from skillopt.model import pi_backend as _pi
 from skillopt.model.backend_config import (  # noqa: F401
     configure_claude_code_exec,
     configure_codex_exec,
@@ -56,6 +57,10 @@ def set_backend(name: str | None) -> str:
         set_optimizer_backend("openai_chat")
         set_target_backend("minimax_chat")
         return "minimax_chat"
+    if normalized in {"pi", "pi_chat"}:
+        set_optimizer_backend("pi_chat")
+        set_target_backend("pi_chat")
+        return "pi_chat"
     raise ValueError(f"Unsupported legacy backend: {name!r}")
 
 
@@ -115,6 +120,15 @@ def chat_optimizer(
             stage=stage,
             timeout=timeout,
         )
+    if get_optimizer_backend() == "pi_chat":
+        return _pi.chat_optimizer(
+            system=system,
+            user=user,
+            max_completion_tokens=max_completion_tokens,
+            retries=retries,
+            stage=stage,
+            timeout=timeout,
+        )
     return _openai.chat_optimizer(
         system=system,
         user=user,
@@ -162,9 +176,18 @@ def chat_target(
             stage=stage,
             reasoning_effort=reasoning_effort,
         )
+    if get_target_backend() == "pi_chat":
+        return _pi.chat_target(
+            system=system,
+            user=user,
+            max_completion_tokens=max_completion_tokens,
+            retries=retries,
+            stage=stage,
+            timeout=timeout,
+        )
     if not is_target_chat_backend():
         raise NotImplementedError(
-            "chat_target is only supported with target_backend=openai_chat, claude_chat, qwen_chat, or minimax_chat. "
+            "chat_target is only supported with target_backend=openai_chat, claude_chat, qwen_chat, minimax_chat, or pi_chat. "
             "Exec backends are handled in environment-specific rollout code."
         )
     return _openai.chat_target(
@@ -215,6 +238,17 @@ def chat_optimizer_messages(
         )
     if get_optimizer_backend() == "codex_chat":
         return _codex.chat_optimizer_messages(
+            messages=messages,
+            max_completion_tokens=max_completion_tokens,
+            retries=retries,
+            stage=stage,
+            tools=tools,
+            tool_choice=tool_choice,
+            return_message=return_message,
+            timeout=timeout,
+        )
+    if get_optimizer_backend() == "pi_chat":
+        return _pi.chat_optimizer_messages(
             messages=messages,
             max_completion_tokens=max_completion_tokens,
             retries=retries,
@@ -282,9 +316,20 @@ def chat_target_messages(
             tool_choice=tool_choice,
             return_message=return_message,
         )
+    if get_target_backend() == "pi_chat":
+        return _pi.chat_target_messages(
+            messages=messages,
+            max_completion_tokens=max_completion_tokens,
+            retries=retries,
+            stage=stage,
+            tools=tools,
+            tool_choice=tool_choice,
+            return_message=return_message,
+            timeout=timeout,
+        )
     if not is_target_chat_backend():
         raise NotImplementedError(
-            "chat_target_messages is only supported with target_backend=openai_chat, claude_chat, qwen_chat, or minimax_chat. "
+            "chat_target_messages is only supported with target_backend=openai_chat, claude_chat, qwen_chat, minimax_chat, or pi_chat. "
             "Exec backends are handled in environment-specific rollout code."
         )
     return _openai.chat_target_messages(
@@ -350,9 +395,9 @@ def chat_with_deployment(
 
 
 def get_token_summary() -> dict:
-    # codex_backend records into the shared common.tracker that claude_backend
-    # also uses, so codex usage is already counted via the claude summary below.
-    # Merging _codex.get_token_summary() here would double-count it.
+    # codex_backend AND pi_backend record into the shared common.tracker that
+    # claude_backend also uses, so their usage is already counted via the claude
+    # summary below. Merging _codex/_pi.get_token_summary() here would double-count.
     summary = _openai.get_token_summary()
     claude_summary = _claude.get_token_summary()
     for stage, values in claude_summary.items():
@@ -522,6 +567,7 @@ def set_reasoning_effort(effort: str | None) -> None:
     _qwen.set_reasoning_effort(effort)
     _minimax.set_reasoning_effort(effort)
     _codex.set_reasoning_effort(effort)
+    _pi.set_reasoning_effort(effort)
 
 
 def set_target_deployment(deployment: str) -> None:
@@ -530,6 +576,7 @@ def set_target_deployment(deployment: str) -> None:
     _qwen.set_target_deployment(deployment)
     _minimax.set_target_deployment(deployment)
     _codex.set_target_deployment(deployment)
+    _pi.set_target_deployment(deployment)
 
 
 def set_optimizer_deployment(deployment: str) -> None:
@@ -537,3 +584,4 @@ def set_optimizer_deployment(deployment: str) -> None:
     _claude.set_optimizer_deployment(deployment)
     _qwen.set_optimizer_deployment(deployment)
     _codex.set_optimizer_deployment(deployment)
+    _pi.set_optimizer_deployment(deployment)
