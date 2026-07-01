@@ -7,7 +7,7 @@
 # Default provider to optimize with:
 #   codex  -> ChatGPT/codex subscription, run under the OAuth guard (subscription-safe)
 #   claude -> Claude Pro/Max subscription, run under the OAuth guard (subscription-safe)
-#   glm    -> zai/glm-5.2 via pi (opt-in metered; free on this setup, launched with PI_ALLOW_METERED=zai)
+#   glm    -> zai/glm-5.2 via pi (metered opt-in; bills the pi/z.ai account — verify plan/credits; launched with PI_ALLOW_METERED=zai)
 default_provider: codex
 
 # Default model slug for both optimizer and target. Must be a slug the chosen

@@ -73,7 +73,7 @@ SkillOpt Progress:
   2. **Rename files/classes** and **implement the TODO blocks** — the `rollout` scoring in `adapter.py` and `_normalize_item` in `loader.py` — following the template's `README.md`.
   3. **Register** the key in `_register_builtins()` in `vendor/skillopt/scripts/train.py`.
   Model it on an existing exec-style env: **`spreadsheetbench`** (`vendor/skillopt/skillopt/envs/spreadsheetbench/`) stages the skill and runs an agent with tools, then scores task completion — the closest analog to a coding-agent skill.
-- **Get the authoritative env list at runtime; do not trust a frozen list.** The registry is dependency-gated (each built-in is imported behind a `try/except`), so the registered set varies by checkout. Inspect `_ENV_REGISTRY` in `vendor/skillopt/scripts/train.py`, or set a bogus `env.name` and read the tool's `Available: [...]` error. As an illustrative current snapshot, this checkout registers `alfworld, docvqa, livemathematicianbench, officeqa, searchqa, spreadsheetbench` — verify rather than assume.
+- **Get the authoritative env list at runtime; do not trust a frozen list.** The registry is dependency-gated (each built-in is imported behind a `try/except`), so the registered set varies by checkout. Read `_register_builtins()` in `vendor/skillopt/scripts/train.py` (the module-level `_ENV_REGISTRY` is empty until it runs), or set a bogus `env.name` and read the tool's `Available: [...]` error. As an illustrative current snapshot, this checkout registers `alfworld, docvqa, livemathematicianbench, officeqa, searchqa, spreadsheetbench` — verify rather than assume.
 
 **Step 5 — Choose chat vs exec target.** Pick by how the skill is really used, and ask the user to confirm:
 - **Tool-using coding-agent skill → an `*_exec` target** (`codex_exec`, `claude_code_exec`, or `pi_exec`). Exec targets stage the skill as a real `.agents/skills/skillopt-target/SKILL.md` in an agent workspace with tools — the faithful mode for a skill that drives an agent.
@@ -83,7 +83,7 @@ SkillOpt Progress:
 
 **Step 6 — Choose model/provider.** Default to the subscription-safe path; offer GLM.
 - **Default (subscription-safe): codex via the OAuth guard.** `skillopt-oauth` runs an OAuth preflight and scrubs every `*_API_KEY` / `*_AUTH_TOKEN` from the environment so no metered API fallback is possible. Model `gpt-5.5`, backends `codex_exec` (target) + `codex_chat` (optimizer). The Claude subscription is the same path with `claude_code_exec` + `claude_chat`.
-- **Offer: GLM via pi.** `zai/glm-5.2` on the `pi` backend is opt-in-metered but free on this user's setup. Launch with the `PI_ALLOW_METERED=zai` env var. Present this as an explicit opt-in, not the default.
+- **Offer: GLM via pi.** `zai/glm-5.2` on the `pi` backend is a metered opt-in provider (the code never treats `zai` as never-metered); it bills the user's pi/z.ai account, so confirm the plan/credits cover it before a large run. See the Launch section for how `PI_ALLOW_METERED=zai` and the guard interact. Present this as an explicit opt-in, not the default.
 - Set the model slug to something the chosen subscription/provider actually serves.
 
 **Step 7 — Scaffold the run workspace and write config.yaml.** SkillOpt reads its inputs from files on disk, so materialize them before launching.
@@ -98,15 +98,16 @@ SkillOpt Progress:
 **Step 8 — Confirm the resolved plan, then launch.** A run spends subscription quota (codex/claude) or metered budget (GLM) and takes real wall-clock; that spend is not reversible. Before launching, **summarize the resolved plan back to the user and get an explicit go-ahead**:
 - provider and model slug,
 - optimizer and target backends,
-- `out_root` — it resolves as `<default_out_root>/<skill-name>/outputs/<run-tag>` (e.g. `runs/<skill-name>/outputs/run_codex`), where `<default_out_root>` comes from config (default `runs`) and `<run-tag>` names this run,
+- `out_root` — the path you pass on the command line; **this skill composes it** as `<default_out_root>/<skill-name>/outputs/<run-tag>` (e.g. `runs/<skill-name>/outputs/run_codex`), where `<default_out_root>` comes from config (default `runs`) and `<run-tag>` names this run (SkillOpt does no such composition itself — it absolutizes whatever `--out_root` you pass, or auto-generates `outputs/skillopt_{env}_{model}_{timestamp}` if omitted),
 - the counted train / val / test split sizes.
 Only after the user says go, run the exact command from the Launch section, from `tooling/skillopt` (run `uv sync` once first).
 
 **Step 9 — Read the results.** From the `out_root` you passed, read:
+- `summary.json` — the **primary source**: baseline-vs-best hard/soft on the held-out test split, the delta, the token summary, and the resolved config. Read this first.
 - `best_skill.md` — the optimized skill
 - `history.json` — full run history (per-step edits and scores)
 - `skills/skill_vNNNN.md` — per-version snapshots
-- the **baseline-vs-best on the held-out test split** printed at the end of the run
+- the baseline-vs-best line printed at the end of the run (secondary confirmation of `summary.json`)
 Summarize the delta for the user honestly. If best did not beat baseline on test, say so — do not overwrite the seed with a non-improvement.
 
 **Step 10 — Offer to write the result back.** Ask the user before touching the seed. If they agree, copy `best_skill.md` over the seed path you recorded in Step 2 — the user's real file, **never a staged copy**. Show a diff first and confirm the seed is committed so the change is reversible.
@@ -127,6 +128,7 @@ model:
   # codex-exec target knobs (present only for codex_exec):
   codex_exec_reasoning_effort: low
   codex_exec_sandbox: workspace-write
+  codex_trace_to_optimizer: false  # smaller optimizer prompts; base default is true
 
 train:
   num_epochs: 1
@@ -200,7 +202,7 @@ data/
 └── test/items.json
 ```
 
-Each item has exactly these four fields:
+Each item has these fields (`id` and `question` are required; `context` and `answers` default to empty; extra fields are ignored):
 
 ```json
 {"id": "t1",
@@ -232,9 +234,9 @@ uv run skillopt-oauth \
   --out_root runs/<skill-name>/outputs/run_codex
 ```
 
-For the Claude subscription, swap the backend flags: `--target_backend claude_code_exec --optimizer_backend claude_chat`. The guard also accepts a minimal form: `uv run skillopt-oauth --backend claude_code_exec --config <cfg>`.
+For the Claude subscription, swap the backend flags: `--target_backend claude_code_exec --optimizer_backend claude_chat`. **Always pass `--target_backend` explicitly.** The guard injects only `--optimizer_backend`, and upstream `--backend` merely `setdefault`s the target — so a base config that already sets `target_backend: openai_chat` wins, and the bare `--backend X` form would silently target the wrong (metered) backend.
 
-**GLM via pi (opt-in metered, free here) — the direct trainer:**
+**GLM via pi — the direct trainer (a deliberate metered run):**
 
 ```bash
 PI_ALLOW_METERED=zai uv run skillopt-train \
@@ -242,7 +244,7 @@ PI_ALLOW_METERED=zai uv run skillopt-train \
   --out_root runs/<skill-name>/outputs/run_glm
 ```
 
-To run GLM under the guard instead, **signal pi on argv** (not just in config) plus the env var:
+Under the direct trainer there is **no pre-spawn provider gate**: `PI_ALLOW_METERED=zai` is only an intent marker (the runtime `_guard_provider` still blocks silent provider/model *fallback*, but does not gate the opt-in). For an enforced opt-in, run GLM under the guard instead — **signal pi on argv** (not just in config) plus the env var:
 
 ```bash
 PI_ALLOW_METERED=zai uv run skillopt-oauth \
@@ -256,7 +258,7 @@ PI_ALLOW_METERED=zai uv run skillopt-oauth \
 ## Troubleshooting
 
 - **`Configured train_size=... does not match loaded train split size=...`** — set `train.train_size` to the exact train-split item count, or `0` to auto-derive.
-- **Env not found / `Available: [...]`** — `env.name` must be a registered env. The live set is dependency-gated, so read it at runtime from the `Available: [...]` error or from `_ENV_REGISTRY` in `vendor/skillopt/scripts/train.py` (this checkout currently registers `alfworld, docvqa, livemathematicianbench, officeqa, searchqa, spreadsheetbench`). For anything else, build a custom env (Step 4).
+- **Env not found / `Available: [...]`** — `env.name` must be a registered env. The live set is dependency-gated, so read it at runtime from the `Available: [...]` error or from `_register_builtins()` in `vendor/skillopt/scripts/train.py` (this checkout currently registers `alfworld, docvqa, livemathematicianbench, officeqa, searchqa, spreadsheetbench`). For anything else, build a custom env (Step 4).
 - **`Missing '<name>/' subdirectory in split_dir`** — `split_dir` must contain `train/`, `val/`, and `test/`, each with a `*.json` array.
 - **`Unsupported target backend: 'codex_chat'`** — `codex_chat` is optimizer-only; for codex the target must be `codex_exec`. See Step 5's allowed sets.
 - **GLM run bills / gets refused, or opt-in is ignored** — `model.pi_allowed_metered_providers` is read from the **leaf `--config` only** (it does not follow `_base_` inheritance), so an opt-in inherited from a base config is missed. Prefer the `PI_ALLOW_METERED=zai` env var; it is authoritative and always wins.
