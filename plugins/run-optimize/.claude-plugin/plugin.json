@@ -1,0 +1,8 @@
+{
+  "name": "run-optimize",
+  "description": "Interactively optimize an existing skill/prompt against a graded task set with the vendored SkillOpt optimizer",
+  "version": "1.0.0",
+  "author": {
+    "name": "isnbh0"
+  }
+}

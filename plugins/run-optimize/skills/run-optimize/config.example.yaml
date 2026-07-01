@@ -1,0 +1,45 @@
+# run-optimize skill configuration
+# Copy this file to .agents/skill-configs/run-optimize/config.yaml (project scope)
+# or .agents/skill-configs/run-optimize/config.local.yaml (local/personal scope).
+# Every field is optional; the skill prompts for anything missing on first use and
+# falls back to the subscription-safe codex path when nothing is set.
+
+# Default provider to optimize with:
+#   codex  -> ChatGPT/codex subscription, run under the OAuth guard (subscription-safe)
+#   claude -> Claude Pro/Max subscription, run under the OAuth guard (subscription-safe)
+#   glm    -> zai/glm-5.2 via pi (opt-in metered; free on this setup, launched with PI_ALLOW_METERED=zai)
+default_provider: codex
+
+# Default model slug for both optimizer and target. Must be a slug the chosen
+# subscription/provider actually serves.
+#   codex/claude subscription example: gpt-5.5
+#   glm example: zai/glm-5.2
+default_model: gpt-5.5
+
+# Default backend engines, chosen by how the skill is really used:
+#   *_exec -> stages the skill as a real .agents/skills/skillopt-target/SKILL.md with tools
+#             (faithful for a tool-using coding-agent skill)
+#   *_chat -> injects the skill as a system prompt (right for a pure prompt)
+# optimizer_backend choices: openai_chat, claude_chat, codex_chat, qwen_chat, minimax_chat, pi_chat
+# target_backend    choices: openai_chat, claude_chat, codex_exec, claude_code_exec, qwen_chat, minimax_chat, pi_chat, pi_exec
+default_optimizer_backend: codex_chat
+default_target_backend: codex_exec
+
+# Base directory for run outputs (best_skill.md, history.json, skills/). The skill
+# composes the full path as <default_out_root>/<skill-name>/outputs/<run-tag>
+# (e.g. runs/my-skill/outputs/run_codex), so the launch --out_root and this default
+# stay consistent. Relative paths are resolved from tooling/skillopt (the run CWD).
+default_out_root: runs
+
+# Optional default train:val:test ratio, used only when a single items.json is split
+# by ratio (env.split_mode: ratio) rather than pre-split train/val/test folders.
+# A supervised optimizer usually wants the most data in train, so a train-heavy split
+# is sensible. Leave unset and the skill asks per-run rather than assuming one.
+# default_split_ratio: "6:2:2"
+
+# Whether to launch through the subscription-safe OAuth guard (skillopt-oauth), which
+# runs an OAuth preflight and scrubs *_API_KEY / *_AUTH_TOKEN so no metered API
+# fallback is possible. Recommended true for codex/claude. For glm the guard also
+# works, but only when pi is signalled on argv plus PI_ALLOW_METERED=zai; the direct
+# skillopt-train entry point is the simpler glm path.
+use_guard: true
