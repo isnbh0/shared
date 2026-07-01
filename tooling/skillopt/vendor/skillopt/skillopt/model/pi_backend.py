@@ -332,6 +332,7 @@ def _run_pi(
 
         proc = subprocess.run(
             command, text=True, capture_output=True, timeout=timeout, check=False,
+            stdin=subprocess.DEVNULL,  # one-shot: prompt is an argv positional, never stdin
         )
 
         # SUCCESS IS DERIVED FROM THE STREAM, NEVER FROM proc.returncode. pi exits 0 even on a
@@ -596,7 +597,8 @@ def _run_pi_cli_exec(
     ]
 
     try:
-        proc = subprocess.run(command, cwd=work_dir, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(command, cwd=work_dir, capture_output=True, text=True, timeout=timeout,
+                              stdin=subprocess.DEVNULL)  # pi blocks on a startup stdin read under --skill; give it immediate EOF
     except subprocess.TimeoutExpired as exc:
         stdout, stderr = exc.stdout or "", exc.stderr or ""
         raw = stdout if not stderr else (f"{stdout}\n[stderr]\n{stderr}" if stdout else stderr)

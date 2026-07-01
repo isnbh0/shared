@@ -424,3 +424,36 @@ def test_legacy_set_backend_pi_exec_and_name():
     assert BC.get_optimizer_backend() == "pi_chat"
     assert BC.get_target_backend() == "pi_exec"
     assert M.get_backend_name() == "pi"
+
+
+# -- stdin=DEVNULL: pi blocks on a startup stdin read under --skill ---------- #
+
+
+def test_pi_chat_passes_stdin_devnull(monkeypatch):
+    # pi does a startup stdin read; a one-shot subprocess with inherited stdin never
+    # gets EOF and hangs. The prompt rides argv, so stdin must be closed (DEVNULL).
+    captured: dict = {}
+
+    def fake_run(command, **kwargs):
+        captured["kwargs"] = kwargs
+        return _FakeProc(stdout=_message_end("HELLO"), returncode=0)
+
+    monkeypatch.setattr(P.subprocess, "run", fake_run)
+    P._run_pi(model="gpt-5.5", prompt="hi", attachments=[],
+              structured_output=False, timeout=None)
+    assert captured["kwargs"]["stdin"] == P.subprocess.DEVNULL
+
+
+def test_pi_exec_passes_stdin_devnull(monkeypatch, tmp_path):
+    # The --skill exec path is the one that empirically hangs; guard its stdin too.
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    captured: dict = {}
+
+    def fake_run(command, **kwargs):
+        captured["kwargs"] = kwargs
+        return _FakeProc(stdout=_message_end("DONE"), returncode=0)
+
+    monkeypatch.setattr(P.subprocess, "run", fake_run)
+    P._run_pi_cli_exec(work_dir=str(work_dir), prompt="task", model="gpt-5.5", timeout=60)
+    assert captured["kwargs"]["stdin"] == P.subprocess.DEVNULL
