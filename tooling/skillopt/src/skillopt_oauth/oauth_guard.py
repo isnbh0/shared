@@ -82,10 +82,10 @@ __all__ = [
 # Upstream's training entry point (``[project.scripts] skillopt-train = scripts.train:main``).
 UPSTREAM_TRAIN = "skillopt-train"
 
-PROVIDERS = ("claude", "codex")
+PROVIDERS = ("claude", "codex", "pi")
 
 # Provider -> upstream target (rollout) backend that spawns the OAuth CLI.
-_TARGET_BACKEND = {"claude": "claude_code_exec", "codex": "codex_exec"}
+_TARGET_BACKEND = {"claude": "claude_code_exec", "codex": "codex_exec", "pi": "pi_exec"}
 
 # Provider -> the optimizer/reflect backend that rides the SAME OAuth CLI as the
 # target, so the full optimize loop runs on the subscription. ``claude_chat`` shells
@@ -95,13 +95,13 @@ _TARGET_BACKEND = {"claude": "claude_code_exec", "codex": "codex_exec"}
 # makes this real by injecting an explicit ``--optimizer_backend`` argv flag (see
 # ``main``). ``codex_chat`` needs the vendored fork's optimizer allowlist + dispatcher
 # (``vendor/skillopt``); ``claude_chat`` already works against stock upstream.
-_OPTIMIZER_BACKEND = {"claude": "claude_chat", "codex": "codex_chat"}
+_OPTIMIZER_BACKEND = {"claude": "claude_chat", "codex": "codex_chat", "pi": "pi_chat"}
 
 # Provider -> the env var upstream reads for the CLI binary path.
-_EXEC_PATH_VAR = {"claude": "CLAUDE_CODE_EXEC_PATH", "codex": "CODEX_EXEC_PATH"}
+_EXEC_PATH_VAR = {"claude": "CLAUDE_CODE_EXEC_PATH", "codex": "CODEX_EXEC_PATH", "pi": "PI_EXEC_PATH"}
 
 # Provider -> default CLI binary name on PATH.
-_DEFAULT_BIN = {"claude": "claude", "codex": "codex"}
+_DEFAULT_BIN = {"claude": "claude", "codex": "codex", "pi": "pi"}
 
 # Env var that lets a user pin which provider to guard/route when it cannot be
 # inferred from the passthrough args.
@@ -156,7 +156,11 @@ def default_oauth_probe(provider: str) -> str:
     ``preflight(probe=...)`` / ``main(probe=...)`` so tests stay hermetic and never
     touch a real keychain / ``auth.json``.
     """
-    return _probe_claude_oauth() if provider == "claude" else _probe_codex_oauth()
+    if provider == "claude":
+        return _probe_claude_oauth()
+    if provider == "pi":
+        return _probe_pi_oauth()
+    return _probe_codex_oauth()
 
 
 def _probe_claude_oauth() -> str:
@@ -220,6 +224,102 @@ def _probe_codex_oauth() -> str:
     if mode == "chatgpt":
         return "oauth"
     if data.get("OPENAI_API_KEY") or mode in ("apikey", "api_key"):
+        return "api_key"
+    return "none"
+
+
+# The built-in never-metered subscription set for pi (mirrors pi_backend.SUBSCRIPTION_PROVIDERS).
+_PI_SUBSCRIPTION = {"openai-codex", "github-copilot"}
+
+# Auth.json-only credential model: the wrapper NEVER passes a metered provider's API key through
+# env. Every metered `*_API_KEY` is scrubbed (see _apply_pi_env_scrub); an opted-in provider must
+# authenticate via pi's own `~/.pi/agent/auth.json`. There is therefore no per-provider env-key
+# table to preserve -- only `ANTHROPIC_OAUTH_TOKEN` is opt-in-sensitive, handled inline.
+
+_PI_MODEL_FLAGS = ("--target_deployment", "--optimizer_deployment",
+                   "--target_model", "--optimizer_model", "--model")
+
+
+def _read_pi_auth_entry(provider: str) -> dict:
+    """Return pi's ``auth.json`` entry for ``provider`` (``$PI_CODING_AGENT_DIR`` or
+    ``~/.pi/agent``), else ``{}``. Fail-soft on any read/parse error."""
+    home = os.environ.get("PI_CODING_AGENT_DIR") or str(Path.home() / ".pi" / "agent")
+    try:
+        data = json.loads((Path(home) / "auth.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    entry = data.get(provider) if isinstance(data, dict) else None
+    return entry if isinstance(entry, dict) else {}
+
+
+def _pi_allowed_metered() -> set[str]:
+    """The opt-in set as the child's gate reads it -- from ``PI_ALLOW_METERED`` (which ``main``
+    resolves once from config and exports before preflight, so both sides see it)."""
+    return {p.strip() for p in os.environ.get("PI_ALLOW_METERED", "").split(",") if p.strip()}
+
+
+def _pi_provider_from_argv(argv: list[str]) -> str | None:
+    """Return the provider prefix from the last provider/model-style flag on ``argv``, else None.
+    Argparse-faithful: space + ``=`` forms, last occurrence wins."""
+    found: str | None = None
+    i, n = 0, len(argv)
+    while i < n:
+        flag, eq, val = argv[i].partition("=")
+        if flag in _PI_MODEL_FLAGS:
+            if eq:
+                value = val
+            elif i + 1 < n and not argv[i + 1].startswith("--"):
+                value = argv[i + 1]
+                i += 1
+            else:
+                value = ""
+            if "/" in value:
+                found = value.split("/", 1)[0].strip() or found
+        i += 1
+    return found
+
+
+def _resolve_pinned_pi_provider(argv: list[str] | None = None,
+                                environ: Mapping[str, str] | None = None) -> str:
+    """Resolve the pinned pi provider from the SAME surface the child will use: a provider/model
+    flag on argv, then ``TARGET_DEPLOYMENT``/``OPTIMIZER_DEPLOYMENT`` env, then
+    ``PI_EXEC_PROVIDER``/``PI_PROVIDER``, else ``openai-codex``."""
+    src = os.environ if environ is None else environ
+    args = list(sys.argv[1:] if argv is None else argv)
+    prov = _pi_provider_from_argv(args)
+    if prov:
+        return prov
+    for var in ("TARGET_DEPLOYMENT", "OPTIMIZER_DEPLOYMENT"):
+        val = (src.get(var) or "").strip()
+        if "/" in val:
+            head = val.split("/", 1)[0].strip()
+            if head:
+                return head
+    return (src.get("PI_EXEC_PROVIDER") or src.get("PI_PROVIDER") or "openai-codex").strip() or "openai-codex"
+
+
+def _probe_pi_oauth() -> str:
+    """Fail-closed probe of the PINNED pi provider, encoding the permitted set positively.
+
+    * A provider opted into the allowed-metered set (config ``pi_allowed_metered_providers`` /
+      ``PI_ALLOW_METERED``) is accepted on any usable ``auth.json`` entry (a GLM coding-plan
+      resolves as OAuth, a stored z.ai key as api_key -- both intended) -> ``'oauth'``, else
+      ``'none'``.
+    * An un-opted, non-subscription provider (incl. ``anthropic``, which pi meters as per-token
+      "extra usage" even under a Pro/Max OAuth token) fails closed -> ``'api_key'``.
+    * A subscription provider must PROVE its ``auth.json`` entry is OAuth -> ``'oauth'``, else
+      ``'api_key'`` / ``'none'`` (both -> preflight refuses).
+    """
+    provider = _resolve_pinned_pi_provider()
+    if provider in _pi_allowed_metered():
+        return "oauth" if _read_pi_auth_entry(provider) else "none"
+    if provider not in _PI_SUBSCRIPTION:
+        return "api_key"  # un-opted metered -> fail closed
+    entry = _read_pi_auth_entry(provider)
+    typ = (entry.get("type") or entry.get("auth_mode") or "").lower()
+    if typ in {"oauth", "chatgpt", "subscription"}:
+        return "oauth"
+    if entry.get("apiKey") or entry.get("api_key") or typ in {"apikey", "api_key"}:
         return "api_key"
     return "none"
 
@@ -298,6 +398,8 @@ def _backend_selector_kind(flag: str) -> str | None:
 
 def _provider_of(value: str) -> str | None:
     low = (value or "").strip().lower()
+    if low in {"pi", "pi_chat", "pi_exec"} or low.startswith("pi_"):
+        return "pi"
     if "codex" in low:
         return "codex"
     if "claude" in low:
@@ -905,6 +1007,62 @@ def _print_dry_run(provider: str, argv: list[str],
         pass
 
 
+# -- pi allowed-metered resolution + opt-in-aware scrub (used by main) -------
+
+_CONFIG_FLAG = "--config"
+
+
+def _extract_config_path(argv: list[str]) -> str | None:
+    """Return the ``--config`` value from ``argv`` (space + ``=`` forms, last wins), else None."""
+    result: str | None = None
+    i, n = 0, len(argv)
+    while i < n:
+        flag, eq, val = argv[i].partition("=")
+        if flag == _CONFIG_FLAG:
+            if eq:
+                result = val
+            elif i + 1 < n and not argv[i + 1].startswith("--"):
+                result = argv[i + 1]
+                i += 1
+        i += 1
+    return result
+
+
+def _resolve_pi_allowed_metered(argv: list[str], environ: Mapping[str, str]) -> set[str]:
+    """Single source of truth: config key ``model.pi_allowed_metered_providers``, with the env
+    ``PI_ALLOW_METERED`` override winning. Best-effort leaf-config read; fail-soft to empty.
+
+    NOTE: this reads the leaf ``--config`` file only (it does not resolve ``_base_`` inheritance);
+    the shipped default is ``[]``, and ``PI_ALLOW_METERED`` is the reliable, authoritative path.
+    """
+    raw = environ.get("PI_ALLOW_METERED")
+    if raw is not None:  # env override present (even empty == "opt nothing in")
+        return {p.strip() for p in raw.split(",") if p.strip()}
+    cfg_path = _extract_config_path(argv)
+    if not cfg_path:
+        return set()
+    try:
+        import yaml  # noqa: PLC0415
+        data = yaml.safe_load(Path(cfg_path).read_text(encoding="utf-8")) or {}
+        vals = (data.get("model") or {}).get("pi_allowed_metered_providers") or []
+        if isinstance(vals, str):
+            vals = vals.split(",")
+        return {str(v).strip() for v in vals if str(v).strip()}
+    except Exception:  # noqa: BLE001  fail-soft: config read never blocks the launch
+        return set()
+
+
+def _apply_pi_env_scrub(child_env: dict[str, str], allowed_metered: set[str]) -> None:
+    """Auth.json-only credential model. The blanket ``scrub_env`` already stripped every metered
+    ``*_API_KEY``; this KEEPS them stripped for all providers (opted-in or not) -- an opted-in
+    provider like ``zai`` authenticates via pi's own ``~/.pi/agent/auth.json``, never via an env
+    key. The one opt-in-sensitive env credential is ``ANTHROPIC_OAUTH_TOKEN`` (ends in ``_TOKEN``,
+    so it survives the suffix scrub): pop it UNLESS ``anthropic`` is opted in -- an un-opted
+    anthropic cannot run off a stray token, while an opted-in anthropic keeps its OAuth token."""
+    if "anthropic" not in allowed_metered:
+        child_env.pop("ANTHROPIC_OAUTH_TOKEN", None)
+
+
 # -- main: preflight -> scrub -> route -> record -> exec/supervise -----------
 
 
@@ -943,6 +1101,17 @@ def main(argv: list[str] | None = None, *,
     preflight_providers = [provider]
     if optimizer_provider and optimizer_provider != provider:
         preflight_providers.append(optimizer_provider)
+
+    # pi: resolve the allowed-metered opt-in ONCE and export it BEFORE preflight, so the probe
+    # (_probe_pi_oauth) and the child's gate (_permitted_providers) read the identical set. The
+    # export survives the scrub (PI_ALLOW_METERED matches neither _API_KEY nor _AUTH_TOKEN), so
+    # the child inherits it without a separate copy.
+    pi_involved = "pi" in (provider, optimizer_provider)
+    pi_allowed_metered: set[str] = set()
+    if pi_involved:
+        pi_allowed_metered = _resolve_pi_allowed_metered(args, os.environ)
+        os.environ["PI_ALLOW_METERED"] = ",".join(sorted(pi_allowed_metered))
+
     run_id = make_run_id()
     ts = clock()
     probe_name = _probe_name(probe)
@@ -982,6 +1151,15 @@ def main(argv: list[str] | None = None, *,
     child_env = scrub_env(src_env)
     configure_backends(child_env, provider)
     child_env[_RUN_ID_ENV] = run_id  # free, non-intrusive output-correlation hook
+
+    if pi_involved:
+        # Dedicated wrapper-mode signal that pi_backend._enforce_provider_gate reads (NOT
+        # SKILLOPT_OAUTH_RUN_ID, which keeps identifying the run). Turns on the child's pre-spawn
+        # permitted-set gate. The scrub is auth.json-only: metered *_API_KEY env stays stripped for
+        # every provider (an opted-in provider resolves from pi's auth.json, never an env key); the
+        # only opt-in-sensitive env credential is ANTHROPIC_OAUTH_TOKEN (kept iff anthropic opted in).
+        child_env["SKILLOPT_OAUTH_ENFORCE"] = "1"
+        _apply_pi_env_scrub(child_env, pi_allowed_metered)
 
     routing = {
         "TARGET_BACKEND": child_env["TARGET_BACKEND"],
