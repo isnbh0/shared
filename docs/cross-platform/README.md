@@ -86,4 +86,5 @@ The spex plugin includes `write`, `write-phased`, and `implement` skills. In Cla
 | skill-writer | Interactive | Guidance for creating SKILL.md files |
 | critique | Interactive | External AI critique via Codex or Gemini CLI |
 | macros | Interactive | Subagent orchestration: map-reduce and research-backed critique |
+| run-optimize | Interactive | SkillOpt orchestration for optimizing prompts/skills against graded tasks |
 | phaser | Passive | Phaser 3 game development knowledgebase (18 files) |

@@ -1,205 +1,173 @@
-# SkillOpt Guard
+# SkillOpt Prompting Guide
 
-[한국어](README.ko.md)
+[한국어](README.ko.md) | [Setup reference](SETUP.md)
 
-Run [Microsoft SkillOpt](https://github.com/microsoft/SkillOpt) through local
-agent CLIs with explicit routing, credential preflight, and secret scrubbing.
+Use this when you want a coding agent to optimize a skill or prompt with the
+vendored SkillOpt tooling. The shortest path is to ask the agent to use the
+`run-optimize` skill and let it orchestrate the data, config, launch, result
+reading, and write-back.
 
-This directory contains two pieces:
+SkillOpt is supervised: it only improves against a graded train/val/test task
+set. A good prompt asks the agent to establish that graded set before launching
+anything.
 
-- `SkillOpt Guard`, exposed as the `skillopt-oauth` command, around
-  `skillopt-train`.
-- `vendor/skillopt`, a pinned SkillOpt fork with local backend wiring for
-  `codex_chat`, `pi_chat`, and `pi_exec`.
+## Recommended Prompt
 
-The guard keeps target rollouts and optimizer rewrites on the intended local CLI
-path. It supports `claude`, `codex`, and `pi`.
+```text
+Use the run-optimize skill to optimize <path-to-skill-or-prompt>.
 
-## What the guard does
+Default to Codex through SkillOpt Guard unless I say otherwise. First inspect the
+seed, then help me establish a graded train/val/test task set. Confirm the
+success metric is faithful before writing config. Show me the resolved provider,
+model, target backend, optimizer backend, output path, and split sizes before
+launching. Do not launch until I explicitly approve. After the run, summarize
+baseline vs best on the held-out test split and show me the diff before offering
+to write best_skill.md back over the seed.
+```
 
-Before it hands off to `skillopt-train`, `skillopt-oauth`:
+If your host does not expose slash commands, use the natural-language form:
 
-1. **Preflights credentials.** It verifies the selected provider can run with the
-   intended local auth. For `claude`, it checks `CLAUDE_CODE_OAUTH_TOKEN`, the
-   macOS Keychain item `Claude Code-credentials`, or
-   `~/.claude/.credentials.json`. For `codex`, it checks `~/.codex/auth.json`
-   with `auth_mode == "chatgpt"`. For `pi`, it checks the configured provider
-   entry and the metered-provider opt-in rules below.
-2. **Scrubs metered secrets.** It removes every `*_API_KEY` and `*_AUTH_TOKEN`
-   from the child environment. `CLAUDE_CODE_OAUTH_TOKEN` is preserved because it
-   is the Claude Code OAuth token.
-3. **Routes both SkillOpt roles.** It sets the target backend and injects an
-   optimizer backend unless you already supplied one.
+```text
+Use the "Optimizing Skills with SkillOpt" skill on <path-to-skill-or-prompt>.
+```
 
-Provider defaults:
+## What The Agent Should Do
 
-| Provider | Target backend | Optimizer backend |
-| --- | --- | --- |
-| `claude` | `claude_code_exec` | `claude_chat` |
-| `codex` | `codex_exec` | `codex_chat` |
-| `pi` | `pi_exec` | `pi_chat` |
+The agent should follow the workflow in
+[`plugins/run-optimize/skills/run-optimize/SKILL.md`](../../plugins/run-optimize/skills/run-optimize/SKILL.md):
 
-## Quick Start
+1. Load or create `run-optimize` config.
+2. Identify the seed skill/prompt.
+3. Establish graded train/val/test tasks.
+4. Confirm the environment/scorer and success metric.
+5. Choose chat vs exec target.
+6. Choose provider/model.
+7. Scaffold the run workspace and write `config.yaml`.
+8. Show the resolved plan and wait for approval.
+9. Launch SkillOpt and read `summary.json`, `history.json`, and `best_skill.md`.
+10. Offer to write `best_skill.md` back to the original seed.
+
+If the agent skips the graded-data conversation, stop it. That is the main
+quality gate.
+
+## Provider Prompts
+
+### Codex Default
+
+Use this for the subscription-safe default path.
+
+```text
+Use run-optimize on <path>. Use Codex through SkillOpt Guard:
+target_backend=codex_exec, optimizer_backend=codex_chat, model=gpt-5.5.
+Scrub metered API keys, use the guard, and require my approval before launch.
+```
+
+Expected launch shape:
 
 ```bash
 cd tooling/skillopt
 uv sync
-uv run pytest
-```
-
-Run a guarded SkillOpt job:
-
-```bash
+unset CODEX_PROFILE OPENAI_API_KEY AZURE_OPENAI_API_KEY ANTHROPIC_API_KEY
 uv run skillopt-oauth \
-  --backend codex_exec \
-  --config demo/searchqa_codex/config.yaml \
-  --out_root demo/searchqa_codex/outputs/run_codex_codex
+  --config runs/<name>/config.yaml \
+  --target_backend codex_exec --optimizer_backend codex_chat \
+  --out_root runs/<name>/outputs/run_codex
 ```
 
-The provider is inferred from `--backend`, `--target_backend`, or
-`--optimizer_backend`. You can pin it with
-`SKILLOPT_OAUTH_TARGET=claude|codex|pi`.
+### Claude Subscription
 
-If the preflight fails, the guard exits before launching `skillopt-train`:
+Use this when the target behavior should be measured inside Claude Code.
 
 ```text
-skillopt-oauth: codex would resolve to a non-subscription credential (probe -> 'none');
-refusing to launch so the run cannot be silently billed to a metered API.
+Use run-optimize on <path>. Use Claude through SkillOpt Guard:
+target_backend=claude_code_exec, optimizer_backend=claude_chat. Ask me for the
+Claude model slug if the config does not already specify one. Require approval
+before launch.
 ```
 
-Use a dry run to inspect routing without launching SkillOpt:
+Expected launch shape:
 
 ```bash
-SKILLOPT_OAUTH_DRY_RUN=1 uv run skillopt-oauth \
-  --backend codex_exec \
-  --config demo/searchqa_codex/config.yaml
-```
-
-## Vendored SkillOpt Fork
-
-`vendor/skillopt` is pinned to upstream SkillOpt `v0.1.0`. The local delta is
-additive backend and config wiring:
-
-- `codex_chat`: a CLI-backed optimizer that shells `codex exec`.
-- `pi_chat`: a one-shot `pi -p --mode json --no-tools` optimizer/chat-target.
-- `pi_exec`: an agentic rollout target using `pi -p --mode json` with tools on.
-
-The regular SkillOpt training loop, datasets, evaluation flow, and checkpointing
-remain in the vendored package. See
-[`vendor/skillopt/PINNED_UPSTREAM.md`](vendor/skillopt/PINNED_UPSTREAM.md) for the
-pin and local-delta inventory.
-
-## Codex and Claude Subscription Runs
-
-Upstream SkillOpt target backends can run `codex_exec` and `claude_code_exec`, but
-the optimizer defaults to `openai_chat` unless configured. The guard injects
-`codex_chat` or `claude_chat` so the optimizer leg uses the same local CLI path as
-the target leg.
-
-You can set backends explicitly:
-
-```bash
+cd tooling/skillopt
+uv sync
 uv run skillopt-oauth \
-  --config demo/searchqa_codex/config.yaml \
-  --target_backend codex_exec \
-  --optimizer_backend codex_chat \
-  --out_root demo/searchqa_codex/outputs/run_codex_codex
+  --config runs/<name>/config.yaml \
+  --target_backend claude_code_exec --optimizer_backend claude_chat \
+  --out_root runs/<name>/outputs/run_claude
 ```
 
-The committed [`demo/searchqa_codex/`](demo/searchqa_codex/) run shows a
-before/after SearchQA optimization on `codex_exec` + `codex_chat`.
+### pi / GLM
 
-## pi Backend
+Use this only as a deliberate metered-provider run.
 
-The `pi` backend lets SkillOpt route each role to a `provider/model` deployment
-slug, for example `zai/glm-5.2`, `openai-codex/gpt-5.5`, or
-`github-copilot/gpt-5.5`.
-
-- `pi_chat` is available for optimizer calls and chat targets.
-- `pi_exec` is available for agentic target rollouts.
-- A bare model name falls back to `PI_PROVIDER`, defaulting to `openai-codex`.
-- Runtime guards verify that the streamed `provider` and `model` match the pin.
-
-Example config:
-
-```yaml
-model:
-  optimizer_backend: pi_chat
-  target_backend: pi_exec
-  optimizer: zai/glm-5.2
-  target: zai/glm-5.2
-  pi_allowed_metered_providers: [zai]
+```text
+Use run-optimize on <path>. Use pi routed to zai/glm-5.2:
+target_backend=pi_exec, optimizer_backend=pi_chat, optimizer=zai/glm-5.2,
+target=zai/glm-5.2. Treat this as metered and require PI_ALLOW_METERED=zai plus
+my explicit approval before launch.
 ```
 
-Direct trainer launch:
+Guarded launch shape:
 
 ```bash
-PI_ALLOW_METERED=zai uv run skillopt-train \
-  --config demo/searchqa_pi/config.yaml \
-  --out_root demo/searchqa_pi/outputs/run_pi_pi
-```
-
-Guarded launch:
-
-```bash
+cd tooling/skillopt
+uv sync
 PI_ALLOW_METERED=zai uv run skillopt-oauth \
-  --backend pi_exec \
-  --config demo/searchqa_pi/config.yaml \
-  --out_root demo/searchqa_pi/outputs/run_pi_pi
+  --config runs/<name>/config.yaml \
+  --target_backend pi_exec --optimizer_backend pi_chat \
+  --out_root runs/<name>/outputs/run_glm
 ```
 
-### Metered Provider Opt-In
+Direct trainer shape:
 
-`openai-codex` and `github-copilot` are treated as subscription providers.
-`zai` and `anthropic` are treated as metered providers and must be opted in when
-running under `skillopt-oauth`.
+```bash
+cd tooling/skillopt
+uv sync
+PI_ALLOW_METERED=zai uv run skillopt-train \
+  --config runs/<name>/config.yaml \
+  --out_root runs/<name>/outputs/run_glm
+```
 
-Opt in with either:
+The guarded form enforces the metered-provider opt-in before spawning `pi`.
 
-- `PI_ALLOW_METERED=zai,anthropic`
-- `model.pi_allowed_metered_providers: [zai, anthropic]` in the leaf config file
+## Prompt When You Already Have Graded Data
 
-`PI_ALLOW_METERED` wins when both are present. The guard reads
-`model.pi_allowed_metered_providers` from the leaf `--config` file only; it does
-not resolve `_base_` inheritance for this preflight.
+```text
+Use run-optimize on <seed-path>. My graded data is already split at
+<data-dir> with train/items.json, val/items.json, and test/items.json. Verify
+the schema and counts. Use <provider/backend/model choices>. Show the resolved
+plan before launch.
+```
 
-## Records
+For the built-in `searchqa` environment, each item should have `id`,
+`question`, `context`, and `answers`. The score is normalized exact match and
+token F1 against the gold answers.
 
-Each guard invocation writes a secret-safe JSONL record unless disabled:
+## Prompt When You Do Not Have Graded Data Yet
 
-- Default path: `.agent-workspace/skillopt-oauth/runs.jsonl`
-- Override: `SKILLOPT_OAUTH_LOG_DIR=/path/to/dir`
-- Disable file writes: `SKILLOPT_OAUTH_LOG=0`
+```text
+Use run-optimize on <seed-path>, but do not launch yet. First help me design a
+small reviewed train/val/test task set. Propose candidate tasks, explain what a
+correct answer/output should be, and wait for my review before using them.
+```
 
-Records include the event type (`refused`, `dry_run`, `handoff`, `exec_failed`,
-and optionally `completed`), a generated `run_id`, scrubbed env names, redacted
-argv, provider, backend routing, and output root. Credential values are never
-recorded.
+Synthetic tasks are useful for bootstrapping, but the optimizer will learn the
+wrong behavior if the gold answers or success criteria are wrong.
 
-Set `SKILLOPT_OAUTH_SUPERVISE=1` to keep the guard process around and append a
-`completed` record with exit code and duration.
+## Guardrails To Put In The Prompt
 
-## Environment Variables
+- Ask before spending subscription quota or metered budget.
+- Confirm the success metric before writing config.
+- Use an exec target for tool-using coding-agent skills.
+- Use a chat target only for pure prompts.
+- Keep train, val, and test disjoint.
+- Do not overwrite the seed unless held-out test results improved and the user
+  approves the diff.
 
-| Var | Effect |
-| --- | --- |
-| `SKILLOPT_OAUTH_TARGET` | Pin provider routing: `claude`, `codex`, or `pi`. |
-| `SKILLOPT_OAUTH_OPTIMIZER` | Optimizer backend to inject. `off`, `none`, or empty disables injection. |
-| `SKILLOPT_OAUTH_DRY_RUN=1` | Preflight, scrub, and print the launch without execing. |
-| `SKILLOPT_OAUTH_SUPERVISE=1` | Wait for the child and record completion. |
-| `SKILLOPT_OAUTH_LOG_DIR` | Record directory. |
-| `SKILLOPT_OAUTH_LOG=0` | Disable record-file writes. |
-| `SKILLOPT_OAUTH_LOG_LEVEL` | Stderr log level. |
-| `SKILLOPT_OAUTH_INJECT_OUT_ROOT=1` | Inject `--out_root` under the record directory when absent. |
-| `SKILLOPT_OAUTH_RUN_ID` | Exported into the child for correlation. |
-| `PI_ALLOW_METERED` | Comma-separated metered `pi` providers allowed for this run. |
+## Reference Docs
 
-## Demos
-
-- [`demo/searchqa_codex/`](demo/searchqa_codex/): `codex_exec` target with
-  `codex_chat` optimizer.
-- [`demo/searchqa_pi/`](demo/searchqa_pi/): `pi_exec` target with `pi_chat`
-  optimizer routed to `zai/glm-5.2`.
-
-Both demos keep curated trace artifacts under `trace/`; raw `outputs/` directories
-are gitignored.
+- [SkillOpt Guard setup and backend reference](SETUP.md)
+- [`run-optimize` skill instructions](../../plugins/run-optimize/skills/run-optimize/SKILL.md)
+- [`run-optimize` config example](../../plugins/run-optimize/skills/run-optimize/config.example.yaml)
+- [Codex demo](demo/searchqa_codex/)
+- [pi/GLM demo](demo/searchqa_pi/)

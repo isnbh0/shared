@@ -35,7 +35,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install gimme@isnbh0
 ```
 
-Only the six plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the six plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, run-optimize, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -119,6 +119,13 @@ Tools and guidance for creating effective `SKILL.md` agent skills following best
 
 Claude Code invocation: `/skill-writer`
 
+### run-optimize
+Interactive SkillOpt orchestration for optimizing an existing skill or prompt against a graded train/val/test task set. It guides data setup, backend/provider selection, SkillOpt Guard launch approval, result reading, and optional write-back.
+
+Claude Code invocation: `/run-optimize [path-to-seed-skill]`
+
+Human prompting guide: `tooling/skillopt/README.md`; backend/setup reference: `tooling/skillopt/SETUP.md`.
+
 ### phaser
 Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase - automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
 
@@ -158,6 +165,9 @@ shared/
 │   ├── skill-writer/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/skill-writer/
+│   ├── run-optimize/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/run-optimize/
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/
@@ -196,7 +206,7 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study, gimme) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme, run-optimize) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
 
 | Skill | Example workspace |
 |-------|-------------------|
@@ -206,6 +216,7 @@ Skills that produce files (interview, spex, report-writer, macros, study, gimme)
 | macros | `.agent-workspace/macros` |
 | study | `.agent-workspace/study/sessions` |
 | gimme | `.agent-workspace/gimme` |
+| run-optimize | `tooling/skillopt/runs` |
 
 Override precedence (first match wins):
 

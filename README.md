@@ -164,6 +164,18 @@ cp -R ~/shared/plugins/<plugin>/skills/<skill> <skill-root>/
 
 Invocation snippets below are Claude Code style; in other agents, ask for the workflow by skill name or description.
 
+#### run-optimize
+
+Interactive SkillOpt orchestration for optimizing an existing skill or prompt against a graded task set.
+
+```
+/run-optimize [path-to-seed-skill]
+```
+
+- Guides the agent through graded train/val/test task setup, backend choice, launch approval, result reading, and write-back
+- Defaults to Codex through SkillOpt Guard, with Claude and pi/GLM variants available
+- Start with the [SkillOpt prompting guide](tooling/skillopt/README.md); detailed backend setup lives in [tooling/skillopt/SETUP.md](tooling/skillopt/SETUP.md)
+
 #### phaser
 
 Battle-tested patterns and best practices for Phaser 3 game development.
@@ -212,14 +224,14 @@ Tools for creating effective `SKILL.md` agent skills.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros, study, gimme) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study, gimme, run-optimize) support configurable workspace directories with layered precedence (first match wins):
 
 1. **Explicit override** — ask to use a specific workspace directory for this run
 2. **Local config** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
 3. **Project config** (`.agents/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
 4. **Legacy fallback** (`.claude/skill-configs/<skill>/`) — older installs
 
-There are no built-in defaults. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`).
+There are no built-in defaults for most file-producing skills. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`); `run-optimize` writes SkillOpt runs under `tooling/skillopt/runs` by default.
 
 Use `.agents/skill-configs/` for new configuration. The `.claude/skill-configs/` path is retained only as a legacy fallback for older installs.
 

@@ -68,3 +68,7 @@ Skills that produce files use a layered config pattern. The skill prompts for se
 - The `.agents/skill-configs/` convention is repository-owned and agent-neutral. Keep provider-specific install roots and activation behavior centralized in `docs/cross-platform/README.md`; do not duplicate them in publishing checklists. Older installs still resolve from the legacy `.claude/skill-configs/<skill>/` (and `~/.claude/skill-configs/<skill>/` for cross-project skills) location as a fallback; spex additionally falls back to its former `.agent-workspace/spex/` path. When config is found only at a legacy path, the skill uses it and offers to move it to the new location.
 
 Always ship a `config.example.yaml` alongside `SKILL.md` documenting all supported fields.
+
+### SkillOpt/run-optimize docs
+
+The human-facing entry point for SkillOpt orchestration is `tooling/skillopt/README.md` (prompting guide). Operational backend setup lives in `tooling/skillopt/SETUP.md`. Keep both linked from `README.md`, `README.ko.md`, and `llms.txt` when changing `plugins/run-optimize/` or `tooling/skillopt/`.

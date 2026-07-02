@@ -1,193 +1,151 @@
-# SkillOpt Guard
+# SkillOpt 프롬프트 가이드
 
-[English](README.md)
+[English](README.md) | [설정 레퍼런스](SETUP.ko.md)
 
-[Microsoft SkillOpt](https://github.com/microsoft/SkillOpt)를 로컬 에이전트
-CLI로 실행할 때 라우팅, 자격 증명 사전 확인, 비밀값 제거를 명시적으로 처리하는
-런처입니다.
+vendored SkillOpt 도구로 스킬이나 프롬프트를 최적화하고 싶을 때 코딩 에이전트에
+이렇게 요청하세요. 가장 짧은 경로는 에이전트에게 `run-optimize` 스킬을 사용하게
+하고, 데이터 준비, config 작성, 실행, 결과 해석, write-back을 오케스트레이션하게
+하는 것입니다.
 
-이 디렉터리는 두 부분으로 구성됩니다.
+SkillOpt는 supervised optimizer입니다. train/val/test로 나뉜 graded task set에
+대해서만 개선됩니다. 좋은 프롬프트는 실행 전에 이 graded set을 먼저 확정하게
+합니다.
 
-- `SkillOpt Guard`: `skillopt-oauth` 명령으로 제공되는
-  `skillopt-train` 실행 가드
-- `vendor/skillopt`: `codex_chat`, `pi_chat`, `pi_exec` 백엔드 배선을 추가한
-  고정 버전 SkillOpt 포크
+## 권장 프롬프트
 
-가드는 SkillOpt의 타깃 롤아웃과 옵티마이저 재작성 단계가 의도한 로컬 CLI 경로를
-사용하도록 합니다. 지원 provider는 `claude`, `codex`, `pi`입니다.
+```text
+Use the run-optimize skill to optimize <path-to-skill-or-prompt>.
 
-## 가드 동작
+Default to Codex through SkillOpt Guard unless I say otherwise. First inspect the
+seed, then help me establish a graded train/val/test task set. Confirm the
+success metric is faithful before writing config. Show me the resolved provider,
+model, target backend, optimizer backend, output path, and split sizes before
+launching. Do not launch until I explicitly approve. After the run, summarize
+baseline vs best on the held-out test split and show me the diff before offering
+to write best_skill.md back over the seed.
+```
 
-`skillopt-oauth`는 `skillopt-train`을 실행하기 전에 다음을 수행합니다.
+slash command가 없는 host에서는 자연어로 요청합니다.
 
-1. **자격 증명 사전 확인.** 선택된 provider가 의도한 로컬 인증으로 실행 가능한지
-   확인합니다. `claude`는 `CLAUDE_CODE_OAUTH_TOKEN`, macOS Keychain의
-   `Claude Code-credentials`, `~/.claude/.credentials.json`을 확인합니다.
-   `codex`는 `~/.codex/auth.json`의 `auth_mode == "chatgpt"`를 확인합니다.
-   `pi`는 설정된 provider 항목과 metered provider opt-in 규칙을 확인합니다.
-2. **비밀값 제거.** child 환경에서 모든 `*_API_KEY`, `*_AUTH_TOKEN`을 제거합니다.
-   `CLAUDE_CODE_OAUTH_TOKEN`은 Claude Code OAuth 토큰이므로 보존합니다.
-3. **두 역할 라우팅.** 타깃 backend를 설정하고, 명시하지 않았다면 옵티마이저
-   backend를 주입합니다.
+```text
+Use the "Optimizing Skills with SkillOpt" skill on <path-to-skill-or-prompt>.
+```
 
-기본 라우팅:
+## 에이전트가 해야 할 일
 
-| Provider | Target backend | Optimizer backend |
-| --- | --- | --- |
-| `claude` | `claude_code_exec` | `claude_chat` |
-| `codex` | `codex_exec` | `codex_chat` |
-| `pi` | `pi_exec` | `pi_chat` |
+에이전트는
+[`plugins/run-optimize/skills/run-optimize/SKILL.md`](../../plugins/run-optimize/skills/run-optimize/SKILL.md)의
+워크플로우를 따라야 합니다.
 
-## 빠른 시작
+1. `run-optimize` config를 읽거나 만듭니다.
+2. seed skill/prompt를 확인합니다.
+3. train/val/test graded task를 확정합니다.
+4. environment/scorer와 success metric을 확인합니다.
+5. chat target과 exec target 중 하나를 고릅니다.
+6. provider/model을 고릅니다.
+7. run workspace를 만들고 `config.yaml`을 씁니다.
+8. resolved plan을 보여주고 승인을 기다립니다.
+9. SkillOpt를 실행하고 `summary.json`, `history.json`, `best_skill.md`를 읽습니다.
+10. `best_skill.md`를 원래 seed에 반영할지 제안합니다.
+
+에이전트가 graded-data 확인을 건너뛰면 멈추세요. 이것이 핵심 품질 게이트입니다.
+
+## Provider별 프롬프트
+
+### Codex 기본값
+
+subscription-safe 기본 경로입니다.
+
+```text
+Use run-optimize on <path>. Use Codex through SkillOpt Guard:
+target_backend=codex_exec, optimizer_backend=codex_chat, model=gpt-5.5.
+Scrub metered API keys, use the guard, and require my approval before launch.
+```
+
+예상 실행 형태:
 
 ```bash
 cd tooling/skillopt
 uv sync
-uv run pytest
-```
-
-가드로 SkillOpt 작업 실행:
-
-```bash
+unset CODEX_PROFILE OPENAI_API_KEY AZURE_OPENAI_API_KEY ANTHROPIC_API_KEY
 uv run skillopt-oauth \
-  --backend codex_exec \
-  --config demo/searchqa_codex/config.yaml \
-  --out_root demo/searchqa_codex/outputs/run_codex_codex
+  --config runs/<name>/config.yaml \
+  --target_backend codex_exec --optimizer_backend codex_chat \
+  --out_root runs/<name>/outputs/run_codex
 ```
 
-provider는 `--backend`, `--target_backend`, `--optimizer_backend`에서 추론됩니다.
-필요하면 `SKILLOPT_OAUTH_TARGET=claude|codex|pi`로 고정할 수 있습니다.
+### Claude Subscription
 
-실행 없이 라우팅만 확인하려면 dry run을 사용합니다.
+Claude Code 안에서의 동작을 측정해야 할 때 사용합니다.
+
+```text
+Use run-optimize on <path>. Use Claude through SkillOpt Guard:
+target_backend=claude_code_exec, optimizer_backend=claude_chat. Ask me for the
+Claude model slug if the config does not already specify one. Require approval
+before launch.
+```
+
+### pi / GLM
+
+명시적인 metered-provider 실행으로만 사용하세요.
+
+```text
+Use run-optimize on <path>. Use pi routed to zai/glm-5.2:
+target_backend=pi_exec, optimizer_backend=pi_chat, optimizer=zai/glm-5.2,
+target=zai/glm-5.2. Treat this as metered and require PI_ALLOW_METERED=zai plus
+my explicit approval before launch.
+```
+
+guarded 실행 형태:
 
 ```bash
-SKILLOPT_OAUTH_DRY_RUN=1 uv run skillopt-oauth \
-  --backend codex_exec \
-  --config demo/searchqa_codex/config.yaml
-```
-
-## Vendored SkillOpt 포크
-
-`vendor/skillopt`는 upstream SkillOpt `v0.1.0`에 고정되어 있습니다. 로컬 변경은
-backend와 config 배선 추가에 한정됩니다.
-
-- `codex_chat`: `codex exec`를 호출하는 CLI 기반 옵티마이저
-- `pi_chat`: `pi -p --mode json --no-tools` 기반 옵티마이저 및 chat target
-- `pi_exec`: tools를 켠 `pi -p --mode json` 기반 agentic rollout target
-
-SkillOpt의 학습 루프, 데이터셋, 평가 흐름, 체크포인트 처리는 vendored package가
-담당합니다. pin과 로컬 변경 목록은
-[`vendor/skillopt/PINNED_UPSTREAM.md`](vendor/skillopt/PINNED_UPSTREAM.md)를
-참고하세요.
-
-## Codex 및 Claude 실행
-
-upstream SkillOpt는 `codex_exec`, `claude_code_exec` 타깃 backend를 제공하지만,
-옵티마이저는 설정하지 않으면 `openai_chat`으로 기본 설정됩니다. 가드는
-`codex_chat` 또는 `claude_chat`을 주입하여 옵티마이저 단계도 같은 로컬 CLI 경로를
-사용하게 합니다.
-
-명시적으로 backend를 지정할 수 있습니다.
-
-```bash
-uv run skillopt-oauth \
-  --config demo/searchqa_codex/config.yaml \
-  --target_backend codex_exec \
-  --optimizer_backend codex_chat \
-  --out_root demo/searchqa_codex/outputs/run_codex_codex
-```
-
-[`demo/searchqa_codex/`](demo/searchqa_codex/)에는 `codex_exec`와 `codex_chat`으로
-수행한 SearchQA before/after 예제가 들어 있습니다.
-
-## pi backend
-
-`pi` backend는 SkillOpt의 각 역할을 `provider/model` deployment slug로 라우팅합니다.
-예: `zai/glm-5.2`, `openai-codex/gpt-5.5`, `github-copilot/gpt-5.5`.
-
-- `pi_chat`: optimizer call 및 chat target
-- `pi_exec`: agentic target rollout
-- provider가 없는 model 이름은 `PI_PROVIDER`를 사용하며 기본값은 `openai-codex`
-- runtime guard가 stream의 `provider`, `model`이 pin과 일치하는지 확인
-
-예시 config:
-
-```yaml
-model:
-  optimizer_backend: pi_chat
-  target_backend: pi_exec
-  optimizer: zai/glm-5.2
-  target: zai/glm-5.2
-  pi_allowed_metered_providers: [zai]
-```
-
-직접 trainer 실행:
-
-```bash
-PI_ALLOW_METERED=zai uv run skillopt-train \
-  --config demo/searchqa_pi/config.yaml \
-  --out_root demo/searchqa_pi/outputs/run_pi_pi
-```
-
-가드 실행:
-
-```bash
+cd tooling/skillopt
+uv sync
 PI_ALLOW_METERED=zai uv run skillopt-oauth \
-  --backend pi_exec \
-  --config demo/searchqa_pi/config.yaml \
-  --out_root demo/searchqa_pi/outputs/run_pi_pi
+  --config runs/<name>/config.yaml \
+  --target_backend pi_exec --optimizer_backend pi_chat \
+  --out_root runs/<name>/outputs/run_glm
 ```
 
-### Metered Provider Opt-In
+guarded 형태는 `pi`를 spawn하기 전에 metered-provider opt-in을 확인합니다.
 
-`openai-codex`, `github-copilot`은 subscription provider로 취급합니다. `zai`,
-`anthropic`은 metered provider로 취급하며 `skillopt-oauth`에서 실행하려면 명시적
-opt-in이 필요합니다.
+## 이미 graded data가 있을 때
 
-둘 중 하나로 opt-in합니다.
+```text
+Use run-optimize on <seed-path>. My graded data is already split at
+<data-dir> with train/items.json, val/items.json, and test/items.json. Verify
+the schema and counts. Use <provider/backend/model choices>. Show the resolved
+plan before launch.
+```
 
-- `PI_ALLOW_METERED=zai,anthropic`
-- leaf config 파일의 `model.pi_allowed_metered_providers: [zai, anthropic]`
+내장 `searchqa` environment는 `id`, `question`, `context`, `answers` 필드를
+기대합니다. 점수는 gold answer에 대한 normalized exact match와 token F1입니다.
 
-둘 다 있으면 `PI_ALLOW_METERED`가 우선합니다. 가드의 preflight는 leaf
-`--config` 파일에서만 `model.pi_allowed_metered_providers`를 읽으며 `_base_`
-상속은 해석하지 않습니다.
+## graded data가 아직 없을 때
 
-## 기록
+```text
+Use run-optimize on <seed-path>, but do not launch yet. First help me design a
+small reviewed train/val/test task set. Propose candidate tasks, explain what a
+correct answer/output should be, and wait for my review before using them.
+```
 
-가드는 기본적으로 각 실행마다 secret-safe JSONL 기록을 남깁니다.
+합성 task는 시작점으로는 유용하지만, gold answer나 success criterion이 틀리면
+optimizer가 잘못된 행동을 학습합니다.
 
-- 기본 경로: `.agent-workspace/skillopt-oauth/runs.jsonl`
-- 경로 변경: `SKILLOPT_OAUTH_LOG_DIR=/path/to/dir`
-- 파일 기록 끄기: `SKILLOPT_OAUTH_LOG=0`
+## 프롬프트에 넣을 가드레일
 
-기록에는 event type, `run_id`, 제거된 env 이름, redacted argv, provider, backend
-라우팅, output root가 포함됩니다. 자격 증명 값은 기록하지 않습니다.
+- subscription quota나 metered budget을 쓰기 전에 질문하게 하세요.
+- config 작성 전에 success metric을 확인하게 하세요.
+- tool을 쓰는 coding-agent skill은 exec target을 쓰게 하세요.
+- 순수 prompt에만 chat target을 쓰게 하세요.
+- train, val, test는 서로 겹치지 않게 하세요.
+- held-out test 결과가 개선되고 사용자가 diff를 승인하기 전에는 seed를 덮어쓰지
+  않게 하세요.
 
-`SKILLOPT_OAUTH_SUPERVISE=1`을 설정하면 가드가 child를 기다리고 exit code와
-duration이 포함된 `completed` 기록을 추가합니다.
+## 레퍼런스
 
-## 환경 변수
-
-| Var | Effect |
-| --- | --- |
-| `SKILLOPT_OAUTH_TARGET` | provider 라우팅 고정: `claude`, `codex`, `pi` |
-| `SKILLOPT_OAUTH_OPTIMIZER` | 주입할 optimizer backend. `off`, `none`, empty는 주입 비활성화 |
-| `SKILLOPT_OAUTH_DRY_RUN=1` | exec 없이 preflight, scrub, launch 출력 |
-| `SKILLOPT_OAUTH_SUPERVISE=1` | child를 기다리고 completion 기록 |
-| `SKILLOPT_OAUTH_LOG_DIR` | 기록 디렉터리 |
-| `SKILLOPT_OAUTH_LOG=0` | 기록 파일 쓰기 비활성화 |
-| `SKILLOPT_OAUTH_LOG_LEVEL` | stderr 로그 레벨 |
-| `SKILLOPT_OAUTH_INJECT_OUT_ROOT=1` | `--out_root`가 없을 때 기록 디렉터리 아래에 자동 주입 |
-| `SKILLOPT_OAUTH_RUN_ID` | correlation을 위해 child에 export |
-| `PI_ALLOW_METERED` | 이 실행에서 허용할 metered `pi` provider 목록 |
-
-## 데모
-
-- [`demo/searchqa_codex/`](demo/searchqa_codex/): `codex_exec` target과
-  `codex_chat` optimizer
-- [`demo/searchqa_pi/`](demo/searchqa_pi/): `zai/glm-5.2`로 라우팅되는
-  `pi_exec` target과 `pi_chat` optimizer
-
-두 데모는 선별된 trace artifact를 `trace/` 아래에 보관합니다. raw `outputs/`
-디렉터리는 gitignore 처리되어 있습니다.
+- [SkillOpt Guard 설정 및 backend 레퍼런스](SETUP.ko.md)
+- [`run-optimize` 스킬 지침](../../plugins/run-optimize/skills/run-optimize/SKILL.md)
+- [`run-optimize` config 예시](../../plugins/run-optimize/skills/run-optimize/config.example.yaml)
+- [Codex demo](demo/searchqa_codex/)
+- [pi/GLM demo](demo/searchqa_pi/)

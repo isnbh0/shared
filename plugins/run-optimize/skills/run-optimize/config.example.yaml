@@ -5,8 +5,8 @@
 # falls back to the subscription-safe codex path when nothing is set.
 
 # Default provider to optimize with:
-#   codex  -> ChatGPT/codex subscription, run under the OAuth guard (subscription-safe)
-#   claude -> Claude Pro/Max subscription, run under the OAuth guard (subscription-safe)
+#   codex  -> ChatGPT/codex subscription, run under SkillOpt Guard (subscription-safe)
+#   claude -> Claude Pro/Max subscription, run under SkillOpt Guard (subscription-safe)
 #   glm    -> zai/glm-5.2 via pi (metered opt-in; bills the pi/z.ai account — verify plan/credits; launched with PI_ALLOW_METERED=zai)
 default_provider: codex
 
@@ -37,7 +37,7 @@ default_out_root: runs
 # is sensible. Leave unset and the skill asks per-run rather than assuming one.
 # default_split_ratio: "6:2:2"
 
-# Whether to launch through the subscription-safe OAuth guard (skillopt-oauth), which
+# Whether to launch through SkillOpt Guard (skillopt-oauth), which
 # runs an OAuth preflight and scrubs *_API_KEY / *_AUTH_TOKEN so no metered API
 # fallback is possible. Recommended true for codex/claude. For glm the guard also
 # works, but only when pi is signalled on argv plus PI_ALLOW_METERED=zai; the direct

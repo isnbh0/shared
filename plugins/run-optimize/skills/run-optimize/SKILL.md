@@ -36,7 +36,7 @@ See `config.example.yaml` beside this file for every supported field.
 1. If the user gives explicit choices for this run, use them and skip config lookup.
 2. Otherwise check the config paths above in order.
 3. **If no config is found**, tell the user:
-   > "No run-optimize config found. I can proceed with the subscription-safe default (codex via the OAuth guard, model gpt-5.5) or you can pin a provider/model/backends. I'll write your choice to `.agents/skill-configs/run-optimize/config.yaml`. (See `config.example.yaml` for reference.)"
+   > "No run-optimize config found. I can proceed with the subscription-safe default (codex via SkillOpt Guard, model gpt-5.5) or you can pin a provider/model/backends. I'll write your choice to `.agents/skill-configs/run-optimize/config.yaml`. (See `config.example.yaml` for reference.)"
    Wait for their answer, then write the config before continuing. Every field is optional; anything unset falls back to the codex default.
 
 ## Workflow
@@ -82,7 +82,7 @@ SkillOpt Progress:
 - Allowed sets — optimizer_backend: `openai_chat, claude_chat, codex_chat, qwen_chat, minimax_chat, pi_chat`; target_backend: `openai_chat, claude_chat, codex_exec, claude_code_exec, qwen_chat, minimax_chat, pi_chat, pi_exec`.
 
 **Step 6 — Choose model/provider.** Default to the subscription-safe path; offer GLM.
-- **Default (subscription-safe): codex via the OAuth guard.** `skillopt-oauth` runs an OAuth preflight and scrubs every `*_API_KEY` / `*_AUTH_TOKEN` from the environment so no metered API fallback is possible. Model `gpt-5.5`, backends `codex_exec` (target) + `codex_chat` (optimizer). The Claude subscription is the same path with `claude_code_exec` + `claude_chat`.
+- **Default (subscription-safe): codex via SkillOpt Guard.** `skillopt-oauth` runs an OAuth preflight and scrubs every `*_API_KEY` / `*_AUTH_TOKEN` from the environment so no metered API fallback is possible. Model `gpt-5.5`, backends `codex_exec` (target) + `codex_chat` (optimizer). The Claude subscription is the same path with `claude_code_exec` + `claude_chat`.
 - **Offer: GLM via pi.** `zai/glm-5.2` on the `pi` backend is a metered opt-in provider (the code never treats `zai` as never-metered); it bills the user's pi/z.ai account, so confirm the plan/credits cover it before a large run. See the Launch section for how `PI_ALLOW_METERED=zai` and the guard interact. Present this as an explicit opt-in, not the default.
 - Set the model slug to something the chosen subscription/provider actually serves.
 
@@ -223,7 +223,7 @@ cd tooling/skillopt
 uv sync
 ```
 
-**Subscription-safe (codex via the OAuth guard) — the default:**
+**Subscription-safe (codex via SkillOpt Guard) — the default:**
 
 ```bash
 unset CODEX_PROFILE OPENAI_API_KEY AZURE_OPENAI_API_KEY ANTHROPIC_API_KEY
