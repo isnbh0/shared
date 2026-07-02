@@ -1,279 +1,205 @@
-# skillopt-oauth
+# SkillOpt Guard
 
-Run [Microsoft SkillOpt](https://github.com/microsoft/SkillOpt) safely on your
-`claude` / `codex` **OAuth subscription** CLIs.
+[한국어](README.ko.md)
 
-It is two parts: a thin env-scrub + OAuth-preflight **guard** that wraps upstream's
-`skillopt-train`, and a minimal **vendored fork** of SkillOpt (`vendor/skillopt`,
-pinned to v0.1.0) that adds a `codex_chat` optimizer backend. Together they let the
-**whole** optimize loop — both the target (rollout) and the optimizer (reflect)
-legs — run on the `claude` / `codex` subscription CLI, with no metered API call
-possible. Upstream owns the training loop (rollout → reflect → gate → checkpoint),
-the scorers, and the CLI exec backends; this package adds the billing-safety
-upstream omits and the one optimizer backend it was missing, then hands off.
+Run [Microsoft SkillOpt](https://github.com/microsoft/SkillOpt) through local
+agent CLIs with explicit routing, credential preflight, and secret scrubbing.
 
-## Why this exists
+This directory contains two pieces:
 
-Upstream's exec backends spawn the CLI with `subprocess.run`, which inherits the
-parent environment. In headless `claude -p` / `codex exec` mode a stray
-`ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) **always overrides** the OAuth session,
-silently routing the call onto the metered provider API — even with a valid
-subscription. One Max user hit **$1,800 in two days** this way
-([anthropics/claude-code#37686](https://github.com/anthropics/claude-code/issues/37686)).
-Upstream does no env scrub and no OAuth preflight at any exec site, so the hole is
-open by default.
+- `SkillOpt Guard`, exposed as the `skillopt-oauth` command, around
+  `skillopt-train`.
+- `vendor/skillopt`, a pinned SkillOpt fork with local backend wiring for
+  `codex_chat`, `pi_chat`, and `pi_exec`.
 
-`skillopt-oauth` closes it by construction, before launching upstream:
+The guard keeps target rollouts and optimizer rewrites on the intended local CLI
+path. It supports `claude`, `codex`, and `pi`.
 
-1. **Fail-closed OAuth preflight** — confirm a subscription credential for the
-   provider in use, and refuse to launch otherwise. claude: `CLAUDE_CODE_OAUTH_TOKEN`,
-   the macOS login Keychain item `Claude Code-credentials`, or
-   `~/.claude/.credentials.json`. codex: `~/.codex/auth.json` with
-   `auth_mode == "chatgpt"`. (The Keychain is probed by *existence only* — never
-   by decrypting the secret, which can pop an ACL prompt that hangs a headless run.)
-2. **Env scrub** — strip every `*_API_KEY` / `*_AUTH_TOKEN` from the environment the
-   child inherits, so a metered fallback is impossible. `CLAUDE_CODE_OAUTH_TOKEN`
-   (an OAuth token, not an API key) is preserved.
-3. **Route both legs onto the CLI** — point `CLAUDE_CODE_EXEC_PATH` /
-   `CODEX_EXEC_PATH` at the OAuth CLI, and inject an explicit `--optimizer_backend`
-   (`codex_chat` / `claude_chat`) so the optimizer/reflect leg rides the
-   subscription too. Upstream's `--backend` macro otherwise defaults the optimizer
-   to the metered `openai_chat`, and env is inert for upstream's selection — so the
-   injected flag is what actually keeps the whole loop off the metered API.
+## What the guard does
 
-Then it `exec`s upstream's `skillopt-train`, passing through all of your arguments.
+Before it hands off to `skillopt-train`, `skillopt-oauth`:
 
-## Quick start
+1. **Preflights credentials.** It verifies the selected provider can run with the
+   intended local auth. For `claude`, it checks `CLAUDE_CODE_OAUTH_TOKEN`, the
+   macOS Keychain item `Claude Code-credentials`, or
+   `~/.claude/.credentials.json`. For `codex`, it checks `~/.codex/auth.json`
+   with `auth_mode == "chatgpt"`. For `pi`, it checks the configured provider
+   entry and the metered-provider opt-in rules below.
+2. **Scrubs metered secrets.** It removes every `*_API_KEY` and `*_AUTH_TOKEN`
+   from the child environment. `CLAUDE_CODE_OAUTH_TOKEN` is preserved because it
+   is the Claude Code OAuth token.
+3. **Routes both SkillOpt roles.** It sets the target backend and injects an
+   optimizer backend unless you already supplied one.
+
+Provider defaults:
+
+| Provider | Target backend | Optimizer backend |
+| --- | --- | --- |
+| `claude` | `claude_code_exec` | `claude_chat` |
+| `codex` | `codex_exec` | `codex_chat` |
+| `pi` | `pi_exec` | `pi_chat` |
+
+## Quick Start
 
 ```bash
 cd tooling/skillopt
-uv sync                      # builds the vendored skillopt fork (editable) + this guard
-uv run pytest                # hermetic; spends nothing
-
-# Drive an upstream run safely. All args after `skillopt-oauth` pass straight
-# through to `skillopt-train`; the guard preflights, scrubs, and routes first.
-uv run skillopt-oauth --backend claude_code_exec --config configs/<env>/default.yaml
+uv sync
+uv run pytest
 ```
 
-The target provider is inferred from `--backend` / `--target_backend` (anything
-mentioning `codex` → codex; `claude` → claude), or pinned with
-`SKILLOPT_OAUTH_TARGET=claude|codex`; it defaults to `claude`.
+Run a guarded SkillOpt job:
 
-If no subscription credential is reachable, the guard exits non-zero **before**
-launching upstream — it never silently falls back to a metered API:
-
+```bash
+uv run skillopt-oauth \
+  --backend codex_exec \
+  --config demo/searchqa_codex/config.yaml \
+  --out_root demo/searchqa_codex/outputs/run_codex_codex
 ```
-$ skillopt-oauth --backend codex_exec --config …
+
+The provider is inferred from `--backend`, `--target_backend`, or
+`--optimizer_backend`. You can pin it with
+`SKILLOPT_OAUTH_TARGET=claude|codex|pi`.
+
+If the preflight fails, the guard exits before launching `skillopt-train`:
+
+```text
 skillopt-oauth: codex would resolve to a non-subscription credential (probe -> 'none');
-refusing to launch so the run cannot be silently billed to a metered API. …
+refusing to launch so the run cannot be silently billed to a metered API.
 ```
 
-To pick an env, supply data, and configure the loop, see upstream's docs
-(`skillopt-train --help`, `EnvAdapter`, `SplitDataLoader`, and `configs/`).
+Use a dry run to inspect routing without launching SkillOpt:
 
-## The whole loop on the subscription (`codex_chat`)
-
-SkillOpt splits each run into a **target** (executes the task) and an **optimizer**
-(reflects on failures and rewrites the skill). Upstream ships CLI *target* backends
-(`codex_exec`, `claude_code_exec`) but restricts the *optimizer* to chat/API
-backends — for codex it defaults to the metered `openai_chat`. So out of the box the
-optimizer leg can't run on the codex subscription, and once the keys are scrubbed it
-fails closed.
-
-The vendored fork (`vendor/skillopt`) closes that gap with a `codex_chat` optimizer
-that shells `codex exec` (no API key), wired into the live dispatcher next to the
-existing `claude_chat`. The guard then **injects** `--optimizer_backend` so the
-optimizer rides the same OAuth CLI as the target — making every target×optimizer
-combination subscription-native:
-
-| target ↓ / optimizer → | `claude_chat` | `codex_chat` |
-| --- | --- | --- |
-| `claude_code_exec` | ✓ | ✓ |
-| `codex_exec` | ✓ | ✓ |
-
-Pass `--target_backend` / `--optimizer_backend` explicitly, or let the guard pick the
-per-provider default (`codex` → `codex_chat`, `claude` → `claude_chat`); override with
-`SKILLOPT_OAUTH_OPTIMIZER`. A worked before→after run lives in
-[`demo/searchqa_codex/`](demo/searchqa_codex/): a deliberately-bad seed prompt
-optimized on the codex/codex loop, entirely on the subscription.
-
-The fork is a pinned, trimmed snapshot of upstream (`vendor/skillopt/PINNED_UPSTREAM.md`);
-the local delta is the additive backend wiring under `skillopt/model/` — `codex_chat` and
-the `pi` backends (below).
-
-## pi backend (multi-model routing)
-
-`codex_chat` / `claude_chat` each reach one subscription model. The `pi` (Earendil) backend
-reaches **every model pi has wired** — GLM (z.ai, provider `zai`, model `glm-5.2`),
-`openai-codex`, `github-copilot`, Claude-OAuth (`anthropic`), and anything in
-`pi --list-models` — through one adapter, with per-role provider/model routing and zero new
-per-provider backend code.
-
-It drives both SkillOpt roles:
-
-- **`pi_chat`** — optimizer and optional chat-target. One-shot `pi -p --mode json --no-tools`,
-  registered in both the optimizer and target-chat allowlists. Text-first: it has no vision
-  flag, so image attachments are refused — route vision tasks through `pi_exec` (files read
-  via tools).
-- **`pi_exec`** — the agentic rollout target. `pi -p --mode json` with tools ON and exactly
-  one skill loaded, dispatched from `run_target_exec` beside `codex_exec` / `claude_code_exec`.
-
-### Per-role provider/model
-
-Provider and model are a per-role knob carried by the deployment string as
-`"<provider>/<model>"` — `zai/glm-5.2`, `openai-codex/gpt-5.5`, `anthropic/claude-...`. A bare
-model with no `provider/` prefix falls back to `PI_PROVIDER` (default `openai-codex`). The
-optimizer and target resolve independently, so they can sit on different providers. This is the
-same per-role surface SkillOpt already exposes: `model.optimizer` / `model.target` in config,
-`OPTIMIZER_DEPLOYMENT` / `TARGET_DEPLOYMENT` in env, or the `set_optimizer_deployment()` /
-`set_target_deployment()` setters.
-
-### Routing recipes
-
-Each recipe is shown under `model:` with the env-var equivalent in a comment. Under plain
-`skillopt-train` these run as-is; under the `skillopt-oauth` wrapper each metered role needs the
-one-line opt-in (see Billing safety below).
-
-**(a) GLM target + Claude-OAuth optimizer:**
-
-```yaml
-model:
-  optimizer_backend: pi_chat
-  target_backend: pi_exec          # or pi_chat for a chat-target
-  optimizer: anthropic/claude-...  # Claude-OAuth optimizer (metered "extra usage")
-  target: zai/glm-5.2              # GLM target (metered)
-  pi_allowed_metered_providers: [zai, anthropic]  # under skillopt-oauth: BOTH roles metered (nested under model:)
-#   OPTIMIZER_DEPLOYMENT=anthropic/claude-...  TARGET_DEPLOYMENT=zai/glm-5.2  PI_ALLOW_METERED=zai,anthropic
+```bash
+SKILLOPT_OAUTH_DRY_RUN=1 uv run skillopt-oauth \
+  --backend codex_exec \
+  --config demo/searchqa_codex/config.yaml
 ```
 
-**(b) Claude-OAuth target + GLM optimizer:**
+## Vendored SkillOpt Fork
+
+`vendor/skillopt` is pinned to upstream SkillOpt `v0.1.0`. The local delta is
+additive backend and config wiring:
+
+- `codex_chat`: a CLI-backed optimizer that shells `codex exec`.
+- `pi_chat`: a one-shot `pi -p --mode json --no-tools` optimizer/chat-target.
+- `pi_exec`: an agentic rollout target using `pi -p --mode json` with tools on.
+
+The regular SkillOpt training loop, datasets, evaluation flow, and checkpointing
+remain in the vendored package. See
+[`vendor/skillopt/PINNED_UPSTREAM.md`](vendor/skillopt/PINNED_UPSTREAM.md) for the
+pin and local-delta inventory.
+
+## Codex and Claude Subscription Runs
+
+Upstream SkillOpt target backends can run `codex_exec` and `claude_code_exec`, but
+the optimizer defaults to `openai_chat` unless configured. The guard injects
+`codex_chat` or `claude_chat` so the optimizer leg uses the same local CLI path as
+the target leg.
+
+You can set backends explicitly:
+
+```bash
+uv run skillopt-oauth \
+  --config demo/searchqa_codex/config.yaml \
+  --target_backend codex_exec \
+  --optimizer_backend codex_chat \
+  --out_root demo/searchqa_codex/outputs/run_codex_codex
+```
+
+The committed [`demo/searchqa_codex/`](demo/searchqa_codex/) run shows a
+before/after SearchQA optimization on `codex_exec` + `codex_chat`.
+
+## pi Backend
+
+The `pi` backend lets SkillOpt route each role to a `provider/model` deployment
+slug, for example `zai/glm-5.2`, `openai-codex/gpt-5.5`, or
+`github-copilot/gpt-5.5`.
+
+- `pi_chat` is available for optimizer calls and chat targets.
+- `pi_exec` is available for agentic target rollouts.
+- A bare model name falls back to `PI_PROVIDER`, defaulting to `openai-codex`.
+- Runtime guards verify that the streamed `provider` and `model` match the pin.
+
+Example config:
 
 ```yaml
 model:
   optimizer_backend: pi_chat
   target_backend: pi_exec
-  optimizer: zai/glm-5.2           # GLM optimizer (metered)
-  target: anthropic/claude-...     # Claude-OAuth target (metered "extra usage")
-  pi_allowed_metered_providers: [zai, anthropic]  # under skillopt-oauth: BOTH roles metered (nested under model:)
-#   OPTIMIZER_DEPLOYMENT=zai/glm-5.2  TARGET_DEPLOYMENT=anthropic/claude-...  PI_ALLOW_METERED=zai,anthropic
-```
-
-**(c) GLM for both roles:**
-
-```yaml
-model:
-  optimizer_backend: pi_chat
-  target_backend: pi_exec          # or pi_chat
   optimizer: zai/glm-5.2
   target: zai/glm-5.2
-  pi_allowed_metered_providers: [zai]  # under skillopt-oauth (nested under model:)
-#   OPTIMIZER_DEPLOYMENT=zai/glm-5.2  TARGET_DEPLOYMENT=zai/glm-5.2  PI_ALLOW_METERED=zai
+  pi_allowed_metered_providers: [zai]
 ```
 
-### Billing safety
+Direct trainer launch:
 
-`openai-codex` and `github-copilot` are the built-in **subscription set** — true never-metered
-OAuth. `zai` and `anthropic` are **opt-in-metered**: z.ai bills per token, and pi meters Claude
-Pro/Max OAuth as per-token "extra usage", so `anthropic` is treated as metered and is
-deliberately not in the subscription set.
+```bash
+PI_ALLOW_METERED=zai uv run skillopt-train \
+  --config demo/searchqa_pi/config.yaml \
+  --out_root demo/searchqa_pi/outputs/run_pi_pi
+```
 
-Under `skillopt-oauth`, a metered role runs only when its provider is opted into
-`model.pi_allowed_metered_providers`. The wrapper resolves the effective set once and exports it
-into the child as `PI_ALLOW_METERED` alongside `SKILLOPT_OAUTH_ENFORCE=1`, then refuses —
-*before* spawning pi — any provider outside the subscription set ∪ the opted-in set. On every
-spawn, in both modes, it re-verifies `actual == intended`: the streamed `provider`/`model` must
-match the pin, or the run fails closed (this catches a silent fallback to pi's ambient default).
-It never passes `--api-key`.
+Guarded launch:
 
-Plain `skillopt-train` applies no pre-spawn gate — any pin is the operator's discretion — but the
-`actual == intended` guard still holds.
+```bash
+PI_ALLOW_METERED=zai uv run skillopt-oauth \
+  --backend pi_exec \
+  --config demo/searchqa_pi/config.yaml \
+  --out_root demo/searchqa_pi/outputs/run_pi_pi
+```
 
-> **`PI_ALLOW_METERED` (env) is the most robust opt-in path.** The config key
-> `model.pi_allowed_metered_providers` resolves from the **leaf** `--config` file only; the
-> resolver does not yet walk `_base_` inheritance. If a run inherits its opt-in from a base
-> config, set `PI_ALLOW_METERED` explicitly — the env var always wins and is authoritative.
+### Metered Provider Opt-In
 
-## Records & observability
+`openai-codex` and `github-copilot` are treated as subscription providers.
+`zai` and `anthropic` are treated as metered providers and must be opted in when
+running under `skillopt-oauth`.
 
-The guard is the only thing that knows *which* credential it proved, *which*
-metered keys it neutralized, and *where* it routed — the security/billing-audit
-fact nobody downstream captures. So per invocation it leaves a **secret-safe,
-queryable record of its own decision**, plus a structured stderr log line.
+Opt in with either:
 
-- **Where.** One JSONL file, `.agent-workspace/skillopt-oauth/runs.jsonl`
-  (cwd-relative; override with `SKILLOPT_OAUTH_LOG_DIR`). It's **append-only** and
-  already gitignored at the repo root.
-- **What.** One line per decision point, keyed by a generated `run_id`:
-  `refused` (preflight failed closed), `dry_run`, `handoff` (written *before*
-  exec/supervise, so a kill still leaves a trace), `exec_failed` (adds a sanitized
-  `error`: exception class + `errno`, never the OS message), and — under
-  `SKILLOPT_OAUTH_SUPERVISE=1` — `completed` (adds `exit_code`, `duration_s`,
-  `end_ts`). Those event-specific fields are absent on the other events. Lines for
-  one invocation share a `run_id` and may be non-adjacent; **readers join on `run_id`**.
-- **No credential ever recorded.** Records hold only env *names* (never values —
-  `scrubbed_keys` is the sorted set of stripped names, and any name that isn't a
-  plain identifier is itself redacted), a **redacted** copy of the argv, and
-  routing/preflight metadata. The argv redaction covers `--secret_flag value`,
-  `--secret_flag=value`, `allow_abbrev` abbreviations (`--azure_api_k`), **and** the
-  bare `section.key=value` tokens of upstream's preferred `--cfg-options` channel
-  (`model.azure_api_key=…`) — every secret value becomes `<redacted>`. No credential
-  value, config-file contents, or raw OS exception text is ever written. Redaction
-  runs on a copy — the live argv handed to upstream is verbatim. (Operational,
-  non-secret facts *are* recorded by design: the resolved CLI binary path, `cwd`, and
-  the `--out_root` you passed — an audit record needs to know what ran and where. The
-  file is created `0o600`, `O_NOFOLLOW`, owner-only.)
-- **Fail-soft.** The stderr line is the contract; the file is an add-on. Any write
-  error (bad dir, full disk, deleted `cwd`, planted symlink, non-serializable record)
-  warns to stderr and the launch proceeds — records never block or slow a run.
+- `PI_ALLOW_METERED=zai,anthropic`
+- `model.pi_allowed_metered_providers: [zai, anthropic]` in the leaf config file
 
-The `run_id` is also exported into the child as `SKILLOPT_OAUTH_RUN_ID`, a
-non-intrusive hook for correlating the guard's record with upstream's own output
-(under `--out_root`).
+`PI_ALLOW_METERED` wins when both are present. The guard reads
+`model.pi_allowed_metered_providers` from the leaf `--config` file only; it does
+not resolve `_base_` inheritance for this preflight.
 
-### Env-var surface (all optional)
+## Records
+
+Each guard invocation writes a secret-safe JSONL record unless disabled:
+
+- Default path: `.agent-workspace/skillopt-oauth/runs.jsonl`
+- Override: `SKILLOPT_OAUTH_LOG_DIR=/path/to/dir`
+- Disable file writes: `SKILLOPT_OAUTH_LOG=0`
+
+Records include the event type (`refused`, `dry_run`, `handoff`, `exec_failed`,
+and optionally `completed`), a generated `run_id`, scrubbed env names, redacted
+argv, provider, backend routing, and output root. Credential values are never
+recorded.
+
+Set `SKILLOPT_OAUTH_SUPERVISE=1` to keep the guard process around and append a
+`completed` record with exit code and duration.
+
+## Environment Variables
 
 | Var | Effect |
 | --- | --- |
-| `SKILLOPT_OAUTH_TARGET` | Pin the provider to guard/route (`claude`\|`codex`) when the args don't say. |
-| `SKILLOPT_OAUTH_OPTIMIZER` | Optimizer backend to inject (default `codex_chat`/`claude_chat` per provider); `off`\|`none`\|empty disables injection so upstream/config decides. |
-| `SKILLOPT_OAUTH_LOG_DIR` | Record dir. Default `.agent-workspace/skillopt-oauth`. |
-| `SKILLOPT_OAUTH_LOG=0\|off` | Disable the **file** write (the stderr line still emits). |
-| `SKILLOPT_OAUTH_LOG_LEVEL` | stderr verbosity (default `INFO`). Decision lines log at `INFO`; refusals and launch failures at `ERROR` (so `LOG_LEVEL=ERROR` keeps those, `CRITICAL` silences stderr). The record file is unaffected by this. |
-| `SKILLOPT_OAUTH_DRY_RUN=1` | Preflight + scrub + route, print the would-be launch, **don't exec**. |
-| `SKILLOPT_OAUTH_SUPERVISE=1` | Wait on the child and record a `completed` line (exit code + duration). |
-| `SKILLOPT_OAUTH_INJECT_OUT_ROOT=1` | When `--out_root` is absent, inject one under the record dir for correlation (off by default; it relocates upstream's default output dir). |
-| `SKILLOPT_OAUTH_RUN_ID` | *Exported into the child*, not read — the correlation hook above. |
+| `SKILLOPT_OAUTH_TARGET` | Pin provider routing: `claude`, `codex`, or `pi`. |
+| `SKILLOPT_OAUTH_OPTIMIZER` | Optimizer backend to inject. `off`, `none`, or empty disables injection. |
+| `SKILLOPT_OAUTH_DRY_RUN=1` | Preflight, scrub, and print the launch without execing. |
+| `SKILLOPT_OAUTH_SUPERVISE=1` | Wait for the child and record completion. |
+| `SKILLOPT_OAUTH_LOG_DIR` | Record directory. |
+| `SKILLOPT_OAUTH_LOG=0` | Disable record-file writes. |
+| `SKILLOPT_OAUTH_LOG_LEVEL` | Stderr log level. |
+| `SKILLOPT_OAUTH_INJECT_OUT_ROOT=1` | Inject `--out_root` under the record directory when absent. |
+| `SKILLOPT_OAUTH_RUN_ID` | Exported into the child for correlation. |
+| `PI_ALLOW_METERED` | Comma-separated metered `pi` providers allowed for this run. |
 
-### Dry-run demo (no billing)
+## Demos
 
-```
-$ SKILLOPT_OAUTH_DRY_RUN=1 skillopt-oauth --backend claude_code_exec \
-    --config x.yaml --azure_api_key sk-…
-skillopt-oauth: dry-run for 'claude'; run_id=…; would exec skillopt-train (no launch)
-skillopt-oauth dry-run (no exec):
-  provider:    claude
-  would exec:  skillopt-train --backend claude_code_exec --config x.yaml --azure_api_key '<redacted>'
-  env removed: ['ANTHROPIC_API_KEY']
-  env added:   ['CLAUDE_CODE_EXEC_PATH', 'OPTIMIZER_BACKEND', 'SKILLOPT_OAUTH_RUN_ID', 'TARGET_BACKEND']
-```
+- [`demo/searchqa_codex/`](demo/searchqa_codex/): `codex_exec` target with
+  `codex_chat` optimizer.
+- [`demo/searchqa_pi/`](demo/searchqa_pi/): `pi_exec` target with `pi_chat`
+  optimizer routed to `zai/glm-5.2`.
 
-It writes a `dry_run` record, prints the redacted launch, returns `0`, and never
-execs — the safe way to inspect what a real run would do.
-
-### Supervise (opt-in completion record)
-
-By default the guard `exec`s upstream and gets out of the way — it stays out of the
-run's failure path, a billing-safety tool's core virtue. Set
-`SKILLOPT_OAUTH_SUPERVISE=1` to instead wait on the child (inherited stdio, signals
-forwarded) and append a `completed` record with the exit code and duration.
-
-## Caveat: subscription headless billing is targeted, re-verify
-
-As of 2026-06-30, headless `claude -p` and `codex exec` run on the **subscription**
-(no API key). But Anthropic announced (effective 2026-06-15) moving Agent SDK /
-`claude -p` / GitHub Actions onto separate metered credits, then **paused** it on
-the due date and is reworking it with promised advance notice. It was reverted, not
-shipped — but it was explicitly targeted, so treat headless subscription billing as
-fragile and **re-verify before any long or automated run**. The env scrub and
-fail-closed preflight here are the hedge: if the metered split re-ships, a run that
-can't prove OAuth refuses to start rather than billing you.
+Both demos keep curated trace artifacts under `trace/`; raw `outputs/` directories
+are gitignored.

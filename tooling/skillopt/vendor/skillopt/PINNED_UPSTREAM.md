@@ -1,24 +1,22 @@
 # Vendored upstream: Microsoft SkillOpt
 
 This tree is a **trimmed, pinned snapshot** of upstream
-[microsoft/SkillOpt](https://github.com/microsoft/SkillOpt), vendored so we can
-add a `codex_chat` optimizer backend (a CLI-backed optimizer that runs on the
-ChatGPT/codex OAuth subscription) without an upstream release.
+[microsoft/SkillOpt](https://github.com/microsoft/SkillOpt), vendored so this
+repository can carry local CLI backend wiring before an upstream release.
 
 - **Pinned ref:** `v0.1.0` (commit `25da7cb2ddc26eb67eb6cb386915f269d7ee42cf`)
 - **Vendored subset:** `skillopt/`, `scripts/`, `configs/`, `data/`,
   `pyproject.toml`, `requirements.txt`, `README.md`, `LICENSE`, `SECURITY.md`.
   Dropped (not imported by the runtime package): `skillopt-assets/`,
   `skillopt_webui/`, `docs/`, `ckpt/`, `*.html`, `mkdocs.yml`, upstream `tests/`.
-- **Install:** editable path source from `tooling/skillopt/pyproject.toml`
-  (`[tool.uv.sources] skillopt = { path = "vendor/skillopt", editable = true }`),
-  so `uv sync` builds this tree and provides the `skillopt-train` console script.
+- **Install:** editable workspace source from `tooling/skillopt/pyproject.toml`
+  (`[tool.uv.sources] skillopt = { workspace = true, editable = true }`), so
+  `uv sync` builds this tree and provides the `skillopt-train` console script.
 
 ## Local delta vs. upstream
 
-Our changes are additive commits on top of the pristine snapshot — a `codex_chat`
-optimizer, then the `pi` (Earendil) backend — each self-contained under `skillopt/model/`
-plus inert config/wiring, so `git log`/`git show` on the patch commits is the full diff.
+The local changes are additive: a `codex_chat` optimizer plus the `pi`
+(Earendil) backend, with config and trainer wiring.
 
 **`codex_chat` optimizer:**
 
@@ -48,11 +46,7 @@ plus inert config/wiring, so `git log`/`git show` on the patch commits is the fu
 - `skillopt/config.py`, `scripts/train.py`, `skillopt/engine/trainer.py`,
   `scripts/eval_only.py` — config/env wiring for `pi_exec_*` + `configure_pi_exec`.
 
-The pi tests (`tooling/skillopt/tests/test_pi_backend.py`,
-`tooling/skillopt/tests/test_pi_config_examples.py`) and the `skillopt-oauth` wrapper pi runs
-under (`src/skillopt_oauth/oauth_guard.py`, with `tests/conftest.py` and
-`tests/test_pi_oauth_guard.py`) live OUTSIDE this pinned snapshot, so they never conflict on
-re-vendor.
+The pi tests and `skillopt-oauth` wrapper tests live outside this vendored tree.
 
 ## Re-vendoring / rebasing onto a newer upstream
 

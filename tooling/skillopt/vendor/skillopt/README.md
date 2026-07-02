@@ -1,5 +1,10 @@
 # SkillOpt: Executive Strategy for Self-Evolving Agent Skills
 
+> This is the upstream SkillOpt README kept inside the vendored snapshot. The
+> local fork metadata and backend delta are documented in
+> [`PINNED_UPSTREAM.md`](PINNED_UPSTREAM.md); the runnable wrapper docs live at
+> [`../../README.md`](../../README.md).
+
 *Train agent skills like you train neural networks — with epochs, (mini-)batchsize, learning rates, and validation gates — but without touching model weights.*
 
 [![Project Page](https://img.shields.io/badge/Project%20Page-SkillOpt-8dbb3c)](https://microsoft.github.io/SkillOpt/) [![Paper](https://img.shields.io/badge/Paper-arXiv-b31b1b)](https://arxiv.org/abs/2605.23904) [![Project Video](https://img.shields.io/badge/Project%20Video-Watch%20Demo-ff0000)](https://youtu.be/JUBMDTCiM0M) [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -32,7 +37,7 @@ the Codex agentic loop, and +19.1 inside Claude Code**. Optimized skill
 artifacts transfer across model scales, between Codex and Claude Code
 harnesses, and to nearby benchmarks without further optimization.
 
-For the full method, ablations, and per-cell results see the [paper](https://arxiv.org/abs/2605.23904); for a visual walkthrough of the loop see the [project page](https://microsoft.github.io/SkillOpt/); for deeper API / backend / benchmark docs see [`docs/`](docs/).
+For the full method, ablations, and per-cell results see the [paper](https://arxiv.org/abs/2605.23904); for a visual walkthrough of the loop see the [project page](https://microsoft.github.io/SkillOpt/). The upstream `docs/` directory is not included in this trimmed vendor snapshot.
 
 ## 🎬 Demo Video
 
@@ -349,12 +354,11 @@ were obtained with the default settings, not these.
 ### Adding a new backend
 
 A backend = a chat / exec target (e.g. `openai_chat`, `claude_chat`,
-`qwen_chat`, `minimax_chat`, `codex_exec`, `claude_code_exec`). See
-[`docs/guide/new-backend.md`](docs/guide/new-backend.md) for the full
-contract; in short you add a `skillopt/model/<name>_backend.py` module,
+`qwen_chat`, `minimax_chat`, `codex_exec`, `claude_code_exec`, `pi_chat`,
+`pi_exec`). In short you add a `skillopt/model/<name>_backend.py` module,
 register it in `skillopt/model/common.py` + `backend_config.py`, and wire
-it through the router in `skillopt/model/__init__.py`. `qwen_backend.py`
-and `minimax_backend.py` are good templates.
+it through the router in `skillopt/model/__init__.py`. `qwen_backend.py`,
+`minimax_backend.py`, and `pi_backend.py` are useful local examples.
 
 ### Adding a new benchmark
 

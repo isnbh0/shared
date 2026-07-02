@@ -1,15 +1,15 @@
 [project]
 name = "skillopt-oauth"
 version = "0.4.0"
-description = "Run Microsoft SkillOpt safely on claude/codex OAuth subscription CLIs: a fail-closed OAuth preflight + env scrub guard around upstream's exec backends."
+description = "Guard Microsoft SkillOpt runs on local claude, codex, and pi CLIs with credential preflight, env scrubbing, and explicit backend routing."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "isnbh0" }]
 dependencies = [
     # Upstream Microsoft SkillOpt (https://github.com/microsoft/SkillOpt). The
-    # `[claude]` extra pulls in `claude-agent-sdk`, which upstream's
-    # `claude_code_exec` backend uses. This package is a thin OAuth-safety wrapper
-    # over it, not a fork.
+    # `[claude]` extra pulls in `claude-agent-sdk`, which the `claude_code_exec`
+    # backend uses. `uv` resolves this dependency to the editable vendored fork
+    # through the workspace source below.
     "skillopt[claude]>=0.1.0",
 ]
 

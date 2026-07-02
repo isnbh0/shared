@@ -1,11 +1,11 @@
-"""skillopt-oauth: make Microsoft SkillOpt safe to run on ``claude`` / ``codex``
-subscription CLIs.
+"""SkillOpt Guard: run Microsoft SkillOpt through local agent CLIs with routing
+and credential preflight.
 
 A thin launch wrapper (console script ``skillopt-oauth``) around upstream's
 ``skillopt-train``: it runs a fail-closed OAuth preflight, scrubs every
 ``*_API_KEY`` / ``*_AUTH_TOKEN`` from the child env so a metered fallback is
-impossible by construction, routes upstream at its ``claude_code_exec`` /
-``codex_exec`` backends, then ``exec``s upstream. See :mod:`skillopt_oauth.oauth_guard`.
+impossible by construction, routes upstream at its local CLI backends, then
+``exec``s upstream. See :mod:`skillopt_oauth.oauth_guard`.
 """
 from __future__ import annotations
 
