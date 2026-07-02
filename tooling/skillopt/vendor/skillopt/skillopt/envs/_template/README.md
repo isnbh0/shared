@@ -1,5 +1,7 @@
 # Benchmark Template
 
+[한국어](README.ko.md)
+
 This directory provides scaffold files for adding a new benchmark to SkillOpt.
 
 ## Files
@@ -39,5 +41,7 @@ This directory provides scaffold files for adding a new benchmark to SkillOpt.
    (start from `config_template.yaml`). `_base_` is a **string path**,
    not a list.
 
-See the [Add a New Benchmark guide](../../../docs/guide/new-benchmark.md)
-for the full step-by-step with a worked `docfaithful` example.
+The upstream `docs/` tree is not included in this trimmed vendor snapshot.
+Use this template together with existing benchmark packages such as
+`skillopt/envs/searchqa/` and `skillopt/envs/spreadsheetbench/` as local
+references.

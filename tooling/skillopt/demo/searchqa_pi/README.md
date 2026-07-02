@@ -1,5 +1,7 @@
 # Before→after demo: optimizing a prompt on pi, routed to zai/glm-5.2
 
+[한국어](README.ko.md)
+
 A worked SkillOpt run where **both** legs — the target (`pi_exec`) and the optimizer
 (`pi_chat`) — run through the `pi` CLI on **`zai/glm-5.2`**. It starts from a
 deliberately-bad seed prompt and traces how the `pi_chat` optimizer rewrites it.
@@ -61,14 +63,11 @@ config.
 
 `skillopt-train` is the direct trainer entry point (the `scripts.train:main` console
 script), not the `skillopt-oauth` wrapper. `PI_ALLOW_METERED=zai` opts `zai` into the
-allowed-metered provider set; under plain `skillopt-train` there is no pre-spawn provider
-gate, so the flag is a harmless explicit marker of intent (the `config.yaml` key
-`pi_allowed_metered_providers: [zai]` records the same). Unlike the codex demo — which
-runs on a never-metered ChatGPT subscription and can never bill — `zai`/GLM is a
-deliberately opted-in metered provider; it is free under this setup's `zai` provider
-configuration. The run can also be launched under `skillopt-oauth` with
-`PI_ALLOW_METERED=zai` as the same deliberate metered opt-in. The raw run dir
-(`outputs/`) is gitignored; the curated `trace/` is committed.
+allowed-metered provider set; the `config.yaml` key
+`pi_allowed_metered_providers: [zai]` records the same policy. Use this only when
+you intentionally allow that provider for the run. The run can also be launched
+under `skillopt-oauth` with `PI_ALLOW_METERED=zai`. The raw run dir (`outputs/`)
+is gitignored; the curated `trace/` is committed.
 
 ## Routed to zai/glm-5.2 (verified)
 

@@ -1,5 +1,7 @@
 # Data Manifests
 
+[한국어](README.ko.md)
+
 This directory releases lightweight split manifests for the SkillOpt paper
 splits. These manifests are not full runnable benchmark payloads. To evaluate a
 benchmark, first materialize the full examples from the raw data source when

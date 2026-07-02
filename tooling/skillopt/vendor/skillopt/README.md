@@ -1,5 +1,7 @@
 # SkillOpt: Executive Strategy for Self-Evolving Agent Skills
 
+[한국어](README.ko.md)
+
 > This is the upstream SkillOpt README kept inside the vendored snapshot. The
 > local fork metadata and backend delta are documented in
 > [`PINNED_UPSTREAM.md`](PINNED_UPSTREAM.md); the runnable wrapper docs live at
@@ -230,13 +232,10 @@ Re-running the same command auto-resumes from the last completed step.
 
 ### Pretrained Skill Artifacts
 
-We provide a subset of the paper's main Table 1 GPT-5.5 optimized skills in
-[`ckpt/`](ckpt/) as reference artifacts. Use them with `scripts/eval_only.py`
-to evaluate the provided skills on a matching data split without re-running
-training. See [`ckpt/README.md`](ckpt/README.md) for the full per-benchmark
-command. This is the first artifact batch; we plan to continue uploading
-the remaining optimized skills and benchmark split manifests as they are
-cleaned and verified.
+Upstream provides a subset of the paper's main Table 1 GPT-5.5 optimized
+skills in `ckpt/` as reference artifacts. The `ckpt/` tree is not included in
+this trimmed vendor snapshot; fetch it from upstream if you need the packaged
+skills for `scripts/eval_only.py`.
 
 ---
 
@@ -268,7 +267,7 @@ Each JSON file is an array of task items. The required fields depend on the benc
 
 See `skillopt/envs/<benchmark>/dataloader.py` for the exact format each benchmark expects.
 
-> **Note:** Most benchmark datasets are not included in this repository. Prepare your own data following the format above. The exact SearchQA split used in the paper is provided at [`data/searchqa_id_split/`](data/searchqa_id_split) (400 train / 200 val / 1400 test). We are preparing the remaining benchmark split manifests for upload.
+> **Note:** Most benchmark datasets are not included in this repository. Prepare your own data following the format above. The exact SearchQA split used in the paper is provided at [`data/searchqa_id_split/`](data/searchqa_id_split) (400 train / 200 val / 1400 test).
 
 ### Supported Benchmarks
 
@@ -363,9 +362,9 @@ it through the router in `skillopt/model/__init__.py`. `qwen_backend.py`,
 ### Adding a new benchmark
 
 A benchmark = a `skillopt/envs/<name>/` package with a `dataloader.py`, a
-`rollout.py`, and an `initial.md` seed skill. See
-[`docs/guide/new-benchmark.md`](docs/guide/new-benchmark.md) for the full
-contract; the simplest reference is `skillopt/envs/searchqa/`.
+`rollout.py`, and an `initial.md` seed skill. The upstream `docs/` tree is not
+included in this trimmed vendor snapshot; use `skillopt/envs/searchqa/` as the
+simplest local reference.
 
 ### WebUI
 

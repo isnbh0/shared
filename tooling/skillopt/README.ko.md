@@ -231,5 +231,5 @@ optimizer가 잘못된 행동을 학습합니다.
 - [SkillOpt Guard 설정 및 backend 레퍼런스](SETUP.ko.md)
 - [`run-optimize` 스킬 지침](../../plugins/run-optimize/skills/run-optimize/SKILL.md)
 - [`run-optimize` config 예시](../../plugins/run-optimize/skills/run-optimize/config.example.yaml)
-- [Codex demo](demo/searchqa_codex/)
-- [pi/GLM demo](demo/searchqa_pi/)
+- [Codex demo](demo/searchqa_codex/README.ko.md)
+- [pi/GLM demo](demo/searchqa_pi/README.ko.md)

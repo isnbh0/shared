@@ -2,6 +2,8 @@
 
 ## Security
 
+[한국어](SECURITY.ko.md)
+
 Microsoft takes the security of our software products and services seriously, which
 includes all source code repositories in our GitHub organizations.
 

@@ -1,5 +1,7 @@
 # Vendored upstream: Microsoft SkillOpt
 
+[한국어](PINNED_UPSTREAM.ko.md)
+
 This tree is a **trimmed, pinned snapshot** of upstream
 [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt), vendored so this
 repository can carry local CLI backend wiring before an upstream release.

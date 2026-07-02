@@ -1,5 +1,7 @@
 # Before→after demo: optimizing a prompt on the codex subscription
 
+[한국어](README.ko.md)
+
 A worked SkillOpt run where **both** legs — the target (`codex_exec`) and the
 optimizer (`codex_chat`) — run on the **codex / ChatGPT OAuth subscription**, with
 no metered API call possible. It starts from a deliberately-bad seed prompt and

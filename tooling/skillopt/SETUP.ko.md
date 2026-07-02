@@ -77,7 +77,7 @@ backend와 config 배선 추가에 한정됩니다.
 
 SkillOpt의 학습 루프, 데이터셋, 평가 흐름, 체크포인트 처리는 vendored package가
 담당합니다. pin과 로컬 변경 목록은
-[`vendor/skillopt/PINNED_UPSTREAM.md`](vendor/skillopt/PINNED_UPSTREAM.md)를
+[`vendor/skillopt/PINNED_UPSTREAM.ko.md`](vendor/skillopt/PINNED_UPSTREAM.ko.md)를
 참고하세요.
 
 ## Codex 및 Claude 실행
@@ -97,7 +97,7 @@ uv run skillopt-oauth \
   --out_root demo/searchqa_codex/outputs/run_codex_codex
 ```
 
-[`demo/searchqa_codex/`](demo/searchqa_codex/)에는 `codex_exec`와 `codex_chat`으로
+[`demo/searchqa_codex/`](demo/searchqa_codex/README.ko.md)에는 `codex_exec`와 `codex_chat`으로
 수행한 SearchQA before/after 예제가 들어 있습니다.
 
 ## pi backend
@@ -184,9 +184,9 @@ duration이 포함된 `completed` 기록을 추가합니다.
 
 ## 데모
 
-- [`demo/searchqa_codex/`](demo/searchqa_codex/): `codex_exec` target과
+- [`demo/searchqa_codex/`](demo/searchqa_codex/README.ko.md): `codex_exec` target과
   `codex_chat` optimizer
-- [`demo/searchqa_pi/`](demo/searchqa_pi/): `zai/glm-5.2`로 라우팅되는
+- [`demo/searchqa_pi/`](demo/searchqa_pi/README.ko.md): `zai/glm-5.2`로 라우팅되는
   `pi_exec` target과 `pi_chat` optimizer
 
 두 데모는 선별된 trace artifact를 `trace/` 아래에 보관합니다. raw `outputs/`
