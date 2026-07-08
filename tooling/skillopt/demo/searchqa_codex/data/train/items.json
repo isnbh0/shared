@@ -1,5 +1,0 @@
-[
-  {"id":"t1","question":"In what year was the Zorblax Prize first awarded?","context":"[DOC] The Zorblax Prize is an annual award for speculative cartography. It was first awarded in 1973 and has been given every year since.","answers":["1973"]},
-  {"id":"t2","question":"What is the capital city of the nation of Velloria?","context":"[DOC] Velloria is a small island nation. Its capital city is Mirenholt, on the eastern coast.","answers":["Mirenholt"]},
-  {"id":"t3","question":"What alloy are Quibble coins minted from, known locally as?","context":"[DOC] Quibble coins, used in the city of Tarn, are minted from a copper-tin alloy known locally as brindle.","answers":["brindle"]}
-]

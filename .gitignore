@@ -52,9 +52,7 @@ $RECYCLE.BIN/
 # Plugin pack artifacts (root-level only; pack-plugin.sh writes here)
 /*.zip
 
-# Python tooling (tooling/skillopt/ uv project)
-tooling/skillopt/.venv/
-tooling/skillopt/.uv/
+# Python artifacts
 **/__pycache__/
 *.egg-info/
 .pytest_cache/
