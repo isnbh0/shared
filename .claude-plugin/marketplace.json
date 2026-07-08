@@ -7,6 +7,7 @@
     { "name": "critique", "source": "./plugins/critique" },
     { "name": "macros", "source": "./plugins/macros" },
     { "name": "study", "source": "./plugins/study" },
-    { "name": "gimme", "source": "./plugins/gimme" }
+    { "name": "gimme", "source": "./plugins/gimme" },
+    { "name": "promptopt", "source": "./plugins/promptopt" }
   ]
 }

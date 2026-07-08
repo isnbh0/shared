@@ -56,7 +56,7 @@ Skills read layered configuration from an agent-neutral location:
 | `~/.agents/skill-configs/<skill>/config.local.yaml` | User-local config for cross-project skills, such as `dredge` |
 | `~/.agents/skill-configs/<skill>/config.yaml` | User-level config for cross-project skills, such as `dredge` |
 
-Most file-producing project skills read project-local config. Cross-project skills that operate independently of the current repository may read user-scope config. Older installs are still resolved from the legacy `.claude/skill-configs/` and `~/.claude/skill-configs/` paths as fallbacks.
+Most file-producing project skills read project-local config. Cross-project skills that operate independently of the current repository may read user-scope config. Legacy `.claude/skill-configs/` and `~/.claude/skill-configs/` fallbacks are migration support for skills that previously shipped with those paths; newly published skills do not need to add legacy fallbacks. Review legacy fallback removal after 2027-01-31.
 
 ### Spex Sub-Skills
 
@@ -86,4 +86,5 @@ The spex plugin includes `write`, `write-phased`, and `implement` skills. In Cla
 | skill-writer | Interactive | Guidance for creating SKILL.md files |
 | critique | Interactive | External AI critique via Codex or Gemini CLI |
 | macros | Interactive | Subagent orchestration: map-reduce and research-backed critique |
+| promptopt | Interactive | Artifact-backed prompt optimization against user-owned cases |
 | phaser | Passive | Phaser 3 game development knowledgebase (18 files) |

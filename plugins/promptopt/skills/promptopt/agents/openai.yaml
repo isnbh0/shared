@@ -1,0 +1,4 @@
+interface:
+  display_name: "PromptOpt"
+  short_description: "Guide evidence-backed prompt optimization"
+  default_prompt: "Use $promptopt to run a stateful prompt optimization from my brief and train/val cases."

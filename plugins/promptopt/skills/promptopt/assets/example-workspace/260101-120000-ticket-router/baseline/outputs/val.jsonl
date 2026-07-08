@@ -1,0 +1,3 @@
+{"case_id":"val-refund-001","expected_route":"billing","actual_route":"billing","pass":true,"output":{"route":"billing","confidence":0.75,"reason":"cancel plan and return annual fee"}}
+{"case_id":"val-lockout-001","expected_route":"account_access","actual_route":"technical","pass":false,"output":{"route":"technical","confidence":0.61,"reason":"cannot enter after profile suspension"}}
+{"case_id":"val-ambiguous-001","expected_route":"needs_review","actual_route":"technical","pass":false,"output":{"route":"technical","confidence":0.59,"reason":"app is broken"}}

@@ -1,0 +1,6 @@
+{
+  "name": "promptopt",
+  "description": "Artifact-backed prompt optimization workflow against user-provided train/val cases",
+  "version": "0.1.0",
+  "author": { "name": "isnbh0" }
+}

@@ -1,0 +1,3 @@
+{"case_id":"train-refund-001","expected_route":"billing","actual_route":"billing","pass":true,"output":{"route":"billing","confidence":0.86,"reason":"duplicate subscription charge"}}
+{"case_id":"train-lockout-001","expected_route":"account_access","actual_route":"account_access","pass":true,"output":{"route":"account_access","confidence":0.84,"reason":"locked account after login attempts"}}
+{"case_id":"train-ambiguous-001","expected_route":"needs_review","actual_route":"account_access","pass":false,"output":{"route":"account_access","confidence":0.62,"reason":"cannot access account"}}

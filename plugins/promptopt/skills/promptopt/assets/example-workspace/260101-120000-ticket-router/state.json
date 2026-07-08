@@ -1,0 +1,54 @@
+{
+  "objective": "Improve support-ticket routing for refund, account lockout, and mixed-intent cases.",
+  "constraints": [
+    "Return JSON only.",
+    "Preserve route, confidence, and reason fields.",
+    "Use needs_review for ambiguous or mixed-intent input.",
+    "Do not edit source files during the run."
+  ],
+  "case_manifest": {
+    "train": ["train-refund-001", "train-lockout-001", "train-ambiguous-001"],
+    "val": ["val-refund-001", "val-lockout-001", "val-ambiguous-001"],
+    "final_review": ["final-mixed-001"],
+    "exposure_notes": {
+      "train": "Visible to optimizer for diagnosis and candidate design.",
+      "val": "Used for candidate comparison.",
+      "final_review": "Not used for candidate steering in this example."
+    }
+  },
+  "baseline": {
+    "prompt_snapshot": "prompts/baseline.md",
+    "results": "baseline-results.md",
+    "execution_mode": "artifact-only/context reconstruction",
+    "reproduced_context": [
+      "captured prompt",
+      "case input shape",
+      "JSON output contract"
+    ],
+    "context_reconstruction_assessment": "sufficient to faithfully replay the LLM-call context for this routing prompt example",
+    "fidelity_gaps": [
+      "real application runtime path was not executed; full app integration behavior still needs validation"
+    ],
+    "outputs": {
+      "train": "baseline/outputs/train.jsonl",
+      "val": "baseline/outputs/val.jsonl"
+    },
+    "train_pass": 1,
+    "val_pass": 1
+  },
+  "candidate_ledger": "ledger.md",
+  "selection_state": {
+    "selected": ["c002"],
+    "rejected": ["c001"],
+    "recommended": "c002"
+  },
+  "rejected_hypotheses": [
+    "Route descriptions alone are enough to fix mixed-intent fallback."
+  ],
+  "open_risks": [
+    "Final-review case should be run before applying the prompt."
+  ],
+  "search_policy": "Use bounded prompt patches targeted at observed failures; prefer simpler equivalent prompts.",
+  "prompt_cost_preference": "Treat prompt growth as a cost, not a failure.",
+  "stop_condition": "Stop after two candidate steps or when acceptance criteria are met without regressions."
+}

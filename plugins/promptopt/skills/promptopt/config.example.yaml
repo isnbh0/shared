@@ -1,0 +1,17 @@
+# PromptOpt skill configuration
+# Copy to .agents/skill-configs/promptopt/config.yaml for project scope
+# or .agents/skill-configs/promptopt/config.local.yaml for personal/local scope.
+
+# Directory where PromptOpt creates timestamped run workspaces.
+workspace_dir: ".agent-workspace/promptopt/runs"
+
+# Optional maximum number of optimizer search steps. If unset, the skill asks
+# the user for a budget or stopping rule during preflight.
+# default_iteration_budget: 5
+
+# Optional number of candidates to propose per search step. Keep small unless
+# the user has enough val coverage to compare a wider search.
+# default_candidate_batch_size: 1
+
+# Optional default prompt growth policy. This is a nudge, not a hard cap.
+default_prompt_growth_policy: "Treat prompt growth as a cost, not a failure. Prefer smaller or simpler prompts when candidates are behaviorally equivalent, and justify added length with evidence."

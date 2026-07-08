@@ -33,9 +33,10 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install macros@isnbh0
 /plugin install study@isnbh0
 /plugin install gimme@isnbh0
+/plugin install promptopt@isnbh0
 ```
 
-Only the six plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the seven plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -102,6 +103,11 @@ User-invoked inversion of delegation. Produces a filesystem bundle of human-only
 
 Claude Code invocation: `/gimme`
 
+### promptopt
+Artifact-backed prompt optimization workflow for application prompts, prompt builders, agent instructions, routing prompts, and LLM workflows. Collects user-owned train/val cases and writes baseline outputs, candidate ledger, optimizer state, and decision record to its run workspace without editing source files.
+
+Claude Code invocation: `$promptopt`
+
 ### Other direct-install skills
 
 ### report-writer
@@ -158,6 +164,9 @@ shared/
 │   ├── skill-writer/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/skill-writer/
+│   ├── promptopt/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/promptopt/
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/
@@ -196,7 +205,7 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study, gimme) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
 
 | Skill | Example workspace |
 |-------|-------------------|
@@ -206,22 +215,24 @@ Skills that produce files (interview, spex, report-writer, macros, study, gimme)
 | macros | `.agent-workspace/macros` |
 | study | `.agent-workspace/study/sessions` |
 | gimme | `.agent-workspace/gimme` |
+| promptopt | `.agent-workspace/promptopt/runs` |
+
 Override precedence (first match wins):
 
 1. Explicit override - ask to use a specific workspace directory for this run
 2. Local config: `.agents/skill-configs/<skill>/config.local.yaml` - gitignored, personal overrides
 3. Project config: `.agents/skill-configs/<skill>/config.yaml` - committed to repo, shared with team
-4. Legacy fallback: `.claude/skill-configs/<skill>/` - older installs
+4. Legacy fallback: `.claude/skill-configs/<skill>/` - only for skills that shipped older config paths
 
-Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is retained only as a legacy fallback for older installs.
+Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
 
 ## Notes for LLMs
 
 - Ask or infer the target agent before installing. Do not assume Claude Code.
-- For Claude Code marketplace installs, prefer Option B for published plugins (interview, spex, critique, macros, study, gimme). Macro subskills are included in `macros`; do not install them separately through the marketplace.
+- For Claude Code marketplace installs, prefer Option B for published plugins (interview, spex, critique, macros, study, gimme, promptopt). Macro subskills are included in `macros`; do not install them separately through the marketplace.
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
-- Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only.
+- Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.
 - Provider-specific install roots are centralized in `docs/cross-platform/README.md`; verify target-agent docs before automating installs.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` or otherwise ask the target agent to follow that skill before it is usable.

@@ -1,0 +1,3 @@
+{"id":"train-refund-001","input":{"message":"I was charged twice for my subscription this month. Please refund the duplicate charge."},"expected":{"route":"billing"},"why_it_matters":"Clear refund and duplicate-charge language should route to billing."}
+{"id":"train-lockout-001","input":{"message":"I cannot log in because my account says it is locked after too many attempts."},"expected":{"route":"account_access"},"why_it_matters":"Account lockout should not be treated as a technical bug."}
+{"id":"train-ambiguous-001","input":{"message":"I cannot access my account and I also want a refund if this is not fixed today."},"expected":{"route":"needs_review"},"why_it_matters":"Mixed account-access and refund intent should use the conservative fallback."}
