@@ -1,0 +1,6 @@
+{
+  "name": "zoomdoc",
+  "description": "Semantic-zoom HTML documents readable at four zoom levels with animated word-level morphs",
+  "version": "1.0.0",
+  "author": { "name": "isnbh0" }
+}

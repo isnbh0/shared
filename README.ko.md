@@ -41,6 +41,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install study@isnbh0
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
+/plugin install zoomdoc@isnbh0
 ```
 
 ## 스킬
@@ -166,6 +167,19 @@ $promptopt
 - 최적화 전에 사용자가 소유한 목표 동작, 출력 계약, train/val 케이스, 수용 기준을 수집
 - 소스 파일을 직접 수정하지 않고 자체 실행 워크스페이스에 최적화 산출물을 기록
 - baseline 출력, candidate ledger, optimizer state, decision record를 유지
+
+#### zoomdoc
+
+네 단계 줌 레벨로 읽을 수 있는 단일 파일 semantic-zoom HTML 문서를 작성합니다. 레벨 간 전환은 단어 단위 모프 애니메이션으로 이루어집니다.
+
+```
+/zoomdoc
+```
+
+- 질적으로 구분되는 네 레벨: 논지(한 문장), 초록(한 단락), 섹션별 요약, 전문
+- 요약 구절에 명시적 provenance 키를 부여하여, 줌 시 각 구절이 원문 위치에서 미끄러지듯 이동 (단순 크로스페이드 아님)
+- 상위 레벨은 선택과 압축만 가능 — 모든 주장과 수치는 전문에 그대로 존재해야 함
+- 렌더러 템플릿과 구조·키 전단사(bijectivity)를 검사하는 결정론적 검증기를 포함
 
 ### 기타 (복사 / 심볼릭 링크)
 

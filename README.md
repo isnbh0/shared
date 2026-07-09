@@ -41,6 +41,7 @@ Then install individual skills:
 /plugin install study@isnbh0
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
+/plugin install zoomdoc@isnbh0
 ```
 
 ## Skills
@@ -166,6 +167,19 @@ $promptopt
 - Collects user-owned target behavior, output contract, train/val cases, and acceptance criteria before optimizing
 - Writes all optimization artifacts to its own run workspace instead of editing source files
 - Maintains baseline outputs, candidate ledger, optimizer state, and a decision record
+
+#### zoomdoc
+
+Authors a semantic-zoom HTML document — a single-file article readable at four zoom levels with animated word-level morphs between them.
+
+```
+/zoomdoc
+```
+
+- Four qualitatively distinct levels: thesis (one sentence), abstract (one paragraph), per-section summaries, full text
+- Derived phrases carry explicit provenance keys, so zooming glides each summary phrase out of its source span rather than crossfading
+- Coarse levels may only select and compress — every claim and number must exist verbatim in the full text
+- Ships the renderer template and a deterministic validator that checks structure and key bijectivity
 
 ### Other (copy / symlink)
 

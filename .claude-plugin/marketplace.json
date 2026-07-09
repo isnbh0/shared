@@ -8,6 +8,7 @@
     { "name": "macros", "source": "./plugins/macros" },
     { "name": "study", "source": "./plugins/study" },
     { "name": "gimme", "source": "./plugins/gimme" },
-    { "name": "promptopt", "source": "./plugins/promptopt" }
+    { "name": "promptopt", "source": "./plugins/promptopt" },
+    { "name": "zoomdoc", "source": "./plugins/zoomdoc" }
   ]
 }
