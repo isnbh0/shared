@@ -13,6 +13,7 @@ Bundled in this skill directory:
 
 ## Non-negotiables
 
+- **Hand-write the HTML.** Author every `<section>`, `<x k="…">` wrapper, and summary yourself, directly in the file. Do not write scripts that generate, wrap, or transform the content programmatically — keying phrases across zoom levels is a semantic judgment call at every span, and generated wrapping produces plausible-looking but semantically wrong keys that the validator can't catch. Scripts are for validation only (`validate.py`, the headless check), never for authoring.
 - Every derived phrase in a z2 must be wrapped in `<x k="…">` with the same key wrapping its source span in that section's z3.
 - Anchoring: nothing in z0–z2 that isn't in z3; z3 is verbatim source text, never regenerated from summaries.
 

@@ -92,6 +92,7 @@ It ships off deliberately: with keys as the only source of motion, a missing ann
 
 ## Authoring rules
 
+- **Hand-write everything.** All content — sections, summaries, `<x>` wrappers — is written directly by the author (human or LLM), never emitted by a generation script. Choosing what each key spans is a semantic decision per phrase; programmatic wrapping produces wrong keys that pass validation. Scripts are for validation only.
 - **Anchoring**: every claim and number in z0–z2 must exist in z3. Coarse levels select and compress; they never introduce.
 - z2 keeps the load-bearing specifics (effect sizes, dates, names) — it's a working level, not a teaser.
 - **Morph-friendliness**: reuse z3's surface phrasing in z2 wherever possible (extractive over paraphrased). Within a keyed pair, words match after normalization (case, punctuation, possessives — "SCALE's" glides to "SCALE"), so exact copying isn't required, but heavy paraphrase leaves little to glide.
