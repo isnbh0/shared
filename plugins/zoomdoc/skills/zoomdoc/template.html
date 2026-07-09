@@ -66,6 +66,8 @@
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
   .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   .zoom-hint { font-size: .78rem; color: var(--ink-soft); }
+  .smooth-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; white-space: nowrap; }
+  .smooth-toggle input { accent-color: var(--accent); margin: 0; }
   .copy-md {
     font-family: system-ui, sans-serif; font-size: .72rem; padding: .15rem .5rem;
     background: none; border: 1px solid var(--rule); border-radius: 999px;
@@ -150,6 +152,7 @@
       <button data-z="3" aria-pressed="false">z3 · Full text</button>
     </div>
     <span class="zoom-hint">Each section can also be zoomed on its own.</span>
+    <label class="zoom-hint smooth-toggle"><input type="checkbox" id="smooth" checked> Smooth transitions</label>
   </div>
 </div>
 
@@ -208,8 +211,10 @@
   });
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const smooth = document.getElementById('smooth');
+  const noMotion = () => reducedMotion.matches || !smooth.checked;
   function withTransition(mutate) {
-    if (document.startViewTransition && !reducedMotion.matches) {
+    if (document.startViewTransition && !noMotion()) {
       document.startViewTransition(mutate);
     } else {
       mutate();
@@ -225,9 +230,12 @@
       sections.forEach(s => s.removeAttribute('data-level'));
       refreshSectionButtons();
     };
-    // adjacent levels get the word-level morph; jumps get the block crossfade
+    // adjacent levels get the word-level morph; jumps get the block crossfade.
+    // With global LCS off, transitions touching the (unannotated) z0/z1 ledes
+    // have no words to glide — crossfade instead of a pointless morph pause.
     if (z === prev) return;
-    if (reducedMotion.matches || Math.abs(Number(z) - Number(prev)) !== 1) return withTransition(apply);
+    if (noMotion() || Math.abs(Number(z) - Number(prev)) !== 1 ||
+        (!GLOBAL_LCS && Math.min(Number(z), Number(prev)) < 2)) return withTransition(apply);
     const visible = s => s.querySelector('.z' + effectiveLevel(s));
     let pairSets;
     if (prev === '0' || z === '0') {
@@ -275,7 +283,21 @@
     });
     el.dataset.wrapped = '1';
   }
-  const norm = w => w.toLowerCase().replace(/['’]s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
+  // Korean particles (조사) attach to the word they mark, so "논문이"/"논문을"
+  // never token-match "논문". Strip one trailing particle, longest first.
+  // ponytail: fixed suffix list, no morphological analysis — can over-strip
+  // stems that happen to end in a particle syllable (key-scoping bounds the
+  // damage); swap in a real tokenizer if that ever shows.
+  const KO_PARTICLES = ['으로부터', '에서부터', '에게서', '한테서', '로부터', '으로서', '으로써', '로서', '로써', '이라도', '까지는', '까지', '부터', '에서', '에게', '한테', '처럼', '보다', '조차', '마저', '밖에', '이나', '이란', '라도', '으로', '은', '는', '이', '가', '을', '를', '과', '와', '의', '에', '도', '만', '나', '로'];
+  const HANGUL = /[가-힣]$/;
+  const norm = w => {
+    let t = w.toLowerCase().replace(/['’]s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
+    if (HANGUL.test(t)) {
+      const p = KO_PARTICLES.find(p => t.length > p.length && t.endsWith(p));
+      if (p) t = t.slice(0, -p.length);
+    }
+    return t;
+  };
   function lcsPairs(a, b) {
     const n = a.length, m = b.length;
     const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
@@ -440,7 +462,7 @@
       const from = s.querySelector('.z' + effectiveLevel(s));
       const target = effectiveLevel(s) === '3' ? '2' : '3';
       const apply = () => { s.dataset.level = target; refreshSectionButtons(); };
-      if (reducedMotion.matches) apply();
+      if (noMotion()) apply();
       else wordMorph([{ from: [from], to: [s.querySelector('.z' + target)] }], apply);
     });
   });

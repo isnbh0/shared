@@ -74,10 +74,21 @@ Morph matching is by explicit provenance keys, not string similarity. The genera
 ```
 
 - Keys are document-unique short slugs (`s3-guardrails`). Within a section, a key must appear **exactly once in z2 and exactly once in z3** — morphs run both directions, so the pairing must be bijective per section; a one-sided key degrades to a fade plus a console warning. Never nest one `<x>` inside another (words would be claimed by both keys); nesting `<x>` inside `<strong>`/`<em>` (or vice versa) is fine. This is the anchoring rule made machine-checkable.
-- Keys only drive the **per-section z2↔z3 morph**. The document-level z1/z0 transitions always crossfade — don't expect keying to animate them, and don't annotate z1/z0.
+- Keys only drive the **per-section z2↔z3 morph**. The document-level z0↔z1 and z1↔z2 transitions carry no keys (z1/z0 are unannotated — don't annotate them), so with `GLOBAL_LCS` off they render as fades; see the switch below.
 - **Phrase-provenance** (coarse phrase reuses fine phrasing): words inside the keyed pair glide 1:1.
 - **Meaning-provenance** (paraphrase): same mechanism — the renderer aligns whatever words match within the keyed pair (LCS, then order-free); leftovers fade in. If *nothing* matches (pure paraphrase), every target word flies from the source span's location, so the paraphrase visibly materializes out of its source. Because matching is key-scoped, homophones and repeated words can never cross-match.
-- Unannotated text does not glide — it crossfades. (The renderer has a whole-block LCS fallback behind a `GLOBAL_LCS` flag, currently off: provenance keys are the only source of motion, so missing annotation is immediately visible.)
+- Unannotated text does not glide — it crossfades.
+
+### The `GLOBAL_LCS` switch
+
+`const GLOBAL_LCS = false;` in the template's script is the renderer's fuzzy-fallback matcher for **unannotated** text. When on, any adjacent-level transition also matches unkeyed words by whole-block LCS, then an order-free second pass over substantial leftovers (4+ chars or numeric); matched words glide, the rest fade. Keyed pairs are excluded from this fuzzy pass (their tokens are blanked first), so keys always win and homophones can't cross-match.
+
+What it affects:
+
+- **z0↔z1 and z1↔z2 (doc-level)**: these transitions run through the same word-morph engine but carry no keys, so `GLOBAL_LCS` is their *only* possible source of motion. Off (shipped default): they are pure crossfades. On: words shared between the thesis/abstract/summaries glide — e.g. z1→z2 flies the abstract's words out into the section summaries that reuse them.
+- **z2↔z3 (per-section)**: keyed phrases glide either way; the flag only adds fuzzy gliding for the text *outside* keyed pairs.
+
+It ships off deliberately: with keys as the only source of motion, a missing annotation shows up immediately as a dead (non-gliding) phrase instead of being papered over by fuzzy matching. Flipping it on is a rendering choice, not an authoring one — it never substitutes for the key bijectivity contract. (Remember the flag lives inside `<script>`, which authors must never edit; treat it as a renderer constant unless the user explicitly asks for the fuzzy behavior.)
 
 ## Authoring rules
 
