@@ -224,6 +224,24 @@
       ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
     }
 
+    /* Decorative shared-token wash after a level swap. Text color only:
+       highlight ranges never touch the DOM, focus, or accessibility tree.
+       ::highlight() itself is not animatable, but it re-resolves color-mix()
+       from the live value of --zoomdoc-highlight-mix, a registered property
+       transitioned on :root — so the tint fades even though the pseudo can't. */
+    @property --zoomdoc-highlight-mix {
+      syntax: '<percentage>';
+      inherits: true;
+      initial-value: 0%;
+    }
+
+    /* Duration and easing are overridden per step by the runtime script. */
+    :root { transition: --zoomdoc-highlight-mix .4s ease; }
+
+    ::highlight(zoom-shared) {
+      color: color-mix(in srgb, var(--zoomdoc-accent) var(--zoomdoc-highlight-mix), var(--zoomdoc-ink));
+    }
+
     @media print {
       .zoomdoc-toolbar, [data-zoomdoc-chrome] { display: none !important; }
       .zoomdoc-page { width: 100%; padding: 0; }
@@ -385,11 +403,127 @@
         });
       }
 
-      function transition(mutate) {
+      function transition(mutate, after) {
         if (document.startViewTransition && !reducedMotion.matches) {
-          document.startViewTransition(mutate);
+          // .ready fires at crossfade start (DOM mutated, snapshots captured),
+          // so the shared-token wash begins with the transition, not after it.
+          document.startViewTransition(mutate).ready.then(after, after);
         } else {
           mutate();
+          after();
+        }
+      }
+
+      // ---- shared-token highlight: after a unit swaps levels, briefly wash
+      // the wording both representations share so the eye keeps its anchors.
+      const normalizeWord = word =>
+        word.toLowerCase().replace(/['’]s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
+      const substantial = token => token.length >= 4 || /\d/.test(token);
+
+      function captureLevels() {
+        return new Map(units.map(unit => [unit, effectiveLevel(unit)]));
+      }
+
+      function unitFlashPair(unit, beforeLevel, afterLevel) {
+        if (beforeLevel === afterLevel) return null;
+        const content = unit.querySelector(':scope > [data-zoomdoc-unit-content]');
+        if (!content) return null;
+        const owned = [...content.querySelectorAll('[data-zoomdoc-at]')]
+          .filter(element => belongsToUnit(element, unit));
+        const outgoing = owned.filter(element => {
+          const tokens = levelTokens(element);
+          return tokens.includes(beforeLevel) && !tokens.includes(afterLevel);
+        });
+        const incoming = owned.filter(element => {
+          const tokens = levelTokens(element);
+          return tokens.includes(afterLevel) && !tokens.includes(beforeLevel);
+        });
+        if (!outgoing.length || !incoming.length) return null;
+        // ponytail: perf cap — skip enormous incoming regions instead of chunking
+        const length = incoming.reduce((total, element) => total + element.textContent.length, 0);
+        if (length > 20000) return null;
+        const shared = new Set();
+        outgoing.forEach(element => {
+          for (const match of element.textContent.matchAll(/\S+/g)) {
+            const token = normalizeWord(match[0]);
+            if (token && substantial(token)) shared.add(token);
+          }
+        });
+        return shared.size ? { shared, incoming } : null;
+      }
+
+      // Wash timings (ms). The fade-in starts at ViewTransition.ready, while
+      // the 200ms crossfade (animation-duration in the style block above) still
+      // owns the screen — so it must outlast the crossfade by a clear margin,
+      // and rise with ease-in, or the whole climb happens behind the
+      // transition snapshots and the tint pops in fully formed.
+      const highlightFadeIn = 350;
+      const highlightHold = 220;
+      const highlightFadeOut = 420;
+      let highlightHoldTimer = null;
+      let highlightCleanupTimer = null;
+      let highlightRaf = 0;
+
+      function setHighlightMix(value, durationMs, easing = 'ease') {
+        const style = document.documentElement.style;
+        style.setProperty('transition-duration', `${durationMs}ms`);
+        style.setProperty('transition-timing-function', easing);
+        style.setProperty('--zoomdoc-highlight-mix', value);
+      }
+
+      function flashSharedTokens(beforeLevels) {
+        if (reducedMotion.matches || !('highlights' in CSS)) return;
+        try {
+          const ranges = [];
+          for (const unit of units) {
+            if (ranges.length >= 800) break; // ponytail: global perf cap for huge documents
+            const pair = unitFlashPair(unit, beforeLevels.get(unit), effectiveLevel(unit));
+            if (!pair) continue;
+            for (const element of pair.incoming) {
+              const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+                // No word-level tinting inside code blocks (reads as fake syntax
+                // highlighting) or inside nested still-hidden controlled content.
+                acceptNode: node => node.parentElement?.closest('pre, [hidden]')
+                  ? NodeFilter.FILTER_REJECT
+                  : NodeFilter.FILTER_ACCEPT
+              });
+              while (walker.nextNode() && ranges.length < 800) {
+                const node = walker.currentNode;
+                for (const match of node.textContent.matchAll(/\S+/g)) {
+                  if (!pair.shared.has(normalizeWord(match[0]))) continue;
+                  const range = new Range();
+                  range.setStart(node, match.index);
+                  range.setEnd(node, match.index + match[0].length);
+                  ranges.push(range);
+                }
+              }
+            }
+          }
+          if (!ranges.length) return;
+          CSS.highlights.set('zoom-shared', new Highlight(...ranges));
+          clearTimeout(highlightHoldTimer);
+          clearTimeout(highlightCleanupTimer);
+          cancelAnimationFrame(highlightRaf);
+          // The tint fades via the registered --zoomdoc-highlight-mix (the
+          // ::highlight pseudo itself is not animatable). Snap to 0% first so
+          // a re-trigger mid-fade still gets a fresh wash-in, then raise it on
+          // the next paint so the transition reliably fires.
+          setHighlightMix('0%', 0);
+          highlightRaf = requestAnimationFrame(() => {
+            highlightRaf = requestAnimationFrame(() => {
+              setHighlightMix('100%', highlightFadeIn, 'ease-in');
+              highlightHoldTimer = setTimeout(() => {
+                setHighlightMix('0%', highlightFadeOut);
+                highlightCleanupTimer = setTimeout(
+                  () => CSS.highlights.delete('zoom-shared'),
+                  highlightFadeOut + 100
+                );
+              }, highlightFadeIn + highlightHold);
+            });
+          });
+        } catch {
+          setHighlightMix('0%', 0);
+          CSS.highlights.delete('zoom-shared'); // degrade to the plain crossfade
         }
       }
 
@@ -405,6 +539,7 @@
         button.dataset.zoomdocChrome = '';
         button.setAttribute('aria-expanded', 'false');
         button.addEventListener('click', () => {
+          const beforeLevels = captureLevels();
           transition(() => {
             if (unit.dataset.zoomdocOverride === finest) {
               delete unit.dataset.zoomdocOverride;
@@ -412,7 +547,7 @@
               unit.dataset.zoomdocOverride = finest;
             }
             refresh();
-          });
+          }, () => flashSharedTokens(beforeLevels));
         });
         header.append(button);
         unitButtons.set(unit, button);
@@ -442,11 +577,12 @@
         input.checked = level === current;
         input.addEventListener('change', () => {
           if (!input.checked) return;
+          const beforeLevels = captureLevels();
           transition(() => {
             current = level;
             units.forEach(unit => delete unit.dataset.zoomdocOverride);
             refresh();
-          });
+          }, () => flashSharedTokens(beforeLevels));
         });
         const text = document.createElement('span');
         text.textContent = root.getAttribute(`data-zoomdoc-label-${level}`)
