@@ -239,7 +239,10 @@
     :root { transition: --zoomdoc-highlight-mix .4s ease; }
 
     ::highlight(zoom-shared) {
-      color: color-mix(in srgb, var(--zoomdoc-accent) var(--zoomdoc-highlight-mix), var(--zoomdoc-ink));
+      /* currentColor resolves to the originating text's own color (CSS Pseudo 4
+         highlight inheritance), so muted captions and accent links fade from
+         their own color instead of snapping to document ink for the wash. */
+      color: color-mix(in srgb, var(--zoomdoc-accent) var(--zoomdoc-highlight-mix), currentColor);
     }
 
     @media print {
@@ -407,6 +410,9 @@
         if (document.startViewTransition && !reducedMotion.matches) {
           // .ready fires at crossfade start (DOM mutated, snapshots captured),
           // so the shared-token wash begins with the transition, not after it.
+          // ponytail: no extra guard on the rejection path — a rejected .ready
+          // (skipped/superseded transition) still runs after; worst case is a
+          // skipped decorative wash, never a wrong one.
           document.startViewTransition(mutate).ready.then(after, after);
         } else {
           mutate();
@@ -466,12 +472,17 @@
 
       function setHighlightMix(value, durationMs, easing = 'ease') {
         const style = document.documentElement.style;
-        style.setProperty('transition-duration', `${durationMs}ms`);
-        style.setProperty('transition-timing-function', easing);
+        // Shorthand scoped to the custom property, so the inline override never
+        // leaves bare transition longhands on <html> that could clobber an
+        // author-theme :root transition on some unrelated property.
+        style.setProperty('transition', `--zoomdoc-highlight-mix ${durationMs}ms ${easing}`);
         style.setProperty('--zoomdoc-highlight-mix', value);
       }
 
       function flashSharedTokens(beforeLevels) {
+        // ponytail: the early returns and catch below deliberately leave a prior
+        // wash's timers running — clearing them here would strand that wash at
+        // full tint with its cleanup cancelled.
         if (reducedMotion.matches || !('highlights' in CSS)) return;
         try {
           const ranges = [];
@@ -480,6 +491,9 @@
             const pair = unitFlashPair(unit, beforeLevels.get(unit), effectiveLevel(unit));
             if (!pair) continue;
             for (const element of pair.incoming) {
+              // ponytail: an outer unit's walker can descend into a nested
+              // unit's text and range it twice — harmless double tint; add a
+              // nearest-[data-zoomdoc-unit] ownership check if it ever shows.
               const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
                 // No word-level tinting inside code blocks (reads as fake syntax
                 // highlighting) or inside nested still-hidden controlled content.
@@ -490,6 +504,7 @@
               while (walker.nextNode() && ranges.length < 800) {
                 const node = walker.currentNode;
                 for (const match of node.textContent.matchAll(/\S+/g)) {
+                  if (ranges.length >= 800) break; // cap holds even within one dense node
                   if (!pair.shared.has(normalizeWord(match[0]))) continue;
                   const range = new Range();
                   range.setStart(node, match.index);
