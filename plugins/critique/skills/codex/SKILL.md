@@ -29,11 +29,13 @@ Config is resolved with the following precedence (first match wins):
 2. **Local config** (`.agents/skill-configs/codex/config.local.yaml`) — personal/local scope, gitignored
 3. **Project config** (`.agents/skill-configs/codex/config.yaml`) — project scope, committed to repo
 4. **Legacy fallback** (`.claude/skill-configs/codex/config.local.yaml`, then `config.yaml`) — older installs
-5. **Default** — `gpt-5.5`
+5. **Default** — `gpt-5.6-terra`
 
 ```yaml
-model: gpt-5.5  # model to use with codex exec
+model: gpt-5.6-terra  # model to use with codex exec
 ```
+
+Available tiers: `gpt-5.6-sol` (deepest reasoning, most expensive), `gpt-5.6-terra` (balanced), `gpt-5.6-luna` (cheapest).
 
 See `config.example.yaml` in the critique plugin's codex skill for reference.
 
@@ -44,7 +46,7 @@ See `config.example.yaml` in the critique plugin's codex skill for reference.
    - `.agents/skill-configs/codex/config.local.yaml` (local scope, gitignored)
    - `.agents/skill-configs/codex/config.yaml` (project scope, committed to repo)
    - Legacy fallback (older installs): `.claude/skill-configs/codex/config.local.yaml`, then `.claude/skill-configs/codex/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
-3. If no config found, use `gpt-5.5` as the default.
+3. If no config found, use `gpt-5.6-terra` as the default.
 4. Set `${MODEL}` to the resolved model name.
 
 ### Reasoning Effort
@@ -55,7 +57,11 @@ The user can request higher reasoning effort by saying things like "xhigh", "hig
 |-----------|-----------|
 | (default) | *(omit flag — uses codex default "medium")* |
 | "high" | `high` |
-| "xhigh", "maximum", "think hard" | `xhigh` |
+| "xhigh", "think hard" | `xhigh` |
+| "max", "maximum", "deep review" | `max` |
+| "ultra" | `ultra` |
+
+`max` and `ultra` only pay off on `gpt-5.6-sol` — the lower tiers accept them but have less reasoning ceiling to spend. When the user asks for max/ultra and the resolved model is terra or luna, use sol for that run and say so. `ultra` makes codex delegate to subagents; it is the slowest and most expensive setting.
 
 ## How It Works
 
@@ -85,14 +91,14 @@ codex exec \
 ```
 
 **Flags:**
-- `-m ${MODEL}` — the resolved model (default: `gpt-5.5`)
+- `-m ${MODEL}` — the resolved model (default: `gpt-5.6-terra`)
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
-- `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, or `xhigh`. Omit for default. Higher effort = slower but more thorough analysis.
+- `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, `xhigh`, `max`, or `ultra`. Omit for default. Higher effort = slower but more thorough analysis.
 
 **Stdin redirect (`</dev/null`) is required.** In some host-agent spawn environments, non-TTY stdin can remain open and cause `codex exec` to hang while reading additional input. Redirecting from `/dev/null` gives codex an immediate EOF.
 
-**Timeout:** 300 seconds at default effort, 600 seconds at high/xhigh (codex does more reasoning passes)
+**Timeout:** 300 seconds at default effort, 600 seconds at high/xhigh, 1200 seconds at max/ultra (codex does more reasoning passes; ultra also fans out to subagents)
 
 ## After Running
 
