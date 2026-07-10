@@ -42,7 +42,7 @@
   }
   .wrap { max-width: 68ch; margin: 0 auto; padding: 0 1.25rem 5rem; }
 
-  /* ---- zoom bar ---- */
+  /* ---- zoom bar (script-injected) ---- */
   .zoombar {
     position: sticky; top: 0; z-index: 10;
     background: var(--paper);
@@ -66,8 +66,6 @@
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
   .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   .zoom-hint { font-size: .78rem; color: var(--ink-soft); }
-  .smooth-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; white-space: nowrap; }
-  .smooth-toggle input { accent-color: var(--accent); margin: 0; }
   .copy-md {
     font-family: system-ui, sans-serif; font-size: .72rem; padding: .15rem .5rem;
     background: none; border: 1px solid var(--rule); border-radius: 999px;
@@ -80,26 +78,36 @@
   .sec-controls { display: flex; gap: .4rem; }
   .doc-actions { display: flex; justify-content: flex-end; padding-top: 1.2rem; margin-bottom: -1.2rem; }
 
-  /* view-transition morphs between zoom levels */
+  /* view-transition crossfade between zoom levels */
   ::view-transition-old(*), ::view-transition-new(*) { animation-duration: .35s; }
   @media (prefers-reduced-motion: reduce) {
     ::view-transition-old(*), ::view-transition-new(*) { animation: none; }
   }
+
+  /* shared-token highlight on z2<->z3 transitions */
+  ::highlight(zoom-shared) { background-color: color-mix(in srgb, var(--accent) 22%, transparent); }
 
   /* ---- typography ---- */
   h1 { font-size: 1.9rem; line-height: 1.2; text-wrap: balance; margin: 2.2rem 0 .4rem; }
   .meta { color: var(--ink-soft); font-size: .9rem; margin: 0 0 1.6rem; }
   h2 { font-size: 1.25rem; margin: 0; text-wrap: balance; }
   p { margin: .8rem 0; }
-  ul { padding-left: 1.3rem; }
+  ul, ol { padding-left: 1.3rem; }
   li { margin: .35rem 0; }
   strong { font-weight: 700; }
+  a { color: var(--accent); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; background: var(--chip); padding: .05em .3em; border-radius: 4px; }
+  pre { background: var(--chip); padding: .8rem 1rem; border-radius: 8px; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--rule); color: var(--ink-soft); }
   .tablewrap { overflow-x: auto; }
   table { border-collapse: collapse; font-size: .88rem; margin: 1rem 0; min-width: 100%; }
   th, td { border: 1px solid var(--rule); padding: .45rem .6rem; text-align: left; vertical-align: top; }
   th { font-family: system-ui, sans-serif; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
 
-  /* ---- zoom level visibility ---- */
+  /* ---- zoom level visibility ----
+     Without data-doc-level (JS off) nothing below matches: the document
+     reads complete at z3. The script sets data-doc-level="2" on boot. */
   .z0, .z1 { display: none; }
   article[data-doc-level="0"] .z0 { display: block; font-size: 1.25rem; line-height: 1.4; }
   article[data-doc-level="1"] .z1 { display: block; }
@@ -107,16 +115,12 @@
   article[data-doc-level="1"] section { display: none; }
 
   section { border-top: 1px solid var(--rule); padding: 1.4rem 0 .6rem; }
-  section .z2, section .z3 { display: none; }
-  /* inherit doc level */
+  section .z2 { display: none; }
+  /* effective section level = data-level if set, else doc level */
   article[data-doc-level="2"] section:not([data-level]) .z2,
   section[data-level="2"] .z2 { display: block; }
-  article[data-doc-level="3"] section:not([data-level]) .z3,
-  section[data-level="3"] .z3 { display: block; }
-  /* explicit section level wins over doc level */
-  article section[data-level="2"] .z3 { display: none; }
-  article section[data-level="3"] .z2 { display: none; }
-
+  article[data-doc-level="2"] section:not([data-level]) .z3,
+  section[data-level="2"] .z3 { display: none; }
 
   .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
   .sec-zoom {
@@ -126,39 +130,11 @@
   }
   .sec-zoom:hover { border-color: var(--accent); color: var(--accent); }
   .sec-zoom:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  /* single word per span; nowrap so a mid-flight surface-form swap into a
-     width-locked box can never wrap internally and change the box height */
-  .w { display: inline-block; white-space: nowrap; }
-
-  /* chrome (headers, rules, bullets, table borders) held back while words settle */
-  .sec-head { transition: opacity .5s; }
-  section { transition: border-top-color .5s; }
-  .settling-chrome .sec-head { opacity: 0; transition: none; }
-  section.settling-chrome { border-top-color: transparent; transition: none; }
-  .z2 li::marker, .z3 li::marker { transition: color .5s; }
-  .settling li::marker { color: transparent; transition: none; }
-  th, td { transition: border-color .5s; }
-  .settling th, .settling td { border-color: transparent; transition: none; }
+  .vh { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 </style>
 
-<div class="zoombar">
-  <div class="zoombar-inner">
-    <span class="label">Zoom</span>
-    <div class="seg" role="group" aria-label="Document zoom level">
-      <button data-z="0" aria-pressed="false">z0 · Thesis</button>
-      <button data-z="1" aria-pressed="false">z1 · Abstract</button>
-      <button data-z="2" aria-pressed="true">z2 · Summaries</button>
-      <button data-z="3" aria-pressed="false">z3 · Full text</button>
-    </div>
-    <span class="zoom-hint">Each section can also be zoomed on its own.</span>
-    <label class="zoom-hint smooth-toggle"><input type="checkbox" id="smooth" checked> Smooth transitions</label>
-  </div>
-</div>
-
 <div class="wrap">
-<div class="doc-actions"><button class="copy-md" id="copyView" aria-label="Copy current view as Markdown"><span>Copy view</span></button></div>
-<article id="doc" data-doc-level="2">
+<article id="doc">
 <header>
   <h1>{{TITLE}}</h1>
   <p class="meta">{{one-line provenance/meta: sources, date}}</p>
@@ -169,18 +145,18 @@
 </header>
 
 <section>
-  <div class="sec-head"><h2>1. {{Section heading}}</h2><div class="sec-controls"><button class="sec-zoom"></button><button class="copy-md sec-copy" aria-label="Copy this section as Markdown"></button></div></div>
+  <h2>{{Section heading — unnumbered; the script numbers headings at load}}</h2>
   <div class="z2"><ul>
-    <li>{{summary bullet with derived phrases keyed}} <x k="s1-example">{{phrase reusing z3 wording}}</x></li>
+    <li>{{summary bullet — selected specifics from this section's z3}}</li>
     <li>{{…}}</li>
   </ul></div>
   <div class="z3">
-    <p>{{full original text}} <x k="s1-example">{{source span for the keyed phrase above}}</x></p>
+    <p>{{full text of this section}}</p>
   </div>
 </section>
 
 <section>
-  <div class="sec-head"><h2>2. {{Section heading}}</h2><div class="sec-controls"><button class="sec-zoom"></button><button class="copy-md sec-copy" aria-label="Copy this section as Markdown"></button></div></div>
+  <h2>{{Section heading}}</h2>
   <div class="z2"><ul>
     <li>{{…}}</li>
   </ul></div>
@@ -192,64 +168,121 @@
 </article>
 </div>
 
+<!-- When rendering an existing source, embed it so the validator's coverage
+     gate can run (delete this comment either way):
+<script type="text/markdown" id="source">
+…the source markdown, HTML-escaped…
+</script>
+-->
+
 <script>
   const doc = document.getElementById('doc');
-  const buttons = document.querySelectorAll('.zoombar .seg button');
   const sections = [...document.querySelectorAll('section')];
+
+  // ---- chrome injection: zoom bar, copy button, section heads, numbering ----
+  const bar = document.createElement('div');
+  bar.className = 'zoombar';
+  bar.innerHTML =
+    '<div class="zoombar-inner"><span class="label">Zoom</span>' +
+    '<div class="seg" role="group" aria-label="Document zoom level">' +
+    '<button data-z="0" aria-pressed="false">z0 · Thesis</button>' +
+    '<button data-z="1" aria-pressed="false">z1 · Abstract</button>' +
+    '<button data-z="2" aria-pressed="true">z2 · Summaries</button>' +
+    '<button data-z="3" aria-pressed="false">z3 · Full text</button>' +
+    '</div><span class="zoom-hint">Each section can also be zoomed on its own.</span>' +
+    '<span class="vh" role="status" id="status"></span></div>';
+  document.body.prepend(bar);
+  const buttons = bar.querySelectorAll('.seg button');
+  const status = bar.querySelector('#status');
+
+  const actions = document.createElement('div');
+  actions.className = 'doc-actions';
+  actions.innerHTML = '<button class="copy-md" id="copyView" aria-label="Copy current view as Markdown"><span>Copy view</span></button>';
+  doc.before(actions);
+
+  sections.forEach((s, i) => {
+    const h2 = s.querySelector('h2');
+    if (!h2) return;
+    if (!/^\s*\d+\./.test(h2.textContent)) h2.prepend((i + 1) + '. ');
+    const head = document.createElement('div');
+    head.className = 'sec-head';
+    h2.before(head);
+    head.appendChild(h2);
+    const controls = document.createElement('div');
+    controls.className = 'sec-controls';
+    controls.innerHTML = '<button class="sec-zoom">zoom in</button>' +
+      '<button class="copy-md sec-copy" aria-label="Copy this section as Markdown"></button>';
+    head.appendChild(controls);
+  });
+
+  doc.dataset.docLevel = '2';
 
   // Shared-element names so the View Transitions API can morph between levels:
   // the title and each section heading glide to their new positions; a section's
-  // z2 and z3 blocks share one name, so the summary morphs into the full text.
-  doc.querySelector('h1').style.viewTransitionName = 'title';
+  // z2 and z3 blocks share one name, so the summary crossfades into the full text.
+  // Null-tolerant: a malformed generated doc degrades that element's morph
+  // instead of killing the whole script before any listener is wired.
+  const vt = (el, name) => { if (el) el.style.viewTransitionName = name; };
+  vt(doc.querySelector('h1'), 'title');
   const lede0 = doc.querySelector('.z0'), lede1 = doc.querySelector('.z1');
-  lede0.style.viewTransitionName = 'lede';
-  lede1.style.viewTransitionName = 'lede';
+  vt(lede0, 'lede');
+  vt(lede1, 'lede');
   sections.forEach((s, i) => {
-    s.querySelector('h2').style.viewTransitionName = 'h2-' + i;
-    s.querySelector('.z2').style.viewTransitionName = 'body-' + i;
-    s.querySelector('.z3').style.viewTransitionName = 'body-' + i;
+    vt(s.querySelector('h2'), 'h2-' + i);
+    vt(s.querySelector('.z2'), 'body-' + i);
+    vt(s.querySelector('.z3'), 'body-' + i);
   });
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const smooth = document.getElementById('smooth');
-  const noMotion = () => reducedMotion.matches || !smooth.checked;
-  function withTransition(mutate) {
-    if (document.startViewTransition && !noMotion()) {
-      document.startViewTransition(mutate);
+  function withTransition(mutate, after) {
+    if (document.startViewTransition && !reducedMotion.matches) {
+      const t = document.startViewTransition(mutate);
+      if (after) t.finished.then(after, after);
     } else {
       mutate();
+      if (after) after();
     }
   }
 
-  function setDocLevel(z) {
-    const prev = doc.dataset.docLevel;
-    const apply = () => {
-      doc.dataset.docLevel = z;
-      buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.z === z)));
-      // global change clears per-section overrides
-      sections.forEach(s => s.removeAttribute('data-level'));
-      refreshSectionButtons();
-    };
-    // adjacent levels get the word-level morph; jumps get the block crossfade.
-    // With global LCS off, transitions touching the (unannotated) z0/z1 ledes
-    // have no words to glide — crossfade instead of a pointless morph pause.
-    if (z === prev) return;
-    if (noMotion() || Math.abs(Number(z) - Number(prev)) !== 1 ||
-        (!GLOBAL_LCS && Math.min(Number(z), Number(prev)) < 2)) return withTransition(apply);
-    const visible = s => s.querySelector('.z' + effectiveLevel(s));
-    let pairSets;
-    if (prev === '0' || z === '0') {
-      pairSets = [{ from: [prev === '0' ? lede0 : lede1], to: [z === '0' ? lede0 : lede1] }];
-    } else if (prev === '1') {
-      pairSets = [{ from: [lede1], to: sections.map(s => s.querySelector('.z2')) }];
-    } else if (z === '1') {
-      pairSets = [{ from: sections.map(visible), to: [lede1] }];
-    } else {
-      pairSets = sections.map(s => ({ from: [visible(s)], to: [s.querySelector('.z' + z)] }));
+  // ---- keyless shared-token highlight on z2<->z3 transitions ----
+  // Normalized substantial tokens (4+ chars or numeric) shared between the
+  // outgoing and incoming block get a brief accent wash. A highlight carries
+  // no positional claim, so imperfect matches cost nothing.
+  const norm = w => w.toLowerCase().replace(/['’]s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
+  const substantial = t => t.length >= 4 || /\d/.test(t);
+  function tokenSet(el) {
+    const set = new Set();
+    if (el) for (const w of el.textContent.match(/\S+/g) || []) {
+      const t = norm(w);
+      if (t && substantial(t)) set.add(t);
     }
-    wordMorph(pairSets, apply);
+    return set;
   }
-  buttons.forEach(b => b.addEventListener('click', () => setDocLevel(b.dataset.z)));
+  let hlTimer = null;
+  // pairs: [{tokens: Set from the outgoing block, el: incoming block}]
+  function flashShared(pairs) {
+    if (reducedMotion.matches || !('highlights' in CSS)) return;
+    const ranges = [];
+    pairs.forEach(({ tokens, el }) => {
+      if (!el || !tokens.size) return;
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        for (const m of node.textContent.matchAll(/\S+/g)) {
+          if (!tokens.has(norm(m[0]))) continue;
+          const r = new Range();
+          r.setStart(node, m.index);
+          r.setEnd(node, m.index + m[0].length);
+          ranges.push(r);
+        }
+      }
+    });
+    if (!ranges.length) return;
+    CSS.highlights.set('zoom-shared', new Highlight(...ranges));
+    clearTimeout(hlTimer);
+    // ponytail: tint drops rather than fades — ::highlight isn't animatable
+    hlTimer = setTimeout(() => CSS.highlights.delete('zoom-shared'), 500);
+  }
 
   function effectiveLevel(section) {
     return section.dataset.level || doc.dataset.docLevel;
@@ -257,213 +290,37 @@
   function refreshSectionButtons() {
     sections.forEach(s => {
       const btn = s.querySelector('.sec-zoom');
-      btn.textContent = effectiveLevel(s) === '3' ? 'zoom out' : 'zoom in';
+      if (btn) btn.textContent = effectiveLevel(s) === '3' ? 'zoom out' : 'zoom in';
     });
   }
-  // ---- word-level magic move for per-section zooms ----
-  // Words are wrapped in spans, the two levels' word sequences are LCS-matched,
-  // and matched words FLIP from their old position to their new one.
-  function wrapWords(el) {
-    if (el.dataset.wrapped) return;
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-    const nodes = [];
-    while (walker.nextNode()) if (walker.currentNode.textContent.trim()) nodes.push(walker.currentNode);
-    nodes.forEach(n => {
-      const frag = document.createDocumentFragment();
-      n.textContent.split(/(\s+)/).forEach(part => {
-        if (!part) return;
-        if (/^\s+$/.test(part)) frag.appendChild(document.createTextNode(part));
-        else {
-          const sp = document.createElement('span');
-          sp.className = 'w'; sp.textContent = part;
-          frag.appendChild(sp);
-        }
-      });
-      n.parentNode.replaceChild(frag, n);
-    });
-    el.dataset.wrapped = '1';
+
+  function setDocLevel(z) {
+    const prev = doc.dataset.docLevel;
+    if (z === prev) return;
+    const between23 = (prev === '2' || prev === '3') && (z === '2' || z === '3');
+    const pairs = between23
+      ? sections.map(s => ({ tokens: tokenSet(s.querySelector('.z' + effectiveLevel(s))), el: s.querySelector('.z' + z) }))
+      : null;
+    withTransition(() => {
+      doc.dataset.docLevel = z;
+      buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.z === z)));
+      // global change clears per-section overrides
+      sections.forEach(s => s.removeAttribute('data-level'));
+      refreshSectionButtons();
+      status.textContent = 'Zoom level: ' + [...buttons].find(b => b.dataset.z === z).textContent;
+    }, pairs && (() => flashShared(pairs)));
   }
-  // Korean particles (조사) attach to the word they mark, so "논문이"/"논문을"
-  // never token-match "논문". Strip one trailing particle, longest first.
-  // ponytail: fixed suffix list, no morphological analysis — can over-strip
-  // stems that happen to end in a particle syllable (key-scoping bounds the
-  // damage); swap in a real tokenizer if that ever shows.
-  const KO_PARTICLES = ['으로부터', '에서부터', '에게서', '한테서', '로부터', '으로서', '으로써', '로서', '로써', '이라도', '까지는', '까지', '부터', '에서', '에게', '한테', '처럼', '보다', '조차', '마저', '밖에', '이나', '이란', '라도', '으로', '은', '는', '이', '가', '을', '를', '과', '와', '의', '에', '도', '만', '나', '로'];
-  const HANGUL = /[가-힣]$/;
-  const norm = w => {
-    let t = w.toLowerCase().replace(/['’]s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
-    if (HANGUL.test(t)) {
-      const p = KO_PARTICLES.find(p => t.length > p.length && t.endsWith(p));
-      if (p) t = t.slice(0, -p.length);
-    }
-    return t;
-  };
-  function lcsPairs(a, b) {
-    const n = a.length, m = b.length;
-    const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
-    for (let i = n - 1; i >= 0; i--)
-      for (let j = m - 1; j >= 0; j--)
-        dp[i][j] = (a[i] && a[i] === b[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    const pairs = [];
-    let i = 0, j = 0;
-    while (i < n && j < m) {
-      if (a[i] && a[i] === b[j]) { pairs.push([i, j]); i++; j++; }
-      else if (dp[i + 1][j] >= dp[i][j + 1]) i++;
-      else j++;
-    }
-    return pairs;
-  }
-  // local matcher for a keyed phrase pair: LCS, then a loose pool pass
-  // (any word length — safe because scope is key-local). Zero matches means
-  // pure paraphrase: fly every target word from the source phrase (index-clamped).
-  function matchPhrase(aTok, bTok) {
-    const pairs = lcsPairs(aTok, bTok);
-    const used = new Set(pairs.map(p => p[0])), matched = new Set(pairs.map(p => p[1]));
-    const pool = new Map();
-    aTok.forEach((t, i) => {
-      if (used.has(i) || !t) return;
-      if (!pool.has(t)) pool.set(t, []);
-      pool.get(t).push(i);
-    });
-    bTok.forEach((t, j) => {
-      if (matched.has(j)) return;
-      const q = pool.get(t);
-      if (q && q.length) pairs.push([q.shift(), j]);
-    });
-    if (!pairs.length) return bTok.map((_, j) => [Math.min(j, aTok.length - 1), j]);
-    return pairs;
-  }
-  // fuzzy fallback matching for unannotated text: off for now — only
-  // provenance-keyed pairs glide, everything else fades
-  const GLOBAL_LCS = false;
-  function animateWords(fromWords, fromRects, toWords, toEl, forced = []) {
-    const aTok = fromWords.map(w => norm(w.textContent));
-    const bTok = toWords.map(w => norm(w.textContent));
-    // forced (provenance-keyed) pairs are excluded from the global LCS by
-    // blanking their tokens, so homophones can't cross-match
-    forced.forEach(([i, j]) => { aTok[i] = ''; bTok[j] = ''; });
-    const pairs = forced.concat(GLOBAL_LCS ? lcsPairs(aTok, bTok) : []);
-    const matched = new Set(pairs.map(p => p[1]));
-    if (GLOBAL_LCS) {
-      // LCS only matches words in the same relative order; summaries reorder
-      // content, so run a second pass matching leftover substantial words
-      // (4+ chars or numeric) regardless of order.
-      const fromUsed = new Set(pairs.map(p => p[0]));
-      const pool = new Map();
-      aTok.forEach((t, i) => {
-        if (fromUsed.has(i) || (t.length < 4 && !/\d/.test(t))) return;
-        if (!pool.has(t)) pool.set(t, []);
-        pool.get(t).push(i);
-      });
-      bTok.forEach((t, j) => {
-        if (matched.has(j)) return;
-        const q = pool.get(t);
-        if (q && q.length) { pairs.push([q.shift(), j]); matched.add(j); }
-      });
-    }
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent');
-    const ink = getComputedStyle(toEl).color;
-    // timeline: ~350ms pause (tinted, in old position) → glide → tint fades back
-    // measure all targets before any text swap mutates layout
-    const toRects = pairs.map(([, j]) => toWords[j].getBoundingClientRect());
-    pairs.forEach(([i, j], k) => {
-      const to = toWords[j];
-      const r0 = fromRects[i], r1 = toRects[k];
-      const dx = r0.left - r1.left, dy = r0.top - r1.top;
-      const t = `translate(${dx}px, ${dy}px)`;
-      const anim = to.animate(
-        [
-          { transform: t, color: accent },
-          { transform: t, color: accent, offset: .18 },
-          { transform: 'none', color: accent, offset: .75 },
-          { transform: 'none', color: ink }
-        ],
-        { duration: 1950, easing: 'cubic-bezier(.35,.05,.25,1)', fill: 'backwards' });
-      // a word keeps its old surface form (case, punctuation) while flying;
-      // the new form appears only once it settles
-      const finalText = to.textContent, oldText = fromWords[i].textContent;
-      if (finalText !== oldText) {
-        to.textContent = oldText;
-        // lock the box to its final width so the old form can't reflow the
-        // target layout (which would invalidate every rect measured above)
-        to.style.width = r1.width + 'px';
-        const restore = () => { to.textContent = finalText; to.style.width = ''; };
-        anim.finished.then(restore, restore);
-      }
-    });
-    toWords.forEach((w, j) => {
-      if (!matched.has(j)) w.animate(
-        [
-          { opacity: 0 },
-          { opacity: 0, offset: .65 },
-          { opacity: 1, color: accent, offset: .85 },
-          { opacity: 1, color: ink }
-        ],
-        { duration: 2300, easing: 'ease-out', fill: 'backwards' });
-    });
-  }
-  // pairSets: [{from: [els visible now], to: [els visible after mutate]}]
-  function wordMorph(pairSets, mutate) {
-    pairSets = pairSets.filter(ps => ps.from[0] !== ps.to[0]);
-    // key → list of occurrences, each occurrence = word indices of one <x k> span
-    const anchorMap = (els, words) => {
-      const idx = new Map(words.map((w, i) => [w, i]));
-      const m = new Map();
-      els.forEach(el => el.querySelectorAll('x[k]').forEach(x => {
-        const ws = [...x.querySelectorAll('.w')].map(w => idx.get(w));
-        if (!ws.length) return;
-        const k = x.getAttribute('k');
-        if (!m.has(k)) m.set(k, []);
-        m.get(k).push(ws);
-      }));
-      return m;
-    };
-    const pre = pairSets.map(ps => {
-      ps.from.forEach(wrapWords); ps.to.forEach(wrapWords);
-      const ws = ps.from.flatMap(el => [...el.querySelectorAll('.w')]);
-      return { ws, rects: ws.map(w => w.getBoundingClientRect()), anchors: anchorMap(ps.from, ws) };
-    });
-    const hiddenSections = sections.filter(s => s.offsetParent === null);
-    mutate();
-    // newly-appearing chrome waits for the words to settle, then fades in
-    const settling = pairSets.flatMap(ps => ps.to);
-    settling.forEach(el => el.classList.add('settling'));
-    const shown = hiddenSections.filter(s => s.offsetParent !== null);
-    shown.forEach(s => s.classList.add('settling-chrome'));
-    setTimeout(() => {
-      settling.forEach(el => el.classList.remove('settling'));
-      shown.forEach(s => s.classList.remove('settling-chrome'));
-    }, 1500);
-    pairSets.forEach((ps, k) => {
-      const toWords = ps.to.flatMap(el => [...el.querySelectorAll('.w')]);
-      // provenance-keyed pairs: match each shared key's phrases locally,
-      // emit global-index forced pairs
-      const toAnchors = anchorMap(ps.to, toWords);
-      const forced = [];
-      pre[k].anchors.forEach((occs, key) => {
-        const toOccs = toAnchors.get(key);
-        // a wholly unannotated target level (e.g. the z1 lede) is fine;
-        // a partially annotated one missing this key is an authoring bug
-        if (!toOccs) { if (toAnchors.size) console.warn('x[k] key missing on target side: ' + key); return; }
-        occs.forEach((aIdx, o) => {
-          const bIdx = toOccs[o];
-          if (!bIdx) return;
-          const aTok = aIdx.map(i => norm(pre[k].ws[i].textContent));
-          const bTok = bIdx.map(j => norm(toWords[j].textContent));
-          matchPhrase(aTok, bTok).forEach(([i, j]) => forced.push([aIdx[i], bIdx[j]]));
-        });
-      });
-      animateWords(pre[k].ws, pre[k].rects, toWords, ps.to[0], forced);
-    });
-  }
+  buttons.forEach(b => b.addEventListener('click', () => setDocLevel(b.dataset.z)));
+
   document.querySelectorAll('.sec-zoom').forEach(btn => {
     btn.addEventListener('click', () => {
       const s = btn.closest('section');
-      const from = s.querySelector('.z' + effectiveLevel(s));
       const target = effectiveLevel(s) === '3' ? '2' : '3';
-      const apply = () => { s.dataset.level = target; refreshSectionButtons(); };
-      if (noMotion()) apply();
-      else wordMorph([{ from: [from], to: [s.querySelector('.z' + target)] }], apply);
+      const tokens = tokenSet(s.querySelector('.z' + effectiveLevel(s)));
+      withTransition(() => {
+        s.dataset.level = target;
+        refreshSectionButtons();
+      }, () => flashShared([{ tokens, el: s.querySelector('.z' + target) }]));
     });
   });
   refreshSectionButtons();
@@ -475,23 +332,35 @@
       if (n.nodeType === Node.TEXT_NODE) out += n.textContent;
       else if (n.nodeName === 'STRONG' || n.nodeName === 'B') out += '**' + inlineMd(n) + '**';
       else if (n.nodeName === 'EM' || n.nodeName === 'I') out += '*' + inlineMd(n) + '*';
+      else if (n.nodeName === 'A') out += '[' + inlineMd(n).trim() + '](' + (n.getAttribute('href') || '') + ')';
+      else if (n.nodeName === 'CODE') out += '`' + n.textContent + '`';
       else out += inlineMd(n);
     });
     return out.replace(/\s+/g, ' ');
   }
   function blockMd(el, indent = '') {
     if (el.nodeName === 'P') return indent + inlineMd(el).trim() + '\n';
-    if (el.nodeName === 'UL') {
-      return [...el.children].map(li => {
-        let line = indent + '- ';
+    if (el.nodeName === 'UL' || el.nodeName === 'OL') {
+      const ordered = el.nodeName === 'OL';
+      return [...el.children].map((li, i) => {
+        let line = indent + (ordered ? (i + 1) + '. ' : '- ');
         let rest = '';
         li.childNodes.forEach(n => {
-          if (n.nodeName === 'UL') rest += blockMd(n, indent + '  ');
+          if (n.nodeName === 'UL' || n.nodeName === 'OL') rest += blockMd(n, indent + '  ');
           else if (n.nodeType === Node.TEXT_NODE) line += n.textContent;
           else line += inlineMd(n);
         });
         return line.replace(/\s+/g, ' ').trimEnd() + '\n' + rest;
       }).join('');
+    }
+    if (el.nodeName === 'BLOCKQUOTE') {
+      const inner = [...el.children].map(c => blockMd(c, '')).join('\n').trimEnd();
+      return inner.split('\n').map(l => (indent + '> ' + l).trimEnd()).join('\n') + '\n';
+    }
+    if (el.nodeName === 'PRE') {
+      // no whitespace collapsing inside code: textContent verbatim
+      const code = el.textContent.replace(/\n$/, '');
+      return indent + '```\n' + code + '\n' + indent + '```\n';
     }
     if (el.nodeName === 'TABLE') {
       const rows = [...el.querySelectorAll('tr')].map(tr =>
@@ -505,10 +374,17 @@
   const COPY_ICON = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5.5" y="5.5" width="9" height="9" rx="1.5"></rect><path d="M10.5 3.5v-1a1.5 1.5 0 0 0-1.5-1.5h-6A1.5 1.5 0 0 0 1.5 2.5v6A1.5 1.5 0 0 0 3 10h1"></path></svg>';
   const CHECK_ICON = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 8.5l4 4 7-9"></path></svg>';
   function wireCopy(btn, getMd) {
+    if (!btn) return;
     const label = btn.innerHTML;
     btn.innerHTML = COPY_ICON + label;
     btn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(getMd());
+      try {
+        await navigator.clipboard.writeText(getMd());
+      } catch {
+        status.textContent = 'Copy failed';
+        return;
+      }
+      status.textContent = 'Copied as Markdown';
       btn.innerHTML = CHECK_ICON + label;
       setTimeout(() => { btn.innerHTML = COPY_ICON + label; }, 1200);
     });
@@ -523,8 +399,8 @@
   wireCopy(document.getElementById('copyView'), () => {
     let md = '# ' + inlineMd(doc.querySelector('h1')).trim() + '\n\n';
     const dz = doc.dataset.docLevel;
-    if (dz === '0') return md + inlineMd(lede0).trim() + '\n';
-    if (dz === '1') return md + inlineMd(lede1).trim() + '\n';
+    if (dz === '0') return md + (lede0 ? inlineMd(lede0).trim() : '') + '\n';
+    if (dz === '1') return md + (lede1 ? inlineMd(lede1).trim() : '') + '\n';
     sections.forEach(s => {
       md += '## ' + inlineMd(s.querySelector('h2')).trim() + '\n\n';
       md += blockMd(s.querySelector('.z' + effectiveLevel(s))).replace(/\n{3,}/g, '\n\n') + '\n';

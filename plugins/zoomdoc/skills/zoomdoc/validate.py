@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.13"
 # ///
-"""Deterministic validator for semantic-zoom documents (see schema.md).
+"""Deterministic validator for semantic-zoom documents (see SKILL.md).
 
 Usage: uv run validate.py <doc.html>
 Exit 0 = valid; exit 1 = errors (listed on stdout).
@@ -9,6 +9,7 @@ Exit 0 = valid; exit 1 = errors (listed on stdout).
 
 import re
 import sys
+from collections import Counter
 from collections.abc import Callable, Iterator
 from html.parser import HTMLParser
 from pathlib import Path
@@ -66,16 +67,40 @@ class TreeBuilder(HTMLParser):
         self.cur.text_parts.append(data)
 
 
-def validate(html: str) -> list[str]:
+def tokens(text: str) -> list[str]:
+    return re.sub(r"[^\w\s]", " ", text.lower()).split()
+
+
+def coverage_gate(source_md: str, z3_texts: list[str], err: Callable[[str], None], warn: Callable[[str], None]) -> None:
+    """Each substantial source paragraph must be ~contained in some z3's tokens."""
+    z3_counters = [Counter(tokens(t)) for t in z3_texts]
+    for para in re.split(r"\n\s*\n", source_md):
+        para = para.strip()
+        ptok = tokens(para)
+        if len(ptok) < 8:
+            continue
+        pcount = Counter(ptok)
+        best = max(
+            (sum(min(c, z[w]) for w, c in pcount.items()) / len(ptok) for z in z3_counters),
+            default=0.0,
+        )
+        if best < 0.85:
+            err(f"source paragraph not covered by any z3 ({best:.0%} best match): {para[:60]!r}...")
+    src_len = len(" ".join(tokens(source_md)))
+    z3_len = len(" ".join(tokens(" ".join(z3_texts))))
+    if src_len and z3_len < 0.6 * src_len:
+        warn(f"total z3 text is only {z3_len / src_len:.0%} of the embedded source — z3 may be excerpting")
+
+
+def validate(html: str) -> tuple[list[str], list[str]]:
     errors: list[str] = []
+    warnings: list[str] = []
     err: Callable[[str], None] = errors.append
 
     # ---- placeholder hygiene (raw text: catches braces anywhere) ----
     if "{{" in html or "}}" in html:
         for m in re.finditer(r"\{\{.{0,50}", html):
             err(f"unfilled placeholder: {m.group(0)!r}...")
-    if "s1-example" in html:
-        err("sample key 's1-example' left in document")
     if re.search(r'data-level\s*=\s*(""|\'\')', html):
         err('data-level="" present — renders the section blank; omit the attribute to inherit')
 
@@ -95,9 +120,7 @@ def validate(html: str) -> list[str]:
 
     article = one(root, "article#doc", lambda n: n.tag == "article" and n.attrs.get("id") == "doc")
     if article is None:
-        return errors
-    if article.attrs.get("data-doc-level") != "2":
-        err('article data-doc-level must ship as "2" (zoom bar aria-pressed is hardcoded to it)')
+        return errors, warnings
 
     header = one(article, "header", lambda n: n.tag == "header")
     if header is not None:
@@ -109,57 +132,38 @@ def validate(html: str) -> list[str]:
     if not sections:
         err("no <section> blocks")
 
-    seen_keys: dict[str, int] = {}  # key -> section index (document uniqueness)
+    z3_texts: list[str] = []
     for i, s in enumerate(sections, 1):
         where = f"section {i}"
         one(s, f"{where} h2", lambda n: n.tag == "h2")
-        one(s, f"{where} .sec-head", lambda n: "sec-head" in n.classes)
-        one(s, f"{where} .sec-zoom button", lambda n: n.tag == "button" and "sec-zoom" in n.classes)
-        one(s, f"{where} .sec-copy button", lambda n: n.tag == "button" and "sec-copy" in n.classes)
         z2 = one(s, f"{where} .z2", lambda n: "z2" in n.classes)
         z3 = one(s, f"{where} .z3", lambda n: "z3" in n.classes)
-        if z2 is None or z3 is None:
-            continue
+        if z3 is not None:
+            z3_texts.append(z3.text())
 
-        # serializer block vocabulary
+        # serializer block vocabulary (headings inside a level have no markdown mapping)
         for lvl_name, lvl in (("z2", z2), ("z3", z3)):
-            for b in lvl.find_all(lambda n: n.tag in ("ol", "blockquote", "pre", "h3", "h4")):
-                err(f"{where} {lvl_name}: <{b.tag}> unsupported by the markdown serializer (use p/ul/table)")
+            if lvl is None:
+                continue
+            for b in lvl.find_all(lambda n: n.tag in ("h3", "h4", "h5", "h6")):
+                err(f"{where} {lvl_name}: <{b.tag}> unsupported by the markdown serializer (split into sections instead)")
 
-        # provenance keys: bijective per section, non-empty, no nesting
-        def keys_of(lvl: Node, lvl_name: str) -> dict[str, int]:
-            out: dict[str, int] = {}
-            for x in lvl.find_all(lambda n: n.tag == "x"):
-                k = x.attrs.get("k")
-                if not k:
-                    err(f"{where} {lvl_name}: <x> without k attribute")
-                    continue
-                if not x.text().strip():
-                    err(f"{where} {lvl_name}: <x k={k!r}> wraps no text")
-                if x.find_all(lambda n: n.tag == "x") != [x]:
-                    err(f"{where} {lvl_name}: <x k={k!r}> contains a nested <x>")
-                out[k] = out.get(k, 0) + 1
-            return out
+    # ---- coverage gate against the embedded source (skip if absent) ----
+    source = root.find_all(
+        lambda n: n.tag == "script" and n.attrs.get("type") == "text/markdown" and n.attrs.get("id") == "source"
+    )
+    if source:
+        coverage_gate(source[0].text(), z3_texts, err, warnings.append)
 
-        k2, k3 = keys_of(z2, "z2"), keys_of(z3, "z3")
-        for k in {**k2, **k3}:
-            if k2.get(k, 0) != 1 or k3.get(k, 0) != 1:
-                err(
-                    f"{where}: key {k!r} must appear exactly once in z2 and once in z3 "
-                    f"(found z2={k2.get(k, 0)}, z3={k3.get(k, 0)})"
-                )
-            prev = seen_keys.get(k)
-            if prev is not None and prev != i:
-                err(f"key {k!r} reused across sections {prev} and {i} — keys are document-unique")
-            seen_keys[k] = i
-
-    return errors
+    return errors, warnings
 
 
 def main() -> None:
     if len(sys.argv) != 2:
         sys.exit("usage: uv run validate.py <doc.html>")
-    errors = validate(Path(sys.argv[1]).read_text())
+    errors, warnings = validate(Path(sys.argv[1]).read_text())
+    for w in warnings:
+        print(f"WARNING: {w}")
     for e in errors:
         print(f"ERROR: {e}")
     print(f"{sys.argv[1]}: {'FAIL (' + str(len(errors)) + ' errors)' if errors else 'OK'}")

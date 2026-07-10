@@ -110,7 +110,7 @@ Artifact-backed prompt optimization workflow for application prompts, prompt bui
 Claude Code invocation: `$promptopt`
 
 ### zoomdoc
-Authors a semantic-zoom HTML document - a single-file article readable at four zoom levels (thesis / abstract / per-section summaries / full text) with animated word-level morphs between levels. Ships a renderer template and a deterministic validator.
+Authors a semantic-zoom HTML document - a single-file article readable at four zoom levels (thesis / abstract / per-section summaries / full text). Ships a renderer template and a deterministic validator with a source-coverage gate.
 
 Claude Code invocation: `/zoomdoc`
 
