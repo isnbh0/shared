@@ -5,5 +5,10 @@ src="plugins/${name}"
 [ -d "$src" ] || { echo "no such plugin: $src" >&2; exit 1; }
 out="$(pwd)/${name}.zip"
 rm -f "$out"
-( cd "$src" && zip -r "$out" . -x "*.DS_Store" )
+( cd "$src" && zip -r "$out" . \
+  -x "*.DS_Store" \
+     "*/__pycache__/*" \
+     "*.pyc" \
+     "*.pyo" \
+     "*/.pytest_cache/*" )
 echo "wrote $out"

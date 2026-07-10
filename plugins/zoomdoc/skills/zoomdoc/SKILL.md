@@ -1,74 +1,111 @@
 ---
 name: zoomdoc
-description: Author a semantic-zoom HTML document — a single file readable at four zoom levels (thesis / abstract / per-section summaries / full text). Use when the user asks for a semantic zoom doc or zoomable article, to convert existing prose into one, or to summarize or synthesize content (a conversation, multiple sources) into one.
+description: Author accessible semantic-zoom HTML documents whose structure and content can vary freely across ordered detail levels. Use when creating a zoomable document, converting or adapting existing material into one, or synthesizing sources into a self-contained HTML document with semantic markup, progressive enhancement, and optional per-section detail controls.
 ---
 
 # Semantic zoom document
 
-A single HTML file holds every zoom level of one document. Zoom is a view, not an edit: z3 is the ground-truth text; every coarser level is a derived projection of it. The format is unopinionated about content: it can render an existing text, summarize a conversation, or synthesize multiple sources.
+Create one self-contained HTML document whose readers can move between ordered levels of detail. Preserve semantic HTML as the document model; use `data-zoomdoc-*` only as renderer metadata. Keep the finest level complete and readable when JavaScript is unavailable.
 
-Bundled in this skill directory:
+Bundled resources:
 
-- **`template.html`** — the complete renderer (CSS + JS chrome) with `{{placeholder}}` content. Copy it to the target location, replace every `{{…}}` slot, add/remove `<section>` blocks. **Never edit its `<style>` or `<script>`** — author only between `<article>` and `</article>` plus the `<title>` (and the optional embedded source block). Everything in `{{…}}` — braces included — is an instruction to replace or delete. `{{TITLE}}` appears in both `<title>` and `<h1>` — fill it identically.
-- **`validate.py`** — deterministic validator: `uv run ${CLAUDE_SKILL_DIR}/validate.py <doc.html>`.
+- `template.html` — accessible renderer and a three-level example. Copy it, replace every `{{…}}` placeholder, and reshape the semantic content as needed.
+- `validate.py` — structural, accessibility, progressive-enhancement, and optional source-coverage checks. Run `uv run ${CLAUDE_SKILL_DIR}/validate.py <doc.html>`.
 
-## Levels
+## Core model
 
-Fixed four-level ladder. Each level must be *qualitatively* different, not just shorter.
+Use an `<article data-zoomdoc>` root with these attributes:
 
-| Level | Name     | Content contract                                          | Scope    |
-|-------|----------|-----------------------------------------------------------|----------|
-| z0    | Thesis   | One sentence. The claim the whole document exists to make. | document |
-| z1    | Abstract | One paragraph (3–6 sentences). Thesis + key evidence + implication. | document |
-| z2    | Summary  | 3–5 bullet points **per section**, key numbers retained.  | section  |
-| z3    | Full     | The document's full text (the complete original, when rendering an existing source). | section  |
+- `data-zoomdoc-levels="brief summary full"` — ordered, space-separated level identifiers from coarsest to finest. Define two or more; names and count are document-specific.
+- `data-zoomdoc-initial="summary"` — optional JavaScript-on initial level. Omit it to start at the finest level.
+- `data-zoomdoc-profile="article"` — optional editorial profile label such as `article`, `reference`, `procedure`, `transcript`, `catalog`, or `freeform`. Profiles guide authoring; the renderer does not impose their ontology.
+- `data-zoomdoc-label-<level>="Readable label"` — optional visible, localizable label for each level; otherwise the renderer title-cases its identifier.
+- `data-zoomdoc-control-label` and `data-zoomdoc-detail-label` — optional localizable labels for the global level selector and local disclosure buttons.
+- `data-zoomdoc-source-mode="transcription"` — optional strict source-fidelity mode; see Source modes.
 
-z0/z1 are document-scoped (shown instead of the body). z2/z3 are section-scoped (each section renders at its own level).
-
-## Markup convention
-
-The authored surface is only content — the zoom bar, per-section buttons, and section heading numbers are injected by the template's script at load. With JS disabled the document reads complete at z3.
+Place normal semantic HTML inside the article. Add `data-zoomdoc-at` only where visibility changes by level:
 
 ```html
-<article id="doc">
+<article data-zoomdoc
+         data-zoomdoc-levels="brief summary full"
+         data-zoomdoc-initial="summary"
+         data-zoomdoc-profile="reference">
   <header>
-    <h1>…title…</h1>
-    <p class="meta">…one-line meta: what this is, sources, date…</p>
-    <p class="z0">…thesis sentence…</p>
-    <p class="z1">…abstract paragraph…</p>
+    <h1>Document title</h1>
+    <p>Persistent provenance and date.</p>
+    <p data-zoomdoc-at="brief" hidden>Brief orientation.</p>
+    <div data-zoomdoc-at="summary" hidden>Summary overview.</div>
   </header>
 
-  <section>
-    <h2>…section heading, unnumbered…</h2>
-    <div class="z2"><ul>…summary bullets…</ul></div>
-    <div class="z3">…full text…</div>
-  </section>
-  …
+  <main data-zoomdoc-at="summary full">
+    <section data-zoomdoc-unit id="installation">
+      <header><h2>Installation</h2></header>
+      <div data-zoomdoc-unit-content id="installation-content">
+        <ol data-zoomdoc-at="summary" hidden>…condensed steps…</ol>
+        <div data-zoomdoc-at="full" id="installation-full">…full content, including nested sections…</div>
+      </div>
+    </section>
+  </main>
 </article>
 ```
 
-- The header needs exactly one `h1`, `.z0`, and `.z1`; every section needs exactly one `h2`, `.z2`, and `.z3`.
-- Block vocabulary in z2/z3: standard prose blocks — `p`, `ul`/`ol` (nested ok), `table`, `blockquote`, `pre`/`code`. No headings inside a level (`h3`+) — split into sections instead.
-- Inline vocabulary: `strong`/`em`, `a` (copied as `[text](href)`), `code`.
-- Never set `data-level` on a section in the authored file (and never `data-level=""` — it renders the section blank); it is runtime state for per-section zoom.
+Follow these rules:
 
-**Embedded source**: when the document renders an existing source, embed the source markdown (HTML-escaped) in a `<script type="text/markdown" id="source">…</script>` block before the template's `<script>`. The file becomes self-contained and the validator's coverage gate runs against it. Synthesized content (a report, a conversation summary) has no source — omit the block.
+- Treat `data-zoomdoc-at` as a space-separated token list. Show the element at exactly those document levels.
+- Leave persistent content unannotated. Titles, headings, metadata, citations, and navigation usually persist.
+- Make the last declared level the no-JavaScript fallback. Elements whose `data-zoomdoc-at` includes the last level must not have `hidden`; other controlled elements must have `hidden` in the authored file.
+- Use the same element at several levels when its representation does not change, for example `data-zoomdoc-at="summary full"`.
+- Nest semantic sections freely. The renderer reacts only to explicit `data-zoomdoc-*` attributes, never to generic `section`, heading, or content tags.
 
-## Authoring order (non-negotiable)
+## Semantic HTML and accessibility
 
-Draft **z3 first**, then z2 from z3, then z1 from the z2 layer, then z0 from z1 — strictly bottom-up. Never draft a coarser level before the finer one exists, and never regenerate a finer level from a coarser one. Delegating individual passes (e.g. per-section z2 summarization for a long document) is permitted; the order is not.
+Use native HTML before ARIA:
 
-1. **z3** — the full text, one `<section>` each. When rendering an existing source, the complete source text placed verbatim (fixing extraction artifacts like PDF line-wraps is cleanup, not editing) — never a curated excerpt. When synthesizing, z3 is the fullest telling.
-2. **z2** — 3–5 bullets per section, derived from that section's z3. Keep the load-bearing specifics (effect sizes, dates, names) — it's a working level, not a teaser.
-3. **z1** — one paragraph derived from the z2 layer.
-4. **z0** — one sentence derived from z1.
+- Build a valid heading hierarchy with `h1`–`h6`. Use `article`, `section`, `nav`, `aside`, `figure`, `figcaption`, `table`, `dl`, `details`, and other elements for their intended meanings.
+- Give every meaningful image appropriate `alt`; use `alt=""` for decorative images.
+- Put inactive alternatives behind the native `hidden` attribute. Never override `[hidden]` in author CSS and never leave duplicate representations exposed to assistive technology.
+- Let the renderer create native radio inputs for the mutually exclusive document level and native disclosure buttons for local full-detail overrides. Do not recreate these controls in authored content.
+- Add ARIA only when native HTML does not express the required relationship. Do not add `role="region"` to every section.
+- Keep authored scripts out of the document. JSON-LD metadata is allowed; the shipped renderer is the only executable script.
 
-**Anchoring**: nothing in z0–z2 that isn't in z3. Coarse levels select and compress; they never introduce.
+An optional locally zoomable unit uses `data-zoomdoc-unit`, a stable `id`, and one direct child `data-zoomdoc-unit-content`. Give the unit a real heading and stable IDs to its finest-only controlled blocks. The renderer injects a `Full detail` disclosure button outside the heading and connects it to the blocks it actually reveals with `aria-controls` and `aria-expanded`.
 
-**Hand-write the HTML.** All content is written directly by the author, never emitted by a generation script — what each level keeps is a semantic judgment per phrase. Scripts are for validation only.
+## Content freedom
 
-## Verify before delivering
+Allow any safe semantic flow content. Do not reduce valid HTML to what a Markdown exporter can represent. Figures, images, nested sections, definition lists, tables, code, math, media, footnotes, callouts, and domain-specific classes may appear in any level.
 
-1. `uv run ${CLAUDE_SKILL_DIR}/validate.py <doc.html>` must print `OK` (structure, placeholders, block vocabulary — and the source-coverage gate when a source block is embedded).
-2. If the document renders an existing source: reread the source top to bottom and confirm everything meant to be carried lands in some section's z3, and list anything intentionally dropped. The coverage gate catches wholesale excerpting; only a check grounded in the source catches the rest. (Skip for synthesized content.)
-3. Open the rendered document and read it once at z3 as a reader would — excerpted text, mangled hyphenation, and wrap artifacts are obvious there and invisible to every automated check. Check the zoom ladder works and copy-as-markdown output is clean markdown.
+Add document-specific presentation in `<style data-zoomdoc-theme>` after the shipped style. Prefer the renderer's CSS custom properties and scope selectors beneath `[data-zoomdoc]`. Do not override `hidden` or change the runtime script unless the user explicitly requests custom renderer behavior.
+
+Choose level meanings to fit the material. Examples:
+
+| Profile | Coarse → fine progression |
+|---|---|
+| article | thesis → abstract → section summaries → full article |
+| reference | purpose → topic map → signatures/key facts → full reference |
+| procedure | outcome → workflow → executable steps → rationale/examples |
+| transcript | takeaway → synopsis → chapter timeline → full transcript |
+| catalog | identity → category overview → item cards → complete records |
+
+These are authoring patterns, not schema requirements.
+
+## Source modes
+
+Choose one mode deliberately:
+
+- **Transcription** — preserve essentially all source content. Set `data-zoomdoc-source-mode="transcription"` and embed the plain canonical source in `<template id="zoomdoc-source"><pre>…HTML-escaped source text…</pre></template>`. The validator checks coverage against the complete finest projection across the document; source paragraphs may cross section boundaries.
+- **Adaptation** — reorganize, translate, or substantially reshape source material. Omit strict transcription mode; optionally embed the source for provenance.
+- **Synthesis** — compose a new document from a conversation or multiple sources. Omit strict transcription mode and cite sources in the document normally.
+
+At coarser levels, preserve factual support from finer levels while allowing connective and organizing language. Do not require literal phrase containment except in transcription mode.
+
+## Authoring workflow
+
+1. Choose a semantic document structure and an ordered level vocabulary appropriate to the material.
+2. Author or import the finest representation as valid semantic HTML. Mechanical conversion and scaffolding are allowed; review the result as a document.
+3. Add persistent structure and coarser projections. Use prose, lists, tables, diagrams, signatures, timelines, or other forms suited to each unit.
+4. Add `data-zoomdoc-at`, initial `hidden` states, and optional zoom-unit markers. Keep renderer metadata separate from content meaning.
+5. If transcribing, embed the canonical plain source and resolve every coverage failure against the source.
+6. Run the validator until it prints `OK`.
+7. Open the file and test every global level and local detail control with keyboard navigation. Check heading order, visible focus, reflow, reduced motion, print behavior, localized control labels, and the JavaScript-disabled finest fallback.
+
+Preserve the bundled renderer as reusable infrastructure, but adapt the semantic document freely.

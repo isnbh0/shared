@@ -43,6 +43,7 @@ Only the eight plugins above are published to the Claude Code marketplace. The `
 
 ```bash
 claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-latest/interview.zip
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-latest/zoomdoc.zip
 ```
 
 ### Option C: Direct skill install by symlink
@@ -110,7 +111,7 @@ Artifact-backed prompt optimization workflow for application prompts, prompt bui
 Claude Code invocation: `$promptopt`
 
 ### zoomdoc
-Authors a semantic-zoom HTML document - a single-file article readable at four zoom levels (thesis / abstract / per-section summaries / full text). Ships a renderer template and a deterministic validator with a source-coverage gate.
+Authors accessible, self-contained semantic-zoom HTML documents with document-defined ordered detail levels, arbitrary semantic structure, native controls, and a complete JavaScript-disabled fallback. Ships a renderer template and a deterministic validator with optional strict transcription coverage.
 
 Claude Code invocation: `/zoomdoc`
 
@@ -176,6 +177,10 @@ shared/
 │   ├── zoomdoc/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/zoomdoc/
+│   │       ├── SKILL.md
+│   │       ├── config.example.yaml
+│   │       ├── template.html
+│   │       └── validate.py
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/

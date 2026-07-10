@@ -1,0 +1,3 @@
+# zoomdoc has no runtime or workspace configuration fields.
+# Document behavior is declared inside each HTML file with data-zoomdoc-* attributes.
+{}

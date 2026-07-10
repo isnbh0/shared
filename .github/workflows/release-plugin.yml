@@ -3,9 +3,8 @@ name: Release plugin
 on:
   push:
     tags:
-      # Scoped to interview for now. When another plugin opts in, widen this
-      # glob (e.g. add "gimme-v*") and the rest of the workflow already works.
       - "interview-v*"
+      - "zoomdoc-v*"
   workflow_dispatch:
     inputs:
       plugin_name:

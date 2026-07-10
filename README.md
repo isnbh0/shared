@@ -170,16 +170,22 @@ $promptopt
 
 #### zoomdoc
 
-Authors a semantic-zoom HTML document — a single-file article readable at four zoom levels.
+Authors accessible, self-contained semantic-zoom HTML documents while preserving ordinary semantic structure.
+
+**Try it without installing in Claude Code:**
+
+```bash
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-latest/zoomdoc.zip
+```
 
 ```
 /zoomdoc
 ```
 
-- Four qualitatively distinct levels: thesis (one sentence), abstract (one paragraph), per-section summaries, full text
-- Coarse levels may only select and compress — every claim and number must exist verbatim in the full text
-- Reads complete at full text even with JavaScript disabled
-- Ships the renderer template and a deterministic validator with a coverage gate against an embedded source
+- Uses document-defined ordered detail levels and optional editorial profiles instead of a fixed article ontology
+- Supports arbitrary semantic HTML, including nested sections, figures, definition lists, tables, code, media, and footnotes
+- Uses native radio and disclosure controls, explicit `hidden` state, and a complete finest-level JavaScript-disabled fallback
+- Ships an accessible renderer and validator with optional strict coverage for source transcriptions
 
 ### Other (copy / symlink)
 

@@ -1,6 +1,6 @@
 {
   "name": "zoomdoc",
-  "description": "Semantic-zoom HTML documents readable at four zoom levels (thesis / abstract / per-section summaries / full text)",
-  "version": "2.0.0",
+  "description": "Accessible semantic-zoom HTML documents with document-defined detail levels and unrestricted semantic structure",
+  "version": "3.0.0",
   "author": { "name": "isnbh0" }
 }
