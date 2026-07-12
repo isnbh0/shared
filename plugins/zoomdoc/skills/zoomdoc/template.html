@@ -622,6 +622,62 @@
       attribution.textContent = 'Made with zoomdoc';
 
       toolbarInner.append(fieldset, attribution);
+
+      // ---- copy contents: put the current view on the clipboard as pruned,
+      // presentation-free HTML. Semantic fidelity, not visual fidelity: no
+      // CSS travels, structure does.
+      const pruneMarkup = source => {
+        const clone = source.cloneNode(true);
+        // [hidden] already reflects global level + per-unit overrides, so
+        // removing it yields exactly the current view.
+        clone.querySelectorAll('[hidden], [data-zoomdoc-chrome]').forEach(element => element.remove());
+        // Bare wrapper <div data-zoomdoc-at>s carry no meaning once the
+        // attribute goes — unwrap them. Semantic hosts (<p>, <main>) keep
+        // their tag and just lose the attribute below.
+        clone.querySelectorAll('div[data-zoomdoc-at]').forEach(element => element.replaceWith(...element.childNodes));
+        [clone, ...clone.querySelectorAll('*')].forEach(element => {
+          [...element.attributes].forEach(({ name }) => {
+            // ids here are runtime plumbing (aria-controls anchors) and
+            // collide when pasted into another document.
+            if (name === 'id' || name.startsWith('data-zoomdoc')) element.removeAttribute(name);
+          });
+        });
+        return clone.outerHTML;
+      };
+
+      if (navigator.clipboard && (navigator.clipboard.writeText
+          || ('ClipboardItem' in window && navigator.clipboard.write))) {
+        const copyLabel = 'Copy contents';
+        let copyTimer = null;
+        const copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.className = 'zoomdoc-button';
+        copyButton.dataset.zoomdocChrome = '';
+        copyButton.textContent = copyLabel;
+        copyButton.setAttribute('aria-live', 'polite');
+        copyButton.addEventListener('click', async () => {
+          clearTimeout(copyTimer);
+          const markup = pruneMarkup(root);
+          try {
+            if ('ClipboardItem' in window && navigator.clipboard.write) {
+              // Both flavors carry the same markup: rich targets render it,
+              // plain targets get structure-complete HTML source.
+              await navigator.clipboard.write([new ClipboardItem({
+                'text/html': new Blob([markup], { type: 'text/html' }),
+                'text/plain': new Blob([markup], { type: 'text/plain' })
+              })]).catch(() => navigator.clipboard.writeText(markup));
+            } else {
+              await navigator.clipboard.writeText(markup);
+            }
+            copyButton.textContent = 'Copied';
+          } catch {
+            copyButton.textContent = 'Copy failed';
+          }
+          copyTimer = setTimeout(() => { copyButton.textContent = copyLabel; }, 2000);
+        });
+        attribution.before(copyButton);
+      }
+
       document.body.prepend(toolbar);
       refresh();
     })();

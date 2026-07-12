@@ -111,7 +111,7 @@ Artifact-backed prompt optimization workflow for application prompts, prompt bui
 Claude Code invocation: `$promptopt`
 
 ### zoomdoc
-Authors accessible, self-contained semantic-zoom HTML documents with document-defined ordered detail levels, arbitrary semantic structure, native controls, and a complete JavaScript-disabled fallback. Ships a renderer template and a deterministic validator with optional strict transcription coverage.
+Authors accessible, self-contained semantic-zoom HTML documents with document-defined ordered detail levels, arbitrary semantic structure, native controls, one-click copy of the current view as structure-preserving HTML, and a complete JavaScript-disabled fallback. Ships a renderer template and a deterministic validator with optional strict transcription coverage.
 
 Claude Code invocation: `/zoomdoc`
 
