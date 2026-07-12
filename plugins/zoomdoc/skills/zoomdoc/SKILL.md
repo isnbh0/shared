@@ -21,6 +21,7 @@ Use an `<article data-zoomdoc>` root with these attributes:
 - `data-zoomdoc-profile="article"` — optional editorial profile label such as `article`, `reference`, `procedure`, `transcript`, `catalog`, or `freeform`. Profiles guide authoring; the renderer does not impose their ontology.
 - `data-zoomdoc-label-<level>="Readable label"` — optional visible, localizable label for each level; otherwise the renderer title-cases its identifier.
 - `data-zoomdoc-control-label` and `data-zoomdoc-detail-label` — optional localizable labels for the global level selector and local disclosure buttons.
+- `data-zoomdoc-copy-label`, `data-zoomdoc-copied-label`, and `data-zoomdoc-copy-failed-label` — optional localizable labels for the copy-contents button's resting, success, and failure states.
 - `data-zoomdoc-source-mode="transcription"` — optional strict source-fidelity mode; see Source modes.
 
 Place normal semantic HTML inside the article. Add `data-zoomdoc-at` only where visibility changes by level:

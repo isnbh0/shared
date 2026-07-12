@@ -1,6 +1,6 @@
 {
   "name": "zoomdoc",
   "description": "Accessible semantic-zoom HTML documents with document-defined detail levels and unrestricted semantic structure",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "author": { "name": "isnbh0" }
 }

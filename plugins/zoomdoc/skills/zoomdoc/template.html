@@ -273,7 +273,10 @@
              data-zoomdoc-label-summary="{{SUMMARY_LABEL}}"
              data-zoomdoc-label-full="{{FULL_LABEL}}"
              data-zoomdoc-control-label="{{DETAIL_CONTROL_LABEL}}"
-             data-zoomdoc-detail-label="{{FULL_DETAIL_LABEL}}">
+             data-zoomdoc-detail-label="{{FULL_DETAIL_LABEL}}"
+             data-zoomdoc-copy-label="{{COPY_CONTENTS_LABEL}}"
+             data-zoomdoc-copied-label="{{COPIED_CONFIRMATION_LABEL}}"
+             data-zoomdoc-copy-failed-label="{{COPY_FAILED_LABEL}}">
       <header>
         <h1>{{TITLE}}</h1>
         <p>{{PERSISTENT_PROVENANCE_DATE_OR_ORIENTATION}}</p>
@@ -647,7 +650,9 @@
 
       if (navigator.clipboard && (navigator.clipboard.writeText
           || ('ClipboardItem' in window && navigator.clipboard.write))) {
-        const copyLabel = 'Copy contents';
+        const copyLabel = root.dataset.zoomdocCopyLabel || 'Copy contents';
+        const copiedLabel = root.dataset.zoomdocCopiedLabel || 'Copied';
+        const copyFailedLabel = root.dataset.zoomdocCopyFailedLabel || 'Copy failed';
         let copyTimer = null;
         const copyButton = document.createElement('button');
         copyButton.type = 'button';
@@ -669,9 +674,9 @@
             } else {
               await navigator.clipboard.writeText(markup);
             }
-            copyButton.textContent = 'Copied';
+            copyButton.textContent = copiedLabel;
           } catch {
-            copyButton.textContent = 'Copy failed';
+            copyButton.textContent = copyFailedLabel;
           }
           copyTimer = setTimeout(() => { copyButton.textContent = copyLabel; }, 2000);
         });
