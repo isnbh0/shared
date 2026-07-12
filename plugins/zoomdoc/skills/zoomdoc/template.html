@@ -214,6 +214,14 @@
     }
 
     .zoomdoc-button:hover { border-color: var(--zoomdoc-accent); color: var(--zoomdoc-accent); }
+
+    .zoomdoc-attribution {
+      color: var(--zoomdoc-muted);
+      font: .72rem/1.2 system-ui, sans-serif;
+      text-decoration: none;
+      letter-spacing: .02em;
+    }
+    .zoomdoc-attribution:hover { color: var(--zoomdoc-accent); text-decoration: underline; }
     :where(.zoomdoc-button, .zoomdoc-levels input):focus-visible {
       outline: .18rem solid var(--zoomdoc-accent);
       outline-offset: .15rem;
@@ -606,7 +614,14 @@
         fieldset.append(label);
       });
 
-      toolbarInner.append(fieldset);
+      const attribution = document.createElement('a');
+      attribution.className = 'zoomdoc-attribution';
+      attribution.href = 'https://github.com/isnbh0/shared/tree/main/plugins/zoomdoc';
+      attribution.target = '_blank';
+      attribution.rel = 'noopener noreferrer';
+      attribution.textContent = 'Made with zoomdoc';
+
+      toolbarInner.append(fieldset, attribution);
       document.body.prepend(toolbar);
       refresh();
     })();
