@@ -150,6 +150,15 @@ Each phase file follows the strict phase template:
 
 **Step 4: Git commit and STOP**
 
+**Clone test:** before committing, re-read the spec as a stranger on a
+fresh clone — only `git ls-files` content exists. Grep the spec dir for
+references to untracked/ignored paths, absolute user paths, and
+conversation phrasing. Anything that fails resolves in one of two ways:
+commit the referenced material to a tracked location, or rewrite the
+reference. Committing a spec whose sources are gitignored is a silent
+failure. (The Writing Quality Checklist is the itemized form of this
+gate.)
+
 ```bash
 # Add the entire spec directory
 git add ${SPECS_DIR}/${TIMESTAMP}-descriptive-name/
@@ -181,6 +190,27 @@ Before committing, verify:
 - [ ] Code examples properly formatted with file:line references
 - [ ] No meta-commentary or self-notes
 - [ ] Self-contained for fresh agent to implement phase by phase
+- [ ] Committed-visibility check: every path the spec references as
+      already-existing resolves within the committed tree
+      (`git ls-files` / `git check-ignore -v <path>`). If normative
+      source material is untracked or gitignored, stop and ask the
+      user: commit it to a tracked location (updating references) or
+      inline it — never reference it in place. (This is the mechanical
+      form of the Clone test in Step 4.)
+- [ ] No machine-absolute paths (`/Users/...`, `/home/...`, `$HOME`
+      literals). Use repo-relative paths or
+      `cd "$(git rev-parse --show-toplevel)"` in workflows.
+- [ ] No conversation references ("the user chose", "as discussed",
+      "ratified with the user"). Record decisions as dated facts:
+      "Ratified 2026-07-12."
+- [ ] Gitignore-trap check: `git check-ignore` every path the spec
+      instructs the implementer to CREATE; where a tracked ignore
+      pattern would swallow it, the spec must carry an explicit
+      un-ignore instruction (e.g. `!/bin/`).
+- [ ] No author-to-author hedges ("P3 author should...", "flagged for
+      sibling phases", "assumed — verify against P2"). Cross-phase
+      contracts are stated as facts in BOTH files or reconciled before
+      commit.
 
 Run through the checklist once. If the spec covers the problem, root cause, approach, and implementation details, commit it. Do not iterate.
 
