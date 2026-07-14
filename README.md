@@ -126,6 +126,7 @@ Subagent orchestration workflows and session modes: map-reduce, chunked sequenci
 /macros:timeless
 /macros:dredge ["freeform query"]
 /macros:timestamp
+/macros:new
 ```
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
@@ -142,6 +143,7 @@ Subagent orchestration workflows and session modes: map-reduce, chunked sequenci
 - **timeless** — Shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
 - **dredge** — Searches prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to the current project, widens scope and time window from natural-language hints in the query (e.g. "across all projects", "in the craken repo", "yesterday"). Uses an optional AgentsView backend when the `agentsview` CLI is installed (configured at user scope under `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
 - **timestamp** — Shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
+- **new** — Scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro (carries the composition line so it chains with `/doubt`, `/seq`, etc.); user-scope macros default to a `my-` name prefix
 
 #### gimme
 

@@ -37,7 +37,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install zoomdoc@isnbh0
 ```
 
-Only the eight plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, and `timestamp` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the eight plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -94,6 +94,7 @@ Claude Code invocations:
 - `/macros:timeless` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
 - `/macros:dredge ["freeform query"]` - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
 - `/macros:timestamp` - shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
+- `/macros:new` - scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro (carries the composition line so it chains with `/doubt`, `/seq`, etc.); user-scope macros default to a `my-` name prefix
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
@@ -203,7 +204,8 @@ shared/
 │   │       ├── dry-run/
 │   │       ├── timeless/
 │   │       ├── dredge/
-│   │       └── timestamp/
+│   │       ├── timestamp/
+│   │       └── new/
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
