@@ -1,5 +1,9 @@
 # Developer Guide
 
+## Git Workflow
+
+Work directly on `main` and push `main` unless the user explicitly requests a branch or pull request. Do not create branches or pull requests by default in this repository.
+
 ## Publishing a New Claude Code Marketplace Plugin
 
 ### File structure
