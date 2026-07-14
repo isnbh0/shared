@@ -16,15 +16,15 @@ cp -R /tmp/shared/plugins/spex/skills/write <skill-root>/spex-write
 
 ## Usage
 
-Use natural language or explicitly mention the skill:
+Use natural language or explicitly mention a skill with Codex's `$` selector:
 
-| Claude Code invocation | Codex request |
-|------------------------|---------------|
-| `/interview auth-system` | "Interview me about the auth system" |
-| `/spex:write auth-refactor` | "Use the spex-write skill to write a spec for the auth refactor" |
-| `/spex:implement ./spec.md` | "Use the spex-implement skill to implement ./spec.md" |
-| `/report-writer perf-analysis` | "Write a report on the performance analysis" |
-| `/rigorous-debug` | "Debug this using the rigorous debugging protocol" |
+| Canonical reference | Codex direct-install request |
+|---------------------|------------------------------|
+| `skill(interview:interview)` | `$interview auth-system` |
+| `skill(spex:write)` | `$spex-write auth-refactor` |
+| `skill(spex:implement)` | `$spex-implement ./spec.md` |
+| `skill(report-writer:report-writer)` | `$report-writer perf-analysis` |
+| `skill(rigorous-debug:rigorous-debug)` | `$rigorous-debug` |
 
 ## Configuration
 
@@ -46,4 +46,4 @@ The `workspace_dir` setting works as-is; relative paths are resolved from the pr
 
 - Use `AGENTS.md` for always-on project instructions; keep task-specific workflows in skills.
 - The `phaser` skill can be installed as a passive knowledgebase for Phaser work.
-- Claude Code plugin namespace syntax such as `/spex:write` does not apply directly. Install the sub-skill you want and refer to it by its installed name or description.
+- Codex plugin installs preserve namespaces, so `skill(macros:doubt)` is selected as `$macros:doubt`; direct installs use the installed directory name, such as `$doubt`.

@@ -1,19 +1,15 @@
 ---
 name: study
-description: Conducts Socratic study sessions grounded in a URL or local document. Calibrates to user familiarity, persists session notes to markdown files, and supports resumption across sittings. Use when the user invokes /study or wants to study a specific document or article.
+description: Conducts Socratic study sessions grounded in a URL or local document. Calibrates to user familiarity, persists session notes to markdown files, and supports resumption across sittings. Use when the user explicitly activates this skill or wants to study a specific document or article.
 ---
 
 # Study
 
 Lead Socratic study sessions grounded in a document or URL, persisting all progress to flat markdown files.
 
-## Invocation
+## Input
 
-```
-/study <uri>
-```
-
-- `<uri>`: A URL (e.g., `https://web.dev/learn/html/forms`) or a local file path (e.g., `~/notes/rfc9110.md`)
+- Supply `skill(study:study)` with a URL (e.g., `https://web.dev/learn/html/forms`) or a local file path (e.g., `~/notes/rfc9110.md`).
 
 ## Setup
 

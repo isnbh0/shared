@@ -68,3 +68,10 @@ Skills that produce files use a layered config pattern. The skill prompts for se
 - The `.agents/skill-configs/` convention is repository-owned and agent-neutral. Keep provider-specific install roots and activation behavior centralized in `docs/cross-platform/README.md`; do not duplicate them in publishing checklists. Legacy fallback paths are migration support for skills that previously shipped with those paths, not a requirement for newly published skills. Skills with legacy installs still resolve from `.claude/skill-configs/<skill>/` (and `~/.claude/skill-configs/<skill>/` for cross-project skills) as a fallback; spex additionally falls back to its former `.agent-workspace/spex/` path. When config is found only at a legacy path, the skill uses it and offers to move it to the new location. Review legacy fallback removal after 2027-01-31.
 
 Always ship a `config.example.yaml` alongside `SKILL.md` documenting all supported fields.
+
+### Portable skill references
+
+- In portable `SKILL.md` content and shared documentation, identify bundled skills as `skill(plugin:name)` and standalone skills as `skill(name)`.
+- These forms are documentation references, not literal user-facing commands. Keep host selectors such as Claude Code `/`, Codex `$`, and ChatGPT `@` in `docs/cross-platform/` or another explicitly host-specific section.
+- Describe composition in terms of active skills. Do not tell an agent to scan for slash commands or emit another host's activation syntax.
+- Use capability language such as “load the skill,” “search the web,” or “edit the file” unless a workflow genuinely requires a named host tool.

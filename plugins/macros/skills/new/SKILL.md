@@ -1,48 +1,47 @@
 ---
 name: new
-description: Scaffold a custom macro — an ordinary SKILL.md that behaves as a first-class member of the macros ecosystem. Writes to project scope (this repo) or user scope (all your projects) and pre-fills the composition line so the new macro chains with /doubt, /consensus, /seq, and the rest.
+description: Scaffold a custom macro — an ordinary SKILL.md that behaves as a first-class member of the macros ecosystem. Writes to project scope (this repo) or user scope (all your projects) and pre-fills the composition line so the new macro composes with other skills.
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 You are scaffolding a new custom macro for the user. A macro is not a special
-object — it is a plain Claude Code skill (`SKILL.md`) that carries the macros
-**composition line**, which is what lets it participate in chained invocations
-like `/mymacro /doubt 3`. Your job is to gather the macro's name, description,
-and behavior, then write a correct skill file to the right scope.
+object — it is a portable skill (`SKILL.md`) that carries the macros
+**composition line**, which lets it participate when multiple skills are active
+in the same request. Your job is to gather the macro's name, description, and
+behavior, then write a correct skill file to the right scope.
 
 ## 1. Resolve scope
 
 Decide where the macro lives from what the user already said — do not ask if
 it is clear:
 
-- **User scope** → `~/.claude/skills/<name>/SKILL.md`. The macro is available
-  in every project. Choose this when the user says things like "for all my
-  projects", "everywhere", "globally", or is describing a personal working
-  habit.
-- **Project scope** → `.claude/skills/<name>/SKILL.md` (relative to the repo
-  root). Committed, shared with the team. Choose this when the user says "in
-  this repo", "for the team", "commit it", or the behavior is repo-specific.
+- **User scope** → the current host's documented user skill root. The macro is
+  available in every project. Choose this when the user says things like "for
+  all my projects", "everywhere", "globally", or is describing a personal
+  working habit.
+- **Project scope** → the current host's documented project skill root.
+  Committed, shared with the team. Choose this when the user says "in this
+  repo", "for the team", "commit it", or the behavior is repo-specific.
 
-If genuinely ambiguous, ask once. Otherwise proceed with the inferred scope
-and state which you picked.
+Resolve the concrete root from the current host's instructions or documented
+configuration. Do not guess a provider-specific path. If either the scope or
+root is genuinely ambiguous, ask once. Otherwise proceed and state which path
+you picked.
 
 ## 2. Pick a non-colliding name
 
-The name is a kebab-case slug; the macro is invoked as `/<name>`.
+The name is a kebab-case slug. Refer to the standalone skill as `skill(<name>)`.
 
 **Default: prefix user-scope macros with `my-`.** So a user macro for avoiding
-time estimates becomes `my-timeless`, invoked `/my-timeless`. This guarantees
-they never collide with bundled or native skill names. The user can pick a
+time estimates becomes `my-timeless`, referenced as `skill(my-timeless)`. This
+reduces collisions with bundled or native skill names. The user can pick a
 different prefix (`u-`, their initials, whatever) — honor it and keep it
 consistent across every macro you scaffold for them. Project-scope macros are
 unprefixed unless the user asks otherwise.
 
-Before committing to a name, list existing skills so `/<name>` is unambiguous:
-
-```
-ls ~/.claude/skills .claude/skills 2>/dev/null
-```
+Before committing to a name, list the skills in the resolved user and project
+roots so `skill(<name>)` is unambiguous.
 
 Also avoid the bundled macro names (mapreduce, doubt, consensus, seq, rigor,
 askme, delegate, timeless, chunked, orchestrate, dry-run, dredge, timestamp,
@@ -76,7 +75,7 @@ name: <name>
 description: <one-line description>
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 <body>
 ```
@@ -93,8 +92,8 @@ actually reads config.
 Tell the user:
 
 - the path written and the scope,
-- how to invoke it (`/<name>`), and
-- that it composes — e.g. `/<name> /doubt` runs both.
+- its canonical reference (`skill(<name>)`), and
+- that it composes with other explicitly activated skills, such as `skill(macros:doubt)`.
 
-New skills are picked up on the next session; note that if they try `/<name>`
-immediately and it is not found yet.
+State whether the current host discovers new skills immediately or requires a
+new session, when that behavior is known.

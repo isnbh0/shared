@@ -2,7 +2,9 @@
 
 ## Composable, First-Class Skills
 
-Each skill in the macros plugin describes one concern. Skills are not typed as "base" vs "modifier" — they are all equally first-class instructions. When a user invokes multiple skills together (e.g., `/doubt /parallel 3`), the agent reads all of the corresponding skill files and synthesizes what to do.
+Each skill in the macros plugin describes one concern. Skills are not typed as "base" vs "modifier" — they are all equally first-class instructions. When multiple skills are active together (for example, `skill(macros:doubt)` and `skill(macros:consensus)`), the agent reads all of the corresponding skill files and synthesizes what to do.
+
+`skill(plugin:name)` is repository documentation notation for a bundled skill identity; `skill(name)` identifies a standalone skill. These forms are references, never literal user-facing invocation syntax. Host-specific activation syntax belongs in `docs/cross-platform/`.
 
 ### Design Principles
 
@@ -12,10 +14,10 @@ Each skill in the macros plugin describes one concern. Skills are not typed as "
 
 ## Loading
 
-The only infrastructure needed is a mechanism to get N skill files into the agent's context when N `/slash` tokens appear in an invocation. No interpretation, no routing — just read N files and concatenate.
+The only infrastructure needed is the host's normal skill-loading mechanism. No interpretation or routing is required beyond making every explicitly activated skill available to the agent.
 
 Every macros skill includes a **composition line** immediately after the frontmatter:
 
 ```
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 ```

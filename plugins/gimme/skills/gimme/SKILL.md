@@ -3,11 +3,11 @@ name: gimme
 description: User-invoked shorthand that inverts delegation — produce a filesystem bundle (checklist, drop-bin directory, notes template) of human-only actions and artifacts blocking project progress, and launch the user's editor on it.
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 **This skill is only ever invoked by the user.** Never invoke it on your own initiative.
 
-When the user invokes `/gimme`, stop implementing and produce a **filesystem deliverable** — a timestamped bundle the user can open and fill in right now. No chat-only output.
+When the user explicitly activates `skill(gimme:gimme)`, stop implementing and produce a **filesystem deliverable** — a timestamped bundle the user can open and fill in right now. No chat-only output.
 
 ## Config
 

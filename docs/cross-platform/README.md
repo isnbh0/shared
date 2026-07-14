@@ -22,6 +22,17 @@ This table is the only place in this repository that should list third-party ins
 - **Workspace output** - The `.agent-workspace/` convention is a filesystem convention, not tied to one agent.
 - **Configuration** - `.agents/skill-configs/` keeps project/user config independent from any one host.
 
+## Canonical Skill References
+
+Repository documentation uses `skill(plugin:name)` for a skill bundled in a plugin and `skill(name)` for a standalone skill. These are unambiguous identifiers, not literal commands or prompt syntax.
+
+| Installation | Claude Code | Codex | Other hosts |
+|--------------|-------------|-------|-------------|
+| Plugin | `/plugin:name` | `$plugin:name` | Use the host's documented selector |
+| Direct skill | `/name` | `$name` | Use the host's documented selector or mention the skill by name |
+
+Keep provider sigils in host-specific guidance like this table. In portable skill instructions, refer to `skill(macros:doubt)` or say “the doubt skill”; never teach a host-specific invocation.
+
 ## What Needs Adaptation
 
 ### Installation Path
@@ -39,7 +50,7 @@ Resolve `<skill-root>` from the compatibility table or the target host's current
 
 ### Invocation
 
-Claude Code marketplace installs expose slash-style invocations such as `/interview` or `/spex:write`. Other tools may use semantic triggering, explicit skill mentions, command files, or UI activation:
+Activation belongs to the host. Use the canonical reference in shared documentation, then translate it with the table above. Hosts may also support semantic triggering, command files, or UI activation:
 
 > "Interview me about a career change"
 
@@ -60,7 +71,7 @@ Most file-producing project skills read project-local config. Cross-project skil
 
 ### Spex Sub-Skills
 
-The spex plugin includes `write`, `write-phased`, and `implement` skills. In Claude Code marketplace installs these are invoked as `/spex:write`, `/spex:write-phased`, and `/spex:implement`. In other tools, install the specific skill directory or ask by description:
+The spex plugin includes `skill(spex:write)`, `skill(spex:write-phased)`, and `skill(spex:implement)`. Translate those references through the host table above, install the specific skill directory, or ask by description:
 
 > "Write a spec for the auth system"
 > "Implement the spec at .agent-workspace/specs/260310-auth-system/SPEC.md"

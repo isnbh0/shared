@@ -3,7 +3,7 @@ name: dry-run
 description: One-shot failsafe — describe what you would do for the next request instead of doing it, then wait for confirmation
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 If this skill is invoked, the user is signaling a need to carefully review your intended actions before anything is executed.
 

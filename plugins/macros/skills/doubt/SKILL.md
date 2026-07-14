@@ -4,7 +4,7 @@ description: Spawns an independent subagent to critique recent work with web res
 argument-hint: "[\"freeform question\"]"
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 Do NOT re-invoke this skill recursively.
 Do NOT re-read these instructions or any other document in a loop.
@@ -31,7 +31,7 @@ Determine what to critique. Use the first match:
 3. **Unstaged changes** — `git diff`. If non-empty, this is the scope.
 4. **Last commit** — `git diff HEAD~1`. Use this as the scope.
 5. **Conversation context** — if no git changes exist, look at the most recent substantive work in the conversation.
-6. **Nothing found** — if none of the above yield a scope, STOP and tell the user: "No changes, commits, or context found to critique. Try again with a freeform question, e.g. `/doubt \"your question\"`."
+6. **Nothing found** — if none of the above yield a scope, STOP and tell the user: "No changes, commits, or context found to critique. Activate the doubt skill again with a freeform question."
 
 For diff-based scopes: always read touched files in full (not just the diff). The diff shows what changed; the full file shows whether it fits.
 

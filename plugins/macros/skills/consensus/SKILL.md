@@ -4,7 +4,7 @@ description: Run N blind agents on the same job in parallel, then merge findings
 argument-hint: "<count>"
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 Do NOT re-invoke this skill recursively.
 Do NOT re-read these instructions or any other document in a loop.
@@ -20,7 +20,7 @@ You are dispatching N independent, blind agents to work on the same job in paral
 Parse the user's request for a number:
 
 - **Bare number** (`2`, `3`, `4`, `5`) → agent count. Cap at 5.
-- **Empty or non-numeric** → STOP and tell the user: "Usage: `/consensus <count>`. Provide the number of parallel agents (2–5)."
+- **Empty or non-numeric** → STOP and tell the user: "Provide the number of parallel agents (2–5) with the consensus skill."
 
 The job itself comes from the conversation context or from a composed skill.
 
@@ -28,9 +28,9 @@ The job itself comes from the conversation context or from a composed skill.
 
 Identify what the agents should work on:
 
-1. If another skill is active in this invocation (e.g., `/doubt /consensus 3`), that skill defines the job and prompt template.
+1. If another skill is active in this request (for example, `skill(macros:doubt)`), that skill defines the job and prompt template.
 2. Otherwise, use the most recent substantive task or request in the conversation.
-3. If no job can be determined, STOP and tell the user: "No job found. Compose with a skill (e.g., `/doubt /consensus 3`) or provide context first."
+3. If no job can be determined, STOP and tell the user: "No job found. Activate a task-defining skill with the consensus skill, or provide context first."
 
 ## Execution
 

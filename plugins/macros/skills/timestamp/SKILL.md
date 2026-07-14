@@ -3,7 +3,7 @@ name: timestamp
 description: Shorthand that tells the agent to prefix newly created files/folders with a `yymmdd-HHMMSS` timestamp from the `date` CLI. One timestamp per logical job bucket. One turn only.
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 For this turn only, prefix every new file or folder you create with a timestamp produced by the `date` CLI in `yymmdd-HHMMSS` format (e.g. `260428-143022`), joined to the existing name with a single dash. If the user specifies a different format inline (e.g., "use a 4-digit year"), honor that for the turn.
 

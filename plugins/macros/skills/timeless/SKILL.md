@@ -3,7 +3,7 @@ name: timeless
 description: Shorthand that tells the agent to avoid time estimates — hours, days, calendar dates, or size buckets that map to time. Describe complexity and scope instead.
 ---
 
-If other `/commands` appear in the user's message and you have not already called the Skill tool for them in this conversation, invoke each now. Do not re-invoke any skill that has already been loaded.
+Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 Do not include time estimates anywhere in your output — chat, commits, plans, spec docs, PR descriptions. This covers:
 

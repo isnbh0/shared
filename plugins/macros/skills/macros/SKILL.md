@@ -1,6 +1,6 @@
 ---
 name: Macros (Parallel Orchestration)
-description: Reference documentation for the macros plugin. Not used at runtime — each skill (e.g., /macros:mapreduce) is self-contained.
+description: Reference documentation for the macros plugin. Not used at runtime — each skill (for example, skill(macros:mapreduce)) is self-contained.
 disable-model-invocation: true
 ---
 
@@ -22,11 +22,11 @@ Spawns an independent subagent to critique recent work with web research. The ag
 
 ### consensus
 
-Runs N blind agents on the same job in parallel, then merges findings into consensus/unique/conflicts. Agents report only — no edits for concurrent safety. Compose with other skills to define the job (e.g., `/doubt /consensus 3`).
+Runs N blind agents on the same job in parallel, then merges findings into consensus/unique/conflicts. Agents report only — no edits for concurrent safety. Compose with another skill such as `skill(macros:doubt)` to define the job.
 
 ### seq
 
-Runs N serial blind passes on the same job with commits between rounds. Requires a clean worktree. Each pass diffs against the original BASE_SHA so every agent reviews the full body of work with fresh eyes. Compose with other skills to define the job (e.g., `/doubt /seq 3`).
+Runs N serial blind passes on the same job with commits between rounds. Requires a clean worktree. Each pass diffs against the original BASE_SHA so every agent reviews the full body of work with fresh eyes. Compose with another skill such as `skill(macros:doubt)` to define the job.
 
 ### rigor
 

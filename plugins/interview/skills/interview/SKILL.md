@@ -1,6 +1,6 @@
 ---
 name: interview
-description: Conducts structured interviews to explore any topic through conversational discovery — from software requirements to personal decisions, creative projects, or life planning. Use when the user invokes /interview or needs to think through something via guided conversation.
+description: Conducts structured interviews to explore any topic through conversational discovery — from software requirements to personal decisions, creative projects, or life planning. Use when the user explicitly activates this skill or needs to think through something via guided conversation.
 ---
 
 # Interview

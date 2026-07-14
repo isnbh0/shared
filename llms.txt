@@ -59,79 +59,81 @@ Use the same resolved `<install-root>` as Option A.
 
 ## Available Skills
 
+References in this file use `skill(plugin:name)` for bundled skills and `skill(name)` for standalone skills. These are canonical identifiers, not commands. Translate them using `docs/cross-platform/README.md`; do not copy a host's activation sigil into portable skill instructions.
+
 ### Published as Claude Code marketplace plugins
 
 ### interview
 Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
 
-Claude Code invocation: `/interview <topic> [--ref <path>]`
+Reference: `skill(interview:interview)` with a topic and optional reference path.
 
 ### spex
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
 
-Claude Code invocations: `/spex:write`, `/spex:write-phased`, `/spex:implement`
+References: `skill(spex:write)`, `skill(spex:write-phased)`, `skill(spex:implement)`.
 
 ### critique
 External AI critique via CLI tools (Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using sandboxed execution.
 
-Claude Code invocations: `/critique:codex [file-path] [focus]`, `/critique:gemini [file-path] [focus]`
+References: `skill(critique:codex)` and `skill(critique:gemini)`, each with an optional file path and focus.
 
 ### macros
 Subagent orchestration workflows and session modes. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for session-level correctness enforcement.
 
-Claude Code invocations:
-- `/macros:mapreduce <task>` - split tasks into chunks, dispatch parallel subagents, consolidate results
-- `/macros:chunked <task>` - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
-- `/macros:doubt ["freeform question"]` - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
-- `/macros:consensus <count>` - run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
-- `/macros:seq <count>` - run N serial blind passes with commits between rounds; requires clean worktree
-- `/macros:rigor` - activate Rigor Mode for the session: prioritize correctness, thorough investigation, and web-grounded verification over minimalism
-- `/macros:orchestrate` - activate Orchestrator Mode for the session: delegate execution to subagents by default and operate at the high level, keeping your own context for direction and synthesis; an escape hatch keeps trivial work inline
-- `/macros:askme` - shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
-- `/macros:delegate` - shorthand: prefer subagents to save context space and parallelize independent subtasks
-- `/macros:tmi` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
-- `/macros:dry-run` - one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
-- `/macros:timeless` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- `/macros:dredge ["freeform query"]` - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
-- `/macros:timestamp` - shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
-- `/macros:new` - scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro (carries the composition line so it chains with `/doubt`, `/seq`, etc.); user-scope macros default to a `my-` name prefix
+Canonical references:
+- `skill(macros:mapreduce)` with a task - split tasks into chunks, dispatch parallel subagents, consolidate results
+- `skill(macros:chunked)` with a task - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
+- `skill(macros:doubt)` with an optional freeform question - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
+- `skill(macros:consensus)` with a count - run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
+- `skill(macros:seq)` with a count - run N serial blind passes with commits between rounds; requires clean worktree
+- `skill(macros:rigor)` - activate Rigor Mode for the session: prioritize correctness, thorough investigation, and web-grounded verification over minimalism
+- `skill(macros:orchestrate)` - activate Orchestrator Mode for the session: delegate execution to subagents by default and operate at the high level, keeping your own context for direction and synthesis; an escape hatch keeps trivial work inline
+- `skill(macros:askme)` - shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
+- `skill(macros:delegate)` - shorthand: prefer subagents to save context space and parallelize independent subtasks
+- `skill(macros:tmi)` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
+- `skill(macros:dry-run)` - one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
+- `skill(macros:timeless)` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
+- `skill(macros:dredge)` with an optional freeform query - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
+- `skill(macros:timestamp)` - shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
+- `skill(macros:new)` - scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro and composes with other active skills; user-scope macros default to a `my-` name prefix
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
 
-Claude Code invocation: `/study <uri>`
+Reference: `skill(study:study)` with a URI.
 
 ### gimme
 User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress - a checklist document, a drop-bin directory, and a notes template - then launches the user's configured editor/command on it.
 
-Claude Code invocation: `/gimme`
+Reference: `skill(gimme:gimme)`.
 
 ### promptopt
 Artifact-backed prompt optimization workflow for application prompts, prompt builders, agent instructions, routing prompts, and LLM workflows. Collects user-owned train/val cases and writes baseline outputs, candidate ledger, optimizer state, and decision record to its run workspace without editing source files.
 
-Claude Code invocation: `$promptopt`
+Reference: `skill(promptopt:promptopt)`.
 
 ### zoomdoc
 Authors accessible, self-contained semantic-zoom HTML documents with document-defined ordered detail levels, arbitrary semantic structure, native controls, one-click copy of the current view as structure-preserving HTML, and a complete JavaScript-disabled fallback. Ships a renderer template and a deterministic validator with optional strict transcription coverage.
 
-Claude Code invocation: `/zoomdoc`
+Reference: `skill(zoomdoc:zoomdoc)`.
 
 ### Other direct-install skills
 
 ### report-writer
 Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
 
-Claude Code invocation: `/report-writer [topic]`
+Reference: `skill(report-writer:report-writer)` with an optional topic.
 
 ### rigorous-debug
 Evidence-based debugging protocol using the scientific method. Enforces hypothesis-driven investigation with controlled experiments. Requires one-time project-specific initialization before first use.
 
-Claude Code invocation: `/rigorous-debug`
+Reference: `skill(rigorous-debug:rigorous-debug)`.
 
 ### skill-writer
 Tools and guidance for creating effective `SKILL.md` agent skills following best practices.
 
-Claude Code invocation: `/skill-writer`
+Reference: `skill(skill-writer:skill-writer)`.
 
 ### phaser
 Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase - automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
@@ -251,5 +253,5 @@ Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is 
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.
 - Provider-specific install roots are centralized in `docs/cross-platform/README.md`; verify target-agent docs before automating installs.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
-- The `rigorous-debug` skill requires a one-time initialization step after installation. Inform the user that they will need to run `/rigorous-debug` or otherwise ask the target agent to follow that skill before it is usable.
+- `skill(rigorous-debug:rigorous-debug)` requires a one-time initialization step after installation. Ask the target agent to activate that skill before it is usable.
 - Always verify that the clone location (`~/shared` or user-specified) does not conflict with existing directories before cloning.
