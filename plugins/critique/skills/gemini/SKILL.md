@@ -1,8 +1,8 @@
 ---
 name: gemini
 description: Runs Google Gemini CLI to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "gemini critique".
-argument-hint: "[file-path] [focus] [--model <model>]"
 disable-model-invocation: true
+compatibility: The documented sandbox invocation requires the Gemini CLI, macOS Seatbelt, and a POSIX-compatible shell.
 ---
 
 # Gemini Critique
@@ -11,7 +11,7 @@ Run Google's Gemini CLI to get an independent critique of a file (spec, code, et
 
 ## Pre-flight
 
-Verify gemini is available: !`which gemini`
+Run `command -v gemini` (or the platform equivalent) to verify that Gemini is available.
 
 If gemini is not found, tell the user to install it:
 
@@ -55,7 +55,7 @@ See `config.example.yaml` in the critique plugin's gemini skill for reference.
 
 1. **Determine what to critique** — use one of these strategies, in priority order:
    - If the user provided a file path, use it
-   - If the user mentions a file by name or path (e.g., `@games/foo/bar.js`), use that
+   - If the user mentions a file by name or path (e.g., `games/foo/bar.js`), use that
    - If changes were made during the current conversation (specs written, code edited, etc.), critique those — use `git diff` against the state before the conversation's changes to identify the affected files and pass them to gemini
    - If the user says something like "critique this" or "get a second opinion", look at the most recent substantive work product in the conversation
    - If nothing can be inferred, ask the user what to critique
@@ -68,6 +68,8 @@ See `config.example.yaml` in the critique plugin's gemini skill for reference.
 5. Present the findings to the user
 
 ## Invocation
+
+The following read-only sandbox command is specific to macOS. On another platform, use that platform's supported Gemini sandbox with equivalent write and network restrictions.
 
 ```bash
 cd <project-root> && \

@@ -11,24 +11,24 @@ git clone https://github.com/isnbh0/shared.git /tmp/shared
 
 mkdir -p <skill-root>
 cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
-cp -R /tmp/shared/plugins/spex/skills/write <skill-root>/spex-write
+cp -R /tmp/shared/plugins/spex/skills/write <skill-root>/
 ```
 
 ## Usage
 
 Use natural language or explicitly mention a skill with Codex's `$` selector:
 
-| Canonical reference | Codex direct-install request |
-|---------------------|------------------------------|
-| `skill(interview:interview)` | `$interview auth-system` |
-| `skill(spex:write)` | `$spex-write auth-refactor` |
-| `skill(spex:implement)` | `$spex-implement ./spec.md` |
-| `skill(report-writer:report-writer)` | `$report-writer perf-analysis` |
-| `skill(rigorous-debug:rigorous-debug)` | `$rigorous-debug` |
+| Skill | Codex direct-install request |
+|-------|------------------------------|
+| interview | `$interview auth-system` |
+| spex write | `$write auth-refactor` |
+| spex implement | `$implement ./spec.md` |
+| report-writer | `$report-writer perf-analysis` |
+| rigorous-debug | `$rigorous-debug` |
 
 ## Configuration
 
-Use the agent-neutral config directory, not the skill install directory:
+Use this repository's provider-neutral config convention, not the skill install directory:
 
 ```bash
 # Project shared config
@@ -46,4 +46,4 @@ The `workspace_dir` setting works as-is; relative paths are resolved from the pr
 
 - Use `AGENTS.md` for always-on project instructions; keep task-specific workflows in skills.
 - The `phaser` skill can be installed as a passive knowledgebase for Phaser work.
-- Codex plugin installs preserve namespaces, so `skill(macros:doubt)` is selected as `$macros:doubt`; direct installs use the installed directory name, such as `$doubt`.
+- Codex plugin installs preserve namespaces, so the bundled doubt skill is selected as `$macros:doubt`; direct installs use the installed directory name, such as `$doubt`.

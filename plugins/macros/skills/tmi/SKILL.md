@@ -1,7 +1,6 @@
 ---
 name: tmi
 description: Flag content that only makes sense if you were in the room when it was written — defensive justifications, phantom counterarguments, backstory, speculation
-argument-hint: "[\"file or text to review\"]"
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

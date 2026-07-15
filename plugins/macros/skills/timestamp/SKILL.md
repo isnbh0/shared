@@ -9,7 +9,7 @@ For this turn only, prefix every new file or folder you create with a timestamp 
 
 ## How to get the timestamp
 
-Run `date +%y%m%d-%H%M%S` via Bash. Do this **once** per logical job bucket — do not fabricate a timestamp from your knowledge of the current date, and do not recompute it for each file. Reuse the captured value across every destination created in the same overarching action. A "job bucket" is informal: if a single turn spans multiple unrelated jobs, run `date` once per bucket.
+Run `date +%y%m%d-%H%M%S` in a shell. Do this **once** per logical job bucket — do not fabricate a timestamp from your knowledge of the current date, and do not recompute it for each file. Reuse the captured value across every destination created in the same overarching action. A "job bucket" is informal: if a single turn spans multiple unrelated jobs, run `date` once per bucket.
 
 ## What to apply the prefix to
 

@@ -9,7 +9,7 @@ Lead Socratic study sessions grounded in a document or URL, persisting all progr
 
 ## Input
 
-- Supply `skill(study:study)` with a URL (e.g., `https://web.dev/learn/html/forms`) or a local file path (e.g., `~/notes/rfc9110.md`).
+- Activate study with a URL (e.g., `https://web.dev/learn/html/forms`) or a local file path (e.g., `~/notes/rfc9110.md`).
 
 ## Setup
 
@@ -41,10 +41,10 @@ If `instructions` is set in config, treat it as additional behavioral context fo
 
 ### 1. Content Acquisition
 
-**URL**: Fetch using WebFetch. If fetch fails (dynamic content, network issues), tell the user:
+**URL**: Fetch the URL using the host's web access capability. If fetch fails (dynamic content, network issues), tell the user:
 > "I couldn't fetch that URL. Can you provide a local file path with the content?"
 
-**Local file**: Read directly using the file read tool.
+**Local file**: Read it directly from the filesystem.
 
 Digest the content into a working summary to drive the session.
 

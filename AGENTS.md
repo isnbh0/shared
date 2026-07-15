@@ -31,6 +31,8 @@ A plugin can contain multiple portable Agent Skills (e.g., macros has mapreduce,
 
 ### Publishing checklist
 
+Run `ruby scripts/check-repo.rb` before publishing. It validates skill discovery metadata, portable references, configuration examples, cross-platform install-root ownership, local links, marketplace manifests, and plugin packaging.
+
 When publishing a plugin to the Claude Code marketplace, update all of the following:
 
 - [ ] `plugins/<name>/skills/<skill-name>/SKILL.md` — the skill
@@ -71,7 +73,7 @@ Always ship a `config.example.yaml` alongside `SKILL.md` documenting all support
 
 ### Portable skill references
 
-- In portable `SKILL.md` content and shared documentation, identify bundled skills as `skill(plugin:name)` and standalone skills as `skill(name)`.
-- These forms are documentation references, not literal user-facing commands. Keep host selectors such as Claude Code `/`, Codex `$`, and ChatGPT `@` in `docs/cross-platform/` or another explicitly host-specific section.
+- In portable `SKILL.md` content and human-facing documentation, refer to skills by their plain names (for example, “the doubt skill”). Use a `plugin:name` identifier only where a developer-facing inventory needs to disambiguate bundled skills, and use the source path when exact repository location matters.
+- Do not wrap skill names in command-like notation. Keep host selectors such as Claude Code `/`, Codex `$`, and ChatGPT `@` in `docs/cross-platform/` or another explicitly host-specific section.
 - Describe composition in terms of active skills. Do not tell an agent to scan for slash commands or emit another host's activation syntax.
 - Use capability language such as “load the skill,” “search the web,” or “edit the file” unless a workflow genuinely requires a named host tool.

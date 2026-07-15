@@ -10,7 +10,7 @@ Create one self-contained HTML document whose readers can move between ordered l
 Bundled resources:
 
 - `template.html` — accessible renderer and a three-level example. Copy it, replace every `{{…}}` placeholder, and reshape the semantic content as needed.
-- `validate.py` — structural, accessibility, progressive-enhancement, and optional source-coverage checks. Run `uv run ${CLAUDE_SKILL_DIR}/validate.py <doc.html>`.
+- `validate.py` — structural, accessibility, progressive-enhancement, and optional source-coverage checks. Resolve the directory containing this `SKILL.md`, then run `uv run <skill-directory>/validate.py <doc.html>`.
 
 ## Core model
 

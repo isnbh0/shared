@@ -1,0 +1,5 @@
+interface:
+  display_name: "Gimme"
+  short_description: "Bundle actions that only the user can complete"
+policy:
+  allow_implicit_invocation: false

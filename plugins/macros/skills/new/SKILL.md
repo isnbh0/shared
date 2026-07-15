@@ -31,17 +31,17 @@ you picked.
 
 ## 2. Pick a non-colliding name
 
-The name is a kebab-case slug. Refer to the standalone skill as `skill(<name>)`.
+The name is a kebab-case slug. Refer to the standalone skill by its unqualified name, `<name>`.
 
 **Default: prefix user-scope macros with `my-`.** So a user macro for avoiding
-time estimates becomes `my-timeless`, referenced as `skill(my-timeless)`. This
+time estimates becomes `my-timeless`. This
 reduces collisions with bundled or native skill names. The user can pick a
 different prefix (`u-`, their initials, whatever) — honor it and keep it
 consistent across every macro you scaffold for them. Project-scope macros are
 unprefixed unless the user asks otherwise.
 
 Before committing to a name, list the skills in the resolved user and project
-roots so `skill(<name>)` is unambiguous.
+roots so `<name>` is unambiguous.
 
 Also avoid the bundled macro names (mapreduce, doubt, consensus, seq, rigor,
 askme, delegate, timeless, chunked, orchestrate, dry-run, dredge, timestamp,
@@ -92,8 +92,8 @@ actually reads config.
 Tell the user:
 
 - the path written and the scope,
-- its canonical reference (`skill(<name>)`), and
-- that it composes with other explicitly activated skills, such as `skill(macros:doubt)`.
+- its name (`<name>`), and
+- that it composes with other explicitly activated skills, such as `macros:doubt`.
 
 State whether the current host discovers new skills immediately or requires a
 new session, when that behavior is known.

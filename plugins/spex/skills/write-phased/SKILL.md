@@ -3,714 +3,124 @@ name: write-phased
 description: Write a phased specification document
 ---
 
-Do NOT re-invoke this skill recursively.
-Do NOT re-read these instructions or any other document in a loop.
-If you encounter any error or are unsure how to proceed, STOP and tell the user.
-Execute the workflow below once, then stop.
+Do not re-invoke this skill recursively or reread instructions in a loop. If an error prevents safe progress, stop and tell the user.
 
 ## Task
 
-You are writing a phased specification document. The user's request contains the context/requirements for the spec.
-
-Write the spec, commit it, and STOP. Do not implement. Implementation is handled by a separate agent in a separate session.
+Investigate the request, write and commit a phased specification, then stop. Do not implement it in the same task.
 
 ## Setup
 
-1. If the user explicitly asks to override the workspace location, use the directory they specify and skip config lookup.
-2. Check for config files (first match wins):
-   - `.agents/skill-configs/spex/config.local.yaml` (local scope, gitignored)
-   - `.agents/skill-configs/spex/config.yaml` (project scope, committed to repo)
-   - Legacy fallback (older installs): `.agent-workspace/spex/config.local.yaml`, `.agent-workspace/spex/config.yaml`, then `.claude/skill-configs/spex/config.local.yaml`, `.claude/skill-configs/spex/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
-3. **If no config found**: STOP and tell the user:
-   > "No spex config found. I need a workspace directory to store spec files.
-   > You can either:
-   > 1. Specify a custom path
-   > 2. Use the default `.agent-workspace/specs`
-   >
-   > I'll create `.agents/skill-configs/spex/config.yaml` with your choice.
-   > (If you use the local scope, add `.agents/skill-configs/spex/config.local.yaml` to .gitignore.)
-   > (See `config.example.yaml` in the spex plugin for reference.)"
-   Wait for the user's response, then create the config file before continuing.
-4. Set `${SPECS_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
+Resolve `workspace_dir` in this order:
+
+1. Explicit user override
+2. `.agents/skill-configs/spex/config.local.yaml`
+3. `.agents/skill-configs/spex/config.yaml`
+4. Legacy `.agent-workspace/spex/config.local.yaml`, `.agent-workspace/spex/config.yaml`, `.claude/skill-configs/spex/config.local.yaml`, then `.claude/skill-configs/spex/config.yaml`
+
+If config exists only at a legacy path, use it and offer to move it. If none exists, stop and ask the user to choose a workspace directory or `.agent-workspace/specs`; then create the selected `.agents/skill-configs/spex/` config. See `config.example.yaml` beside this file.
+
+Set `${SPECS_DIR}` to the resolved value.
 
 ## Workflow
 
-**Step 1: Create timestamped spec directory**
+1. Create `${SPECS_DIR}/{YYMMDD-HHMMSS}-{kebab-case-description}/` using the current local time.
+2. Trace the real code paths, verify assumptions, and confirm the problem before proposing changes.
+3. Write `README.md` plus one `PN-{name}.md` per phase.
+4. Run the quality checks below.
+5. Add and commit the entire spec directory, then stop.
 
-```bash
-# Generate timestamp and create spec directory
-TIMESTAMP=$(date +"%y%m%d-%H%M%S")
-mkdir -p ${SPECS_DIR}/${TIMESTAMP}-descriptive-name
-```
-
-**Directory naming**: `{YYMMDD-HHMMSS}-{kebab-case-description}/`
-**Location**: `${SPECS_DIR}/` directory
-
-**Step 2: Investigate thoroughly**
-
-**Before proposing solutions**:
-
-1. **Trace execution**: Use grep/find to follow actual code paths
-2. **Verify assumptions**: Check if functionality already exists elsewhere
-3. **Confirm the problem**: Ensure issue exists where suspected
-4. **Never assume missing**: Always verify before claiming something doesn't exist
-
-**Step 3: Write spec files**
-
-Write a `README.md` (overview) and one `PN-{name}.md` file per phase inside the spec directory.
-
-#### README.md template
+## README.md Template
 
 ```markdown
 # [Feature Name]
 
 **Date:** YYYY-MM-DD HH:MM:SS
-**Issue:** One-line problem description
-**Priority:** High/Medium/Low
+**Issue:** [One-line problem]
+**Priority:** [High/Medium/Low]
 **Status:** Requires Implementation
 
 ## Problem Statement
 
-- Current state (what exists now)
-- Target state (what should exist)
-- Impact (why this matters)
+[Current state, target state, impact, and verified root cause]
 
 ## Design Principles
 
-1. **Principle name** - Brief explanation
-2. **Incremental implementation** - Each phase leaves system working
-3. **Test-driven phases** - Each phase requires tests before completion
+1. **[Principle]** — [Explanation]
+2. **Incremental delivery** — Every phase leaves the system working.
+3. **Verified phases** — Every phase has runnable completion checks.
 
 ## Key Design Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Example  | Option A | Reason    |
+| [Decision] | [Choice] | [Rationale] |
 
 ## Deferred Features
 
-The following are explicitly out of scope for this spec:
-1. **Feature X** - Will be addressed in separate spec
+- [Explicitly out-of-scope item and reason]
 
 ## Phase Summary
 
 | Phase | Name | Tests Required | Backward Compatible |
 |-------|------|----------------|---------------------|
 | 1 | [Title] | [Tests] | Yes |
-| 2 | [Title] | [Tests] | Yes |
 
 ## Phase Documents
 
-1. [P1-{name}.md](./P1-{name}.md) — [Brief description]
-2. [P2-{name}.md](./P2-{name}.md) — [Brief description]
+1. [P1-{name}.md](./P1-{name}.md) — [Description]
 
 ## Progress Tracking
 
 | Phase | Commit | Status |
 |-------|--------|--------|
 | 1 | — | Pending |
-| 2 | — | Pending |
 ```
 
-#### Phase file template (`PN-{name}.md`)
-
-Each phase file follows the strict phase template:
+## Phase Template
 
 ```markdown
 ## Phase N: [Descriptive Title]
 
-**Goal:** [1-2 sentences describing what this phase accomplishes]
-
-**Entry state:** [What must be true before starting - typically "Phase N-1 complete"]
-**Exit state:** [What will be true after completion - specific, verifiable outcomes]
+**Goal:** [Concrete outcome]
+**Entry state:** [Required starting state]
+**Exit state:** [Specific, verifiable ending state]
 
 ### Implementation Checklist
 
-- [ ] [Specific task with file path if applicable]
-- [ ] [Another task]
-- [ ] Add unit tests (see Required Tests below)
-- [ ] Run `[test command]` - all tests pass
-- [ ] Run example workflow (see below)
-- [ ] Commit: `[commit message following repo conventions]`
+- [ ] [Task with repository-relative file path]
+- [ ] Add or update tests described below
+- [ ] Run `[verification command]`
+- [ ] Commit: `[message following repository conventions]`
 
 ### Code
 
-[Complete implementations, not snippets. Include file paths and line context.]
+[Complete implementation guidance, with repository-relative paths and enough context for a fresh agent.]
 
 ### Required Tests
 
 **File:** `tests/path/to/test_file.py` (NEW or UPDATE)
 
-[Complete test files, not snippets.]
+[Complete tests or exact test requirements.]
 
 ### Example Workflow
 
-[Commands to verify this phase works]
+[Runnable commands and expected results.]
 ```
 
-**Step 4: Git commit and STOP**
+Each phase must be independently implementable, leave the system working, define explicit entry and exit states, and state cross-phase contracts as facts in every affected phase.
 
-**Clone test:** before committing, re-read the spec as a stranger on a
-fresh clone — only `git ls-files` content exists. Grep the spec dir for
-references to untracked/ignored paths, absolute user paths, and
-conversation phrasing. Anything that fails resolves in one of two ways:
-commit the referenced material to a tracked location, or rewrite the
-reference. Committing a spec whose sources are gitignored is a silent
-failure. (The Writing Quality Checklist is the itemized form of this
-gate.)
+## Quality Gate
 
-```bash
-# Add the entire spec directory
-git add ${SPECS_DIR}/${TIMESTAMP}-descriptive-name/
+Before committing, verify once:
 
-# Commit with descriptive message
-git commit -m "spec: add phased spec for [brief description]
+- The overview records the verified root cause, scope, decisions, deferred work, phase links, and progress table.
+- Every phase has actionable paths, required tests, runnable verification, and a commit boundary.
+- The spec contains no conversation-only context, author-to-author hedges, or machine-absolute paths.
+- Every referenced existing path is tracked: check with `git ls-files` and `git check-ignore -v`.
+- Every path the implementation creates is checked against gitignore rules; include an explicit un-ignore instruction when required.
+- A fresh agent on a fresh clone can implement each phase using only committed content.
 
-Created: ${TIMESTAMP}-descriptive-name/
-Phases: N
-Status: Requires Implementation"
-```
+If normative material is untracked or ignored, either commit it to a tracked location and update the references or inline it in the spec. Do not commit a broken reference.
 
-**STOP HERE** - Your work is done. Implementation will be handled by a different agent.
-
-## Writing Quality Checklist
-
-Before committing, verify:
-
-- [ ] Timestamp formatted correctly (YYMMDD-HHMMSS)
-- [ ] Spec directory created in `${SPECS_DIR}/`
-- [ ] `README.md` contains header, problem, principles, decisions, phase summary, progress tracking
-- [ ] Each phase has its own `PN-{name}.md` file
-- [ ] Status is "Requires Implementation"
-- [ ] Investigated existing code before proposing changes
-- [ ] Problem statement is specific
-- [ ] Root cause includes technical investigation
-- [ ] Solution fixes only stated problem
-- [ ] Phase files contain actionable details with full file paths
-- [ ] Code examples properly formatted with file:line references
-- [ ] No meta-commentary or self-notes
-- [ ] Self-contained for fresh agent to implement phase by phase
-- [ ] Committed-visibility check: every path the spec references as
-      already-existing resolves within the committed tree
-      (`git ls-files` / `git check-ignore -v <path>`). If normative
-      source material is untracked or gitignored, stop and ask the
-      user: commit it to a tracked location (updating references) or
-      inline it — never reference it in place. (This is the mechanical
-      form of the Clone test in Step 4.)
-- [ ] No machine-absolute paths (`/Users/...`, `/home/...`, `$HOME`
-      literals). Use repo-relative paths or
-      `cd "$(git rev-parse --show-toplevel)"` in workflows.
-- [ ] No conversation references ("the user chose", "as discussed",
-      "ratified with the user"). Record decisions as dated facts:
-      "Ratified 2026-07-12."
-- [ ] Gitignore-trap check: `git check-ignore` every path the spec
-      instructs the implementer to CREATE; where a tracked ignore
-      pattern would swallow it, the spec must carry an explicit
-      un-ignore instruction (e.g. `!/bin/`).
-- [ ] No author-to-author hedges ("P3 author should...", "flagged for
-      sibling phases", "assumed — verify against P2"). Cross-phase
-      contracts are stated as facts in BOTH files or reconciled before
-      commit.
-
-Run through the checklist once. If the spec covers the problem, root cause, approach, and implementation details, commit it. Do not iterate.
-
-## When to Use Phased Implementation
-
-Use this pattern when:
-- Feature requires multiple independent steps that should each leave the system working
-- Architectural changes need backward compatibility preserved at each step
-- Work will span multiple sessions with clear handoff points
-- Changes touch multiple components that benefit from incremental rollout
-
-**Core principles**:
-- Each phase leaves the system in a working, deployable state
-- **Context persistence**: All context lives in the spec and codebase, never in conversation memory. Each phase can be implemented by a different agent in a separate session with no prior context.
-
-## Phased Spec Requirements
-
-Your spec must include these sections:
-
-- **Design Principles** section (5-7 guiding principles)
-- **Key Design Decisions** table (Decision | Choice | Rationale)
-- **Multiple phases** following the strict phase template:
-  - Goal, Entry/Exit state
-  - Implementation Checklist with `[ ]` items
-  - Complete Code examples (not snippets)
-  - Required Tests (complete test files)
-  - Example Workflow (verification commands)
-- **Phase Summary** table
-- **Progress Tracking** section
-
-Each phase must be:
-- **Self-contained** — Completable in one session
-- **Self-consistent** — System works after completion (tests pass)
-- **Backward compatible** — Existing functionality preserved
-- **Independently committable** — One commit per phase
-- **Test-required** — Unit tests for new code
-- **Workflow-verified** — Reproducible example to verify
-
-## Phase Design Principles
-
-Every phase must satisfy these seven properties:
-
-| Property | Description |
-|----------|-------------|
-| **Self-contained** | Completable in one agent session |
-| **Context persistence** | All context in spec/codebase; implementable by fresh agent with no prior conversation |
-| **Self-consistent** | System works after completion (tests pass, CLI functions) |
-| **Backward compatible** | Existing functionality preserved (use optional fields, default values) |
-| **Independently committable** | Clear git boundary - one commit per phase |
-| **Test-required** | Unit tests for all new code |
-| **Workflow-verified** | Reproducible example workflow to verify phase works |
-
-## Strict Phase Template (PN-{name}.md)
-
-Each phase lives in its own `PN-{name}.md` file and MUST follow this structure. Omit sections only when user explicitly requests.
-
-```markdown
-## Phase N: [Descriptive Title]
-
-**Goal:** [1-2 sentences describing what this phase accomplishes]
-
-**Entry state:** [What must be true before starting - typically "Phase N-1 complete"]
-**Exit state:** [What will be true after completion - specific, verifiable outcomes]
-
-### Implementation Checklist
-
-- [ ] [Specific task with file path if applicable]
-- [ ] [Another task]
-- [ ] Add unit tests (see Required Tests below)
-- [ ] Run `[test command]` - all tests pass
-- [ ] Run example workflow (see below)
-- [ ] Commit: `[commit message following repo conventions]`
-
-### Code
-
-[Complete implementations, not snippets. Include file paths and line context.]
-
-```python
-# path/to/file.py - ADD/MODIFY description
-
-class NewFeature:
-    """Docstring explaining purpose.
-
-    STUB STATE: [What's implemented now]
-    FUTURE: [What will use this in later phases]
-    """
-    pass
-```
-
-### Required Tests
-
-**File:** `tests/path/to/test_file.py` (NEW or UPDATE)
-
-```python
-"""Complete test file - not snippets."""
-
-import pytest
-from module import Feature
-
-class TestFeature:
-    def test_basic_case(self):
-        """Test description."""
-        assert Feature().works()
-```
-
-### Example Workflow
-
-```bash
-# Commands to verify this phase works
-uv run pytest tests/path/to/test_file.py -v
-
-# Manual verification if applicable
-uv run python -c "
-from module import Feature
-print(Feature().works())
-print('Phase N complete')
-"
-
-# Confirm existing functionality unbroken
-uv run pytest
-```
-```
-
-## Spec-Level Scaffolding (README.md)
-
-These sections go in the spec directory's `README.md`:
-
-### Header
-
-```markdown
-# [Feature Name]
-
-**Date:** YYYY-MM-DD HH:MM:SS
-**Issue:** One-line problem description
-**Priority:** High/Medium/Low
-**Status:** Requires Implementation
-
-## Problem Statement
-
-- Current state (what exists now)
-- Target state (what should exist)
-- Impact (why this matters)
-```
-
-### Design Principles
-
-List 5-7 principles guiding implementation decisions:
-
-```markdown
-## Design Principles
-
-1. **Principle name** - Brief explanation
-2. **Incremental implementation** - Each phase leaves system working
-3. **Test-driven phases** - Each phase requires tests before completion
-```
-
-### Key Design Decisions
-
-Document significant choices with rationale:
-
-```markdown
-## Key Design Decisions
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Data format | YAML over JSON | Human-readable, supports comments |
-| Interface style | Sync | Parallelism via workers, not async |
-| New field defaults | Optional with defaults | Backward compatibility |
-```
-
-### Phase Summary Table
-
-Provide overview of all phases:
-
-```markdown
-## Phase Summary
-
-| Phase | Description | Tests Required | Backward Compatible |
-|-------|-------------|----------------|---------------------|
-| 1 | Core domain models | Model creation, serialization | Yes (additive) |
-| 2 | Add source_type field | Field presence, parser updates | Yes (default empty) |
-| 3 | Entity-aware results | Optional fields, serialization | Yes (optional fields) |
-```
-
-### Progress Tracking
-
-```markdown
-## Progress Tracking
-
-When starting:
-**Status:** In Progress
-**Current Phase:** [N]
-**Started:** YYYY-MM-DD
-
-When complete:
-**Status:** Completed
-**Completed:** YYYY-MM-DD
-```
-
-### Deferred Features (Optional)
-
-Explicitly list what's out of scope:
-
-```markdown
-## Deferred Features
-
-The following are explicitly out of scope for this spec:
-1. **Feature X** - Will be addressed in separate spec
-2. **Enhancement Y** - Not needed for MVP
-```
-
-## Stub Annotations
-
-Use consistent annotations to mark incomplete code:
-
-| Annotation | Purpose | Example |
-|------------|---------|---------|
-| `STUB STATE:` | What's implemented now | `STUB STATE: Interface only, no implementation` |
-| `FUTURE:` | What will use/extend this | `FUTURE: Will be used by CLI (Phase 5)` |
-| `Limitations:` | Known constraints | `Limitations: Not thread-safe` |
-
-```python
-class Repository(ABC):
-    """Abstract repository interface.
-
-    STUB STATE: Interface only. No concrete implementation yet.
-    FUTURE: FileRepository (Phase 3), SQLite (post-MVP).
-    """
-```
-
-## Advanced Patterns
-
-### Sub-phases for Mid-Course Corrections
-
-When implementation reveals issues with the original plan, use decimal sub-phases:
-
-```markdown
-## Phase 3.8: Classification Sub-Model Refactor
-
-**Goal:** Fix architecture issue discovered during Phase 3.7 implementation.
-
-**Why sub-phase:** Design discussions during 3.7 revealed fundamental issues
-that require addressing before continuing to Phase 4.
-```
-
-### Spec Forking
-
-When architecture changes fundamentally, fork the spec rather than rewriting:
-
-```markdown
-# Feature Name v2
-
-**Date:** YYYY-MM-DD
-**Forked from:** `${SPECS_DIR}/archive/superseded/YYMMDD-original/` at Phase 3.7
-
-**Why forked:** [Brief explanation of what changed]
-
-**Completed phases (1-3.7):** Already implemented per original spec.
-This document continues from Phase 3.8.
-```
-
-Move the original to `${SPECS_DIR}/archive/superseded/`.
-
-### Migration Strategies
-
-For changes that affect existing data or APIs:
-
-```markdown
-### Migration Strategy
-
-**Phase 1 (this phase):** Add new structure with backward-compatible migration
-- Old format auto-migrates on load via model_validator
-- New saves use new format
-- Tests updated to use new format
-
-**Phase 2 (future):** Remove deprecated support
-- After all data migrated, remove legacy field handling
-- Clean up validators
-```
-
-## Tooling Integration
-
-### Task Tracking for Phases
-
-At the start of implementing a phase, track these steps including wrap-up (use your agent's task/todo facility if it has one, otherwise keep the checklist inline):
-
-```
-Track these steps:
-- Implement [feature] according to spec
-- Add unit tests for new code
-- Run full test suite
-- Update spec status to "Completed" with commit hash
-- Archive spec to ${SPECS_DIR}/archive/implemented/
-- Git add and commit all changes
-```
-
-This prevents forgetting wrap-up steps after long implementations.
-
-### Git Commit Patterns
-
-Based on repository conventions:
-
-**Spec creation (phased):**
-```bash
-git add ${SPECS_DIR}/YYMMDD-HHMMSS-name/
-git commit -m "spec: add phased spec for [brief description]
-
-Created: YYMMDD-HHMMSS-name/
-Phases: N
-Status: Requires Implementation"
-```
-
-**Spec updates:**
-```bash
-git commit -m "docs(spec): [what changed]
-
-[Details if needed]"
-```
-
-**Phase implementation:**
-```bash
-git commit -m "feat(scope): [what was implemented]
-
-Implements Phase N of ${SPECS_DIR}/YYMMDD-name.md
-
-- [Change 1]
-- [Change 2]
-- [Change 3]
-
-All tests pass."
-```
-
-**Phase completion marker:**
-```bash
-git commit -m "docs(spec): mark Phase N as implemented"
-```
-
-### Checklist Completion
-
-Update `[ ]` to `[x]` as you complete each item. This provides:
-- Visual progress tracking
-- Clear record of what was done
-- Easy identification of incomplete work
-
-## Override Guidelines
-
-When user explicitly requests deviation from this template:
-
-1. **Document the deviation** in the spec with rationale
-2. **Maintain the core principle** - each phase must leave system working
-3. **Note which sections were modified** and why
-4. **Keep phases independently committable** even if structure differs
-
-Example:
-```markdown
-> **Template Override:** Combining Code and Required Tests sections per user request.
-> Rationale: Tests are trivial and inline examples are clearer.
-```
-
-## Content Guidelines
-
-**Content principles**:
-- Write specs as final truth, not drafts
-- No meta-commentary or revision history
-- Include all context for fresh agent to start work
-- Use code examples with file paths and line numbers
-- Fix only the stated problem (no scope creep)
-
-**Code examples format**:
-```typescript
-// src/components/Example.tsx:42
-const problematic = () => { /* ... */ };
-
-// Fixed version:
-const corrected = () => { /* ... */ };
-```
-
-## Common Patterns
-
-### Reference existing code
-
-```markdown
-## Root Cause Analysis
-
-The issue occurs in `src/components/Button.tsx:87-92`:
-
-\`\`\`typescript
-// Current problematic implementation
-const handleClick = () => {
-  // Missing validation
-  processData(data);
-};
-\`\`\`
-
-Similar functionality in `src/components/Form.tsx:145` handles this correctly.
-```
-
-### Provide complete context
-
-```markdown
-## Implementation Details
-
-**Files to modify**:
-- `src/components/Button.tsx` - Add validation
-- `src/types/index.ts` - Add new type definition
-
-**Dependencies**:
-\`\`\`bash
-npm install zod
-\`\`\`
-
-**Testing**:
-\`\`\`bash
-npm run dev
-# Navigate to http://localhost:5173/test-page
-# Click button and verify validation works
-\`\`\`
-```
-
-### Break down complex changes
-
-```markdown
-## Implementation Details
-
-**Step 1: Add type definitions**
-\`\`\`typescript
-// src/types/validation.ts
-export interface ValidationRule { /* ... */ }
-\`\`\`
-
-**Step 2: Implement validation logic**
-\`\`\`typescript
-// src/utils/validator.ts:1
-export const validateInput = (/* ... */) => { /* ... */ }
-\`\`\`
-
-**Step 3: Integrate into component**
-\`\`\`typescript
-// src/components/Form.tsx:42
-import { validateInput } from '@/utils/validator';
-// Apply validation before submission
-\`\`\`
-```
-
-## Anti-patterns to Avoid
-
-**❌ Vague problem statements**:
-"The form doesn't work right"
-
-**✅ Specific problem statements**:
-"Form submission in `src/components/ContactForm.tsx:87` allows invalid email formats to pass validation, causing 400 errors from the API"
-
-**❌ Assumed missing functionality**:
-"We need to add validation because there is none"
-
-**✅ Verified gaps**:
-"Searched codebase with `grep -r 'emailValidation' src/` - validation exists in `auth/` but not in `contact/` forms"
-
-**❌ Scope creep**:
-"Fix email validation AND redesign the form UI AND add analytics"
-
-**✅ Focused solution**:
-"Add email validation to contact form using existing validation utilities from `src/auth/validators.ts`"
-
-**❌ Writing and implementing in same session**:
-Don't create spec and immediately implement it
-
-**✅ Separate sessions**:
-Write spec → commit → stop. Later: implement spec → update status → commit
-
-## Directory Structure
-
-```
-${SPECS_DIR}/
-├── {timestamp}-name.md            # Single-phase specs (flat file)
-├── {timestamp}-name/              # Phased specs (directory)
-│   ├── README.md                  #   Overview, principles, decisions, progress
-│   ├── P1-{name}.md              #   Phase 1 detail
-│   ├── P2-{name}.md              #   Phase 2 detail
-│   └── ...
-├── active/                        # In progress (Status: In Progress)
-├── archive/
-│   ├── implemented/              # Completed (Status: Completed)
-│   └── deprecated/               # Obsolete (Status: Deprecated)
-└── drafts/                       # Work-in-progress ideas
-```
-
-## Quick Reference
-
-### Writing a phased spec:
-1. Create timestamped directory in `${SPECS_DIR}/`
-2. Write `README.md` with header, problem, principles, decisions, phase summary, progress tracking
-3. Write `PN-{name}.md` files following strict phase template
-4. `git add ${SPECS_DIR}/{timestamp}-{name}/` and commit
-5. **STOP** - Don't implement
-
-## Notes
-
-- Specs are living documents until archived
-- Update specs if requirements change (add timestamped note at top)
-- Reference spec filename in commit messages
-- Self-contained specs enable any agent to implement independently
-- Timestamps ensure chronological ordering and uniqueness
+Add and commit only the spec directory using the repository's commit conventions. The commit message should identify the phased spec and its status. Stop immediately after the commit; implementation belongs to a separate task.
