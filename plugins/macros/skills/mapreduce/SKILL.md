@@ -1,7 +1,6 @@
 ---
 name: mapreduce
 description: Split a task into parallel chunks, dispatch subagents, and consolidate results
-argument-hint: "<task>"
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -36,7 +35,7 @@ Your job is to:
    > 2. Use the default `.agent-workspace/macros`
    >
    > I'll create `.agents/skill-configs/macros/config.yaml` with your choice.
-   > (See `config.example.yaml` in the macros plugin for reference.)"
+   > (See `config.example.yaml` next to this `SKILL.md` for reference.)"
    Wait for the user's response, then create the config file before continuing.
 4. Set `${WORKSPACE_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
 
@@ -125,7 +124,7 @@ Write a brief plan to the user explaining your chunking strategy before proceedi
 
 ### Step 4: Dispatch MAP subagents (parallel)
 
-Launch all chunk subagents **in a single message** using multiple Agent tool calls so they run in parallel.
+Launch all chunk subagents concurrently. Batch the dispatch when the host supports it; otherwise use the host's available concurrency mechanism.
 
 Each subagent prompt MUST include:
 
@@ -153,7 +152,7 @@ The report must include:
 
 5. **Boundary constraints** — what NOT to touch (other chunks' territory)
 
-**IMPORTANT**: All subagents MUST be launched in a single message so they execute in parallel. Do NOT launch them sequentially.
+**IMPORTANT**: All subagents MUST run concurrently. Do NOT launch them sequentially.
 
 ### Step 5: Wait for all MAP subagents to complete
 
@@ -256,7 +255,7 @@ If the consolidated report is missing or the reducer failed: tell the user the r
 
 ## Anti-patterns to Avoid
 
-**Avoid sequential dispatch**: All map subagents MUST be launched in parallel in a single message. Launching them one-by-one defeats the purpose.
+**Avoid sequential dispatch**: All map subagents MUST run concurrently. Launching them one-by-one defeats the purpose.
 
 **Avoid overlapping chunks**: If two subagents modify the same file, the last one to finish wins and the other's work is lost. Plan chunks to avoid file conflicts.
 

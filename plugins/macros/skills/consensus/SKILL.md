@@ -1,7 +1,6 @@
 ---
 name: consensus
 description: Run N blind agents on the same job in parallel, then merge findings into consensus/unique/conflicts. Agents report only — no edits for concurrent safety.
-argument-hint: "<count>"
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -28,7 +27,7 @@ The job itself comes from the conversation context or from a composed skill.
 
 Identify what the agents should work on:
 
-1. If another skill is active in this request (for example, `skill(macros:doubt)`), that skill defines the job and prompt template.
+1. If another skill is active in this request (for example, `macros:doubt`), that skill defines the job and prompt template.
 2. Otherwise, use the most recent substantive task or request in the conversation.
 3. If no job can be determined, STOP and tell the user: "No job found. Activate a task-defining skill with the consensus skill, or provide context first."
 
@@ -38,13 +37,13 @@ Identify what the agents should work on:
 
    ```
    You are one of ${N} independent agents reviewing the same work.
-   Report your findings but do NOT apply fixes via the Edit tool.
+   Report your findings but do NOT apply fixes.
    List what you would fix and how. Do not modify any files.
    ```
 
    The no-edits constraint is non-negotiable. Parallel agents writing to the same files will produce conflicts and lost work.
 
-2. Launch all N agents **in a single message** (parallel tool calls). Each gets the identical prompt. They are blind to each other.
+2. Launch all N agents concurrently, batching the dispatch if the host supports it. Each gets the identical prompt. They are blind to each other.
 
 3. After all agents return, **merge** their findings:
    - **Consensus** — issues flagged by 2+ agents. Lead with these.

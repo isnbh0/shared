@@ -2,9 +2,9 @@
 
 ## Composable, First-Class Skills
 
-Each skill in the macros plugin describes one concern. Skills are not typed as "base" vs "modifier" — they are all equally first-class instructions. When multiple skills are active together (for example, `skill(macros:doubt)` and `skill(macros:consensus)`), the agent reads all of the corresponding skill files and synthesizes what to do.
+Each skill in the macros plugin describes one concern. Skills are not typed as "base" vs "modifier" — they are all equally first-class instructions. When multiple skills are active together (for example, `macros:doubt` and `macros:consensus`), the agent reads all of the corresponding skill files and synthesizes what to do.
 
-`skill(plugin:name)` is repository documentation notation for a bundled skill identity; `skill(name)` identifies a standalone skill. These forms are references, never literal user-facing invocation syntax. Host-specific activation syntax belongs in `docs/cross-platform/`.
+Bundled skills are identified by their qualified names, such as `macros:doubt`; standalone skills use their unqualified names. Host-specific activation syntax belongs in `docs/cross-platform/`.
 
 ### Design Principles
 

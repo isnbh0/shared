@@ -35,10 +35,10 @@ Read <skill-root>/interview/SKILL.md and follow it.
 Topic: $ARGS
 ```
 
-For `spex-write`:
+For the Spex `write` skill:
 
 ```text
-Read <skill-root>/spex-write/SKILL.md and follow it.
+Read <skill-root>/write/SKILL.md and follow it.
 Args: $ARGS
 ```
 

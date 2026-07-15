@@ -1,8 +1,8 @@
 ---
 name: codex
 description: Runs OpenAI Codex CLI to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "codex critique".
-argument-hint: "[file-path] [focus] [--model <model>]"
 disable-model-invocation: true
+compatibility: Requires the Codex CLI and a POSIX-compatible shell for the documented invocation.
 ---
 
 # Codex Critique
@@ -11,7 +11,7 @@ Run OpenAI's Codex CLI to get an independent critique of a file (spec, code, etc
 
 ## Pre-flight
 
-Verify codex is available: !`which codex`
+Run `command -v codex` (or the platform equivalent) to verify that Codex is available.
 
 If codex is not found, tell the user to install and authenticate (`codex login`).
 
@@ -67,7 +67,7 @@ The user can request higher reasoning effort by saying things like "xhigh", "hig
 
 1. **Determine what to critique** — use one of these strategies, in priority order:
    - If the user provided a file path, use it
-   - If the user mentions a file by name or path (e.g., `@games/foo/bar.js`), use that
+   - If the user mentions a file by name or path (e.g., `games/foo/bar.js`), use that
    - If changes were made during the current conversation (specs written, code edited, etc.), critique those — use `git diff` against the state before the conversation's changes to identify the affected files and pass them to codex
    - If the user says something like "critique this" or "get a second opinion", look at the most recent substantive work product in the conversation
    - If nothing can be inferred, ask the user what to critique

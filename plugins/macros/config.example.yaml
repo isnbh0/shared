@@ -2,6 +2,6 @@
 # Copy this file to .agents/skill-configs/macros/config.yaml (project scope)
 # or .agents/skill-configs/macros/config.local.yaml (local/personal scope)
 
-# Directory where mapreduce reports and intermediate artifacts are stored
+# Directory where macros reports and intermediate artifacts are stored
 # Relative paths are resolved from the current working directory
 workspace_dir: .agent-workspace/macros

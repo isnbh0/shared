@@ -29,7 +29,7 @@ Implement according to the spec. Do not write new specs in this session.
    >
    > I'll create `.agents/skill-configs/spex/config.yaml` with your choice.
    > (If you use the local scope, add `.agents/skill-configs/spex/config.local.yaml` to .gitignore.)
-   > (See `config.example.yaml` in the spex plugin for reference.)"
+   > (See `config.example.yaml` beside this skill for reference.)"
    Wait for the user's response, then create the config file before continuing.
 4. Set `${SPECS_DIR}` to the resolved `workspace_dir`. All paths below use this variable.
 

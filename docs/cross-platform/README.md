@@ -6,32 +6,31 @@ These skills use the Agent Skills **SKILL.md** format: a directory containing a 
 
 This table is the only place in this repository that should list third-party install roots. Other docs should link here or use `<skill-root>`. Verify the target tool's current docs before turning these rows into automation.
 
-| Tool | Skill Root / Status | Notes |
-|------|---------------------|-------|
-| [Codex CLI](codex-cli.md) | `.agents/skills/<name>/` | Agent Skills support |
-| [Gemini CLI](gemini-cli.md) | `.agents/skills/<name>/`, `.gemini/skills/<name>/`, or extension-local `skills/<name>/` | Agent Skills support |
-| [Amp](amp.md) | `.agents/skills/<name>/`; user roots include `~/.config/agents/skills/`, `~/.agents/skills/`, and `~/.config/amp/skills/` | Agent Skills support |
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) | `.claude/skills/<name>/` or marketplace plugin | Marketplace packages use `.claude-plugin/` metadata |
-| [Cursor](cursor.md) | `.cursor/skills/<name>/`; Cursor docs also mention `.agents/skills/<name>/` | Agent Skills support |
-| [Antigravity](antigravity.md) | Not confirmed here | Verify current Antigravity docs or UI before installing |
+| Tool | Project roots | User roots | Other packaging |
+|------|---------------|------------|-----------------|
+| [Codex CLI](codex-cli.md) | `.agents/skills/<name>/` | `~/.agents/skills/<name>/` | — |
+| [Gemini CLI](gemini-cli.md) | `.agents/skills/<name>/`, `.gemini/skills/<name>/` | `~/.agents/skills/<name>/`, `~/.gemini/skills/<name>/` | Extension-local `skills/<name>/` |
+| [Amp](amp.md) | `.agents/skills/<name>/` | `~/.config/agents/skills/<name>/`, `~/.agents/skills/<name>/`, `~/.config/amp/skills/<name>/` | — |
+| [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) | `.claude/skills/<name>/` | See current Claude Code documentation | Marketplace plugins use `.claude-plugin/` metadata |
+| [Cursor](cursor.md) | `.cursor/skills/<name>/`, `.agents/skills/<name>/` | See current Cursor documentation | Cursor plugins use their own packaging |
+| [Antigravity](antigravity.md) | `.agents/skills/<name>/` | `~/.gemini/config/skills/<name>/` | — |
 
 ## What Works Everywhere
 
 - **SKILL.md content** - Instructions, methodology, templates, and supporting files are portable.
 - **YAML frontmatter** - `name` and `description` are the key fields agents use for discovery.
 - **Workspace output** - The `.agent-workspace/` convention is a filesystem convention, not tied to one agent.
-- **Configuration** - `.agents/skill-configs/` keeps project/user config independent from any one host.
 
-## Canonical Skill References
+## Skill Names and Host Selectors
 
-Repository documentation uses `skill(plugin:name)` for a skill bundled in a plugin and `skill(name)` for a standalone skill. These are unambiguous identifiers, not literal commands or prompt syntax.
+Shared documentation uses plain skill names. Developer-facing inventories may use `plugin:name` to disambiguate a bundled skill, but that identifier is not a command.
 
 | Installation | Claude Code | Codex | Other hosts |
 |--------------|-------------|-------|-------------|
 | Plugin | `/plugin:name` | `$plugin:name` | Use the host's documented selector |
 | Direct skill | `/name` | `$name` | Use the host's documented selector or mention the skill by name |
 
-Keep provider sigils in host-specific guidance like this table. In portable skill instructions, refer to `skill(macros:doubt)` or say “the doubt skill”; never teach a host-specific invocation.
+Keep provider sigils in host-specific guidance like this table. In portable skill instructions, say “the doubt skill”; never teach a host-specific invocation.
 
 ## What Needs Adaptation
 
@@ -50,7 +49,7 @@ Resolve `<skill-root>` from the compatibility table or the target host's current
 
 ### Invocation
 
-Activation belongs to the host. Use the canonical reference in shared documentation, then translate it with the table above. Hosts may also support semantic triggering, command files, or UI activation:
+Activation belongs to the host. Shared documentation names the skill; host-specific documentation may show the corresponding selector. Hosts may also support semantic triggering, command files, or UI activation:
 
 > "Interview me about a career change"
 
@@ -58,7 +57,7 @@ The portable part is the skill name, frontmatter description, and `SKILL.md` ins
 
 ### Configuration Paths
 
-Skills read layered configuration from an agent-neutral location:
+Skills read layered configuration using this repository's provider-neutral convention. These paths are not defined by the Agent Skills standard:
 
 | Config Path | Scope |
 |-------------|-------|
@@ -71,7 +70,7 @@ Most file-producing project skills read project-local config. Cross-project skil
 
 ### Spex Sub-Skills
 
-The spex plugin includes `skill(spex:write)`, `skill(spex:write-phased)`, and `skill(spex:implement)`. Translate those references through the host table above, install the specific skill directory, or ask by description:
+The spex plugin includes the `write`, `write-phased`, and `implement` skills. Install the specific skill directory or ask by description:
 
 > "Write a spec for the auth system"
 > "Implement the spec at .agent-workspace/specs/260310-auth-system/SPEC.md"
@@ -84,18 +83,4 @@ The spex plugin includes `skill(spex:write)`, `skill(spex:write-phased)`, and `s
 - [Amp](amp.md)
 - [Cursor](cursor.md)
 
-> **Maintenance note:** Keep provider-specific install roots in the compatibility table above. Use `<skill-root>` everywhere else unless a provider-specific page is explicitly documenting an exception.
-
-## Available Skills
-
-| Skill | Type | Description |
-|-------|------|-------------|
-| interview | Interactive | Structured discovery interviews for any topic |
-| spex | Interactive | Two-phase specification -> implementation workflow |
-| report-writer | Interactive | Timestamped technical analysis reports |
-| rigorous-debug | Interactive | Scientific hypothesis-driven debugging |
-| skill-writer | Interactive | Guidance for creating SKILL.md files |
-| critique | Interactive | External AI critique via Codex or Gemini CLI |
-| macros | Interactive | Subagent orchestration: map-reduce and research-backed critique |
-| promptopt | Interactive | Artifact-backed prompt optimization against user-owned cases |
-| phaser | Passive | Phaser 3 game development knowledgebase (18 files) |
+> **Maintenance note:** Keep provider-specific install roots in the compatibility table above. Use `<skill-root>` everywhere else unless a provider-specific page is explicitly documenting an exception. The repository's skill inventory lives in the root README and `llms.txt`, not here.

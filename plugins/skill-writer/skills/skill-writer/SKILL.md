@@ -1,5 +1,5 @@
 ---
-name: Skill Writing
+name: skill-writer
 description: Creates effective SKILL.md agent skills following best practices. Use when the user asks to create a skill, write a SKILL.md, or needs help authoring agent instructions.
 ---
 
@@ -11,11 +11,11 @@ Every skill needs a `SKILL.md` file with YAML frontmatter and markdown body:
 
 ```markdown
 ---
-name: Task Name (gerund form preferred)
+name: task-name
 description: What it does and when to use it (third person, specific)
 ---
 
-# Task Name
+# Task Name (display heading may use title case)
 
 [Concise instructions here]
 ```
@@ -155,7 +155,9 @@ ALWAYS use this exact structure:
 
 ## Quick Reference
 
-**Naming**: Use gerund form ("Processing PDFs", "Analyzing Data")
+**Frontmatter name**: Use the lowercase hyphenated directory slug (`processing-pdfs`, `analyzing-data`).
+
+**Display heading**: Use natural title case and gerund wording when helpful (`# Processing PDFs`).
 
 **Description**: Third person, specific, includes when to use
 

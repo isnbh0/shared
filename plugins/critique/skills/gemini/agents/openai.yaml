@@ -1,0 +1,5 @@
+interface:
+  display_name: "Gemini Critique"
+  short_description: "Get an independent review from Gemini CLI"
+policy:
+  allow_implicit_invocation: false

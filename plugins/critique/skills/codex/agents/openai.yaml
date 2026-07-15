@@ -1,0 +1,5 @@
+interface:
+  display_name: "Codex Critique"
+  short_description: "Get an independent review from Codex CLI"
+policy:
+  allow_implicit_invocation: false

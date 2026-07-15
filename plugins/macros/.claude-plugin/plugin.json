@@ -1,6 +1,6 @@
 {
   "name": "macros",
-  "description": "Subagent orchestration workflows, session modes, and command shorthands: map-reduce, chunked (sequence a task as ordered parts that add up to the whole), research-backed critique, consensus review, sequential passes, rigor mode, orchestrate (session-long delegate-by-default mode), askme, delegate, tmi, dry-run, timeless, dredge (search prior chats), timestamp (prefix new files/folders with a date-CLI stamp), and new (scaffold a custom macro)",
-  "version": "4.3.1",
+  "description": "Subagent orchestration workflows, active modes, and command shorthands: map-reduce, chunked (sequence a task as ordered parts that add up to the whole), research-backed critique, consensus review, sequential passes, rigor mode, orchestrate (delegate-by-default mode), askme, delegate, tmi, dry-run, timeless, dredge (search prior chats), timestamp (prefix new files/folders with a date-CLI stamp), and new (scaffold a custom macro)",
+  "version": "4.3.2",
   "author": { "name": "isnbh0" }
 }

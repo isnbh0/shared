@@ -1,19 +1,16 @@
-# Example: Initialized Protocol for Web/UI Project
+# Example: Project Profile for a Web/UI Project
 
-This file shows what `SKILL.md` looks like after initialization for a **React + TypeScript + Tailwind** web application project.
+This file shows the project-specific values to store in `.agents/skill-configs/rigorous-debug/config.yaml` for a **React + TypeScript + Tailwind** web application project. The installed `SKILL.md` remains unchanged.
 
 **Purpose**: Use this as a reference when initializing the protocol for your own project.
 
 ---
 
-## Status Section (Updated)
+## Profile Metadata
 
 ```markdown
-## 🚨 INITIALIZATION REQUIRED 🚨
-
-**CURRENT STATUS**: ✅ **INITIALIZED on 2025-01-15**
-
-This protocol has been customized for: **React/TypeScript Web Application**
+initialized_on: 2025-01-15
+domain: React/TypeScript Web Application
 ```
 
 ---

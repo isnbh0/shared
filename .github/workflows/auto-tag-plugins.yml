@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "plugins/interview/.claude-plugin/plugin.json"
-      - "plugins/zoomdoc/.claude-plugin/plugin.json"
+      - ".claude-plugin/marketplace.json"
+      - "plugins/*/.claude-plugin/plugin.json"
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for name in interview zoomdoc; do
+          while IFS= read -r name; do
             file="plugins/${name}/.claude-plugin/plugin.json"
             [ -f "$file" ] || { echo "::warning::missing $file, skipping ${name}"; continue; }
 
@@ -49,4 +49,4 @@ jobs:
               -f plugin_name="$name" \
               -f version="$version"
             echo "::notice::dispatched release-plugin.yml for ${tag}"
-          done
+          done < <(jq -r '.plugins[].name' .claude-plugin/marketplace.json)

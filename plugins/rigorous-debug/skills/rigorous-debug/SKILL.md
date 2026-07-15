@@ -1,145 +1,25 @@
 ---
-name: Rigorous Scientific Debugging
-description: Evidence-based debugging protocol using the scientific method. REQUIRES ONE-TIME INITIALIZATION before use. Use when standard debugging has failed and maximum rigor is needed.
+name: rigorous-debug
+description: Evidence-based debugging protocol using the scientific method. Requires one-time project initialization before use. Use when standard debugging has failed and maximum rigor is needed.
 ---
 
 # Rigorous Scientific Debugging Protocol
 
 ---
 
-## 🚨 INITIALIZATION REQUIRED 🚨
+## Project Profile
 
-**CURRENT STATUS**: ⚠️ **UNINITIALIZED**
+Keep this installed skill immutable. Project-specific initialization belongs in one of these project-owned files, first match winning:
 
-**⚠️ CRITICAL INSTRUCTION FOR AGENTS ⚠️**
+1. `.agents/skill-configs/rigorous-debug/config.local.yaml` — personal/local, gitignored
+2. `.agents/skill-configs/rigorous-debug/config.yaml` — project-wide, committed
+3. Legacy fallback: `.claude/skill-configs/rigorous-debug/config.local.yaml`, then `config.yaml`
 
-This skill is a **FRAMEWORK TEMPLATE** that MUST be customized to your project before use.
+If a profile exists only at a legacy path, use it and offer to move it. See `config.example.yaml` beside this skill for all fields.
 
-**When you invoke this skill, you MUST:**
+If no profile exists, stop before debugging and ask whether the user wants to initialize one. If they agree, gather the project's domain, languages/frameworks, concrete definition of correctness, available measurement tools, preferred measurement method, measurable success criteria, and one representative bug. Write the answers to `.agents/skill-configs/rigorous-debug/config.yaml` (or `config.local.yaml` when the user wants personal settings), review them with the user, then begin debugging. Never edit or commit the installed `SKILL.md`.
 
-1. **STOP IMMEDIATELY** - Do NOT proceed with debugging
-2. **CHECK STATUS** above - If "UNINITIALIZED", continue to step 3
-3. **INFORM USER**: "This rigorous debugging protocol requires one-time project-specific initialization. This will take 5-10 minutes but creates a permanent debugging framework for this codebase. Shall we initialize it now?"
-4. **IF USER AGREES**: Follow the "Initialization Dialogue" section below
-5. **CUSTOMIZE** this file with project-specific details (replace all `[TO BE FILLED]` sections)
-6. **UPDATE STATUS** above to: `✅ INITIALIZED on [YYYY-MM-DD]`
-7. **COMMIT** the initialized file to version control
-8. **THEN** you may use the protocol for debugging
-
-**DO NOT:**
-- ❌ Use generic placeholders or assumptions
-- ❌ Skip initialization and apply protocol anyway
-- ❌ Make up domain-specific tools or metrics
-- ❌ Proceed without explicit user input
-
-**WHY THIS MATTERS:**
-The power of this protocol comes from using **actual measurement tools** and **real success metrics** from **your specific project**. Generic debugging advice is useless compared to a properly initialized protocol.
-
----
-
-## Initialization Dialogue
-
-**Agent: Use the AskUserQuestion tool to gather this information, then customize this file.**
-
-### Step 1: Domain Identification
-
-**Questions to ask user:**
-1. What is the primary domain of this project?
-   - Web/UI (React, Vue, Angular, etc.)
-   - Backend/API (REST, GraphQL, microservices)
-   - Data Processing (ETL, analytics, ML pipelines)
-   - Performance Optimization (latency, throughput, resource usage)
-   - Algorithms/Logic (computational correctness)
-   - Mobile (iOS, Android, React Native)
-   - Desktop (Electron, native apps)
-   - Other: [specify]
-
-2. What languages and frameworks are core to this project?
-
-3. In this codebase, what does "working correctly" concretely mean?
-   - Example: "The UI matches design specs pixel-perfect"
-   - Example: "API responses return within 200ms at p95"
-   - Example: "Data transformations preserve statistical properties"
-
-**Fill in below after user responds:**
-
-```
-PRIMARY DOMAIN: [TO BE FILLED]
-LANGUAGES/FRAMEWORKS: [TO BE FILLED]
-SUCCESS DEFINITION: [TO BE FILLED]
-```
-
-### Step 2: Measurement Tools
-
-**Questions to ask user:**
-
-What tools are available in this project for **objective measurement**?
-
-For each domain, suggest relevant tools and ask which apply:
-
-- **Web/UI**: Playwright? Selenium? Cypress? Browser DevTools? Lighthouse? Visual regression tools?
-- **Backend/API**: Logging system? APM tools? Request tracing? Profilers? Load testing tools?
-- **Data**: Unit test frameworks? Statistical validation? Data quality tools? Sample comparison?
-- **Performance**: Profilers? Flamegraphs? Benchmarking harnesses? Resource monitors?
-- **Mobile**: XCTest? Espresso? Detox? Performance monitors?
-
-**Fill in below after user responds:**
-
-```
-AVAILABLE MEASUREMENT TOOLS:
-[TO BE FILLED - list actual tools installed/available]
-
-PREFERRED MEASUREMENT APPROACH:
-[TO BE FILLED - primary method for verification]
-```
-
-### Step 3: Success Metrics
-
-**Questions to ask user:**
-
-What are the **measurable outcomes** relevant to bugs in this project?
-
-Examples by domain:
-- **Web/UI**: Pixel dimensions, element positions, render times, accessibility scores, visual diffs
-- **Backend/API**: Response times, error rates, throughput, resource consumption, correctness assertions
-- **Data**: Accuracy metrics, completeness checks, statistical significance, data integrity constraints
-- **Performance**: Latency percentiles, memory usage, CPU utilization, cache hit rates
-
-**Ask user:** "What metrics would you measure to verify a fix actually works in this codebase?"
-
-**Fill in below after user responds:**
-
-```
-PRIMARY METRICS:
-[TO BE FILLED - specific measurable outcomes]
-
-EXAMPLE MEASUREMENTS:
-[TO BE FILLED - e.g., "Button height: 44px", "API p95 latency: 180ms"]
-```
-
-### Step 4: Example Bug
-
-**Questions to ask user:**
-
-"Describe a real bug that has occurred (or could occur) in this project. This will become the concrete example in the protocol."
-
-**Get from user:**
-- Brief description of the bug
-- What was observed vs. expected
-- How it would be measured/verified
-- What tool would be used to verify the fix
-
-**Fill in the "Project-Specific Example" section below with this information.**
-
-### Step 5: Finalization
-
-After gathering all information:
-
-1. **Replace all `[TO BE FILLED]` sections** in this file with actual project data
-2. **Update status** at the top to `✅ INITIALIZED on [date]`
-3. **Create project-specific example** in the designated section
-4. **Review with user** to confirm accuracy
-5. **Commit the initialized protocol** to version control
+Do not invent project tools, metrics, or placeholder values. Initialization matters because this protocol depends on objective measurements from the actual project.
 
 ---
 
@@ -187,14 +67,14 @@ Get exact measurements, not descriptions.
 - Document baseline state with exact values
 - Create reproducible test case
 
-**Project-specific approach:**
+**Project-specific approach (load from the resolved profile):**
 
 ```
-DOMAIN: [TO BE FILLED after initialization]
+DOMAIN: [profile `domain`]
 
-MEASUREMENT TOOLS: [TO BE FILLED - your actual tools]
+MEASUREMENT TOOLS: [profile `measurement_tools`]
 
-QUANTIFICATION METHOD: [TO BE FILLED - how to get measurements]
+QUANTIFICATION METHOD: [profile `preferred_measurement_method`]
 Example: "Run Playwright script to capture computed styles"
 Example: "Enable debug logging and measure response times"
 Example: "Run data validation suite and capture error counts"
@@ -212,7 +92,7 @@ Define exactly what "fixed" means.
 **Project-specific criteria:**
 
 ```
-SUCCESS METRICS: [TO BE FILLED after initialization]
+SUCCESS METRICS: [profile `success_metrics`]
 
 Example format:
 - Metric 1: [specific target value]
@@ -234,7 +114,7 @@ Understand the complete relevant system.
 **Project-specific mapping:**
 
 ```
-MAPPING APPROACH: [TO BE FILLED after initialization]
+MAPPING APPROACH: [derive from the profile's domain and actual project architecture]
 
 For web/UI: "Trace DOM hierarchy and CSS cascade"
 For backend: "Trace request flow through services"
@@ -292,10 +172,10 @@ Use consistent, objective measurement.
 **Project-specific measurement approach:**
 
 ```
-MEASUREMENT TOOL: [TO BE FILLED after initialization]
+MEASUREMENT TOOL: [profile `measurement_tools`]
 
 MEASUREMENT PROCEDURE:
-[TO BE FILLED - exact steps to get measurements]
+[use the profile's preferred method and repository-defined commands]
 
 Example for web:
 1. Start dev server: npm run dev
@@ -360,7 +240,7 @@ Confirm fix through multiple methods.
 **Project-specific verification:**
 
 ```
-VERIFICATION CHECKLIST: [TO BE FILLED after initialization]
+VERIFICATION CHECKLIST: [derive from profile `success_metrics`]
 
 Example for web:
 - [ ] Hard refresh browser (Cmd+Shift+R)
@@ -434,67 +314,7 @@ If you catch yourself thinking these thoughts, **STOP**:
 
 ## Project-Specific Customization
 
-**These sections are FILLED IN during initialization.**
-
-### Domain Configuration
-
-```
-PRIMARY DOMAIN: [TO BE FILLED]
-
-LANGUAGES/FRAMEWORKS: [TO BE FILLED]
-
-CODEBASE DEFINITION OF "CORRECT": [TO BE FILLED]
-```
-
-### Measurement Tools
-
-```
-AVAILABLE TOOLS: [TO BE FILLED]
-
-PRIMARY MEASUREMENT METHOD: [TO BE FILLED]
-
-TOOL USAGE INSTRUCTIONS:
-[TO BE FILLED - exact commands to run measurements]
-```
-
-### Success Metrics
-
-```
-PROJECT-SPECIFIC METRICS: [TO BE FILLED]
-
-TYPICAL MEASUREMENT VALUES:
-[TO BE FILLED - examples of what measurements look like]
-```
-
-### Project-Specific Example
-
-**This section demonstrates the protocol using a REAL bug from this codebase.**
-
-```
-[TO BE FILLED during initialization - work with user to create concrete example]
-
-Example structure:
-
-## Example: [Bug Description]
-
-HYPOTHESIS: [Specific hypothesis about this bug]
-
-PREDICTION: [What measurements will show if hypothesis is correct]
-
-TESTING: [Exact change made - file:line]
-
-MEASUREMENT BEFORE:
-- [Project-specific metric 1]: [value]
-- [Project-specific metric 2]: [value]
-
-MEASUREMENT AFTER:
-- [Project-specific metric 1]: [value]
-- [Project-specific metric 2]: [value]
-
-RESULT: [Comparison showing hypothesis was supported/rejected]
-
-CONCLUSION: [Evidence-based conclusion]
-```
+Load the resolved project profile before applying this protocol. Use its definition of correctness, available tools, measurement method, success metrics, and representative example instead of generic assumptions.
 
 ---
 
@@ -588,4 +408,4 @@ Choose wisely when to apply it.
 
 See also:
 - [DOMAIN-EXAMPLES.md](DOMAIN-EXAMPLES.md) - Example applications across different domains
-- [TEMPLATE-INITIALIZED.md](TEMPLATE-INITIALIZED.md) - Example of fully initialized protocol
+- [TEMPLATE-INITIALIZED.md](TEMPLATE-INITIALIZED.md) - Example project profile and protocol application

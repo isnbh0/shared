@@ -1,0 +1,3 @@
+# Copy to .agents/skill-configs/spex/config.yaml (project scope)
+# or .agents/skill-configs/spex/config.local.yaml (local/personal scope).
+workspace_dir: .agent-workspace/specs

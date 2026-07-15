@@ -1,7 +1,6 @@
 ---
 name: seq
 description: Run N serial blind passes on the same job with commits between. Each pass works on the current code state with fresh eyes. Requires a clean worktree.
-argument-hint: "<count>"
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -43,7 +42,7 @@ Do not attempt to filter or work around dirty files.
 
 Identify what the agents should work on:
 
-1. If another skill is active in this request (for example, `skill(macros:doubt)`), that skill defines the job and prompt template.
+1. If another skill is active in this request (for example, `macros:doubt`), that skill defines the job and prompt template.
 2. Otherwise, use the most recent substantive task or request in the conversation.
 3. If no job can be determined, STOP and tell the user: "No job found. Activate a task-defining skill with the seq skill, or provide context first."
 

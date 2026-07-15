@@ -3,8 +3,7 @@ name: Release plugin
 on:
   push:
     tags:
-      - "interview-v*"
-      - "zoomdoc-v*"
+      - "*-v*"
   workflow_dispatch:
     inputs:
       plugin_name:

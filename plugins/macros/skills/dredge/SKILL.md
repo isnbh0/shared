@@ -1,7 +1,6 @@
 ---
 name: dredge
 description: Search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context. Use when the user explicitly activates this skill or asks to recall or dig up something from past chats.
-argument-hint: "[\"freeform query\"]"
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -24,7 +23,7 @@ Each coding agent keeps its own transcript store.
 
 ## Argument handling
 
-- **With a query** — use the text supplied with `skill(macros:dredge)` as the search focus.
+- **With a query** — use the text supplied with `macros:dredge` as the search focus.
 - **No query** — infer the topic from the current conversation.
 
 ## Scope

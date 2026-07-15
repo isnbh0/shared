@@ -1,7 +1,6 @@
 ---
 name: doubt
 description: Spawns an independent subagent to critique recent work with web research. Use when the user wants a second opinion, says "doubt this", or wants to verify code against docs.
-argument-hint: "[\"freeform question\"]"
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -53,8 +52,8 @@ ${SCOPE}
 
 1. Read the diff and each touched file in full. Understand what the code does and why.
 2. Identify concerns: correctness bugs, logic errors, edge cases, security issues, robustness gaps, API misuse, missing error handling at system boundaries.
-3. Research: use WebSearch and WebFetch to verify assumptions. Check library docs, API references, known gotchas, and version-specific behavior. Cite your sources with URLs.
-4. Fix: for each concern, apply the fix directly using the Edit tool. Own your suggestions — don't just describe, do.
+3. Research: search the web to verify assumptions. Check library docs, API references, known gotchas, and version-specific behavior. Cite your sources with URLs.
+4. Fix: for each concern, apply the fix directly. Own your suggestions — don't just describe, do.
 5. Report: list what you found and fixed (or would fix), ranked by severity. For anything you flagged but chose not to fix, explain why.
 
 ## What NOT to do
@@ -82,8 +81,8 @@ ${SCOPE}
 ## Instructions
 
 1. Read relevant code in the project for context.
-2. Research the question using WebSearch and WebFetch. Find authoritative sources.
-3. If the research reveals issues in the code, fix them using the Edit tool.
+2. Research the question on the web. Find authoritative sources.
+3. If the research reveals issues in the code, fix them.
 4. Answer the question with evidence. Cite sources with URLs.
 
 ## Output format
@@ -93,10 +92,10 @@ Direct answer first, then supporting evidence as a bullet list with citations.
 ## Execution
 
 1. Resolve scope.
-2. Launch one subagent with the Agent tool using the appropriate prompt template.
+2. Launch one subagent using the appropriate prompt template.
 3. Present the agent's findings to the user as a terse, severity-ranked bullet list.
 
 ## Notes
 
 - Permission control (whether agents can edit files or access the web) is handled by the host agent/tooling. This skill assumes full access.
-- If WebSearch/WebFetch are unavailable, agents still produce useful critique — just without external verification.
+- If web access is unavailable, agents still produce useful critique — just without external verification.

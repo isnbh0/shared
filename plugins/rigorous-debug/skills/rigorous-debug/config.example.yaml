@@ -1,0 +1,19 @@
+# Copy to .agents/skill-configs/rigorous-debug/config.yaml (project scope)
+# or config.local.yaml (personal/local scope).
+initialized_on: YYYY-MM-DD
+domain: backend-api
+languages_frameworks:
+  - Python
+  - FastAPI
+success_definition: Responses satisfy the API contract and the measured p95 latency target.
+measurement_tools:
+  - pytest
+  - project benchmark command
+preferred_measurement_method: Reproduce with a focused test, then run the project test suite.
+success_metrics:
+  - focused reproduction passes
+  - full test suite has no regressions
+representative_bug:
+  observed: Describe a real failure.
+  expected: Describe the measurable expected result.
+  verification: Give the exact tool or command used to verify the fix.

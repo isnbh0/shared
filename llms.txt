@@ -14,7 +14,7 @@ Use this for agents that read `SKILL.md` skills from the filesystem. Resolve `<i
 
 ```bash
 # Clone the repository if needed
-git clone git@github.com:isnbh0/shared.git ~/shared
+git clone https://github.com/isnbh0/shared.git ~/shared
 
 # Copy one skill into the target agent's skills directory
 mkdir -p <install-root>
@@ -37,7 +37,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install zoomdoc@isnbh0
 ```
 
-Only the eight plugins above are published to the Claude Code marketplace. The `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the eight plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -59,90 +59,90 @@ Use the same resolved `<install-root>` as Option A.
 
 ## Available Skills
 
-References in this file use `skill(plugin:name)` for bundled skills and `skill(name)` for standalone skills. These are canonical identifiers, not commands. Translate them using `docs/cross-platform/README.md`; do not copy a host's activation sigil into portable skill instructions.
+Entries use plain skill names and exact source paths. Do not copy a host's activation sigil into portable skill instructions.
 
 ### Published as Claude Code marketplace plugins
 
 ### interview
 Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
 
-Reference: `skill(interview:interview)` with a topic and optional reference path.
+Source: `plugins/interview/skills/interview/`. Inputs: topic and optional reference path.
 
 ### spex
 Two-phase specification and implementation workflow that separates planning from execution. Write specs, get them reviewed, then implement against them.
 
-References: `skill(spex:write)`, `skill(spex:write-phased)`, `skill(spex:implement)`.
+Sources: `plugins/spex/skills/write/`, `plugins/spex/skills/write-phased/`, and `plugins/spex/skills/implement/`.
 
 ### critique
 External AI critique via CLI tools (Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using sandboxed execution.
 
-References: `skill(critique:codex)` and `skill(critique:gemini)`, each with an optional file path and focus.
+Sources: `plugins/critique/skills/codex/` and `plugins/critique/skills/gemini/`, each with an optional file path and focus.
 
 ### macros
-Subagent orchestration workflows and session modes. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for session-level correctness enforcement.
+Subagent orchestration workflows and behavior modifiers. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for correctness enforcement while active.
 
-Canonical references:
-- `skill(macros:mapreduce)` with a task - split tasks into chunks, dispatch parallel subagents, consolidate results
-- `skill(macros:chunked)` with a task - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
-- `skill(macros:doubt)` with an optional freeform question - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
-- `skill(macros:consensus)` with a count - run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
-- `skill(macros:seq)` with a count - run N serial blind passes with commits between rounds; requires clean worktree
-- `skill(macros:rigor)` - activate Rigor Mode for the session: prioritize correctness, thorough investigation, and web-grounded verification over minimalism
-- `skill(macros:orchestrate)` - activate Orchestrator Mode for the session: delegate execution to subagents by default and operate at the high level, keeping your own context for direction and synthesis; an escape hatch keeps trivial work inline
-- `skill(macros:askme)` - shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
-- `skill(macros:delegate)` - shorthand: prefer subagents to save context space and parallelize independent subtasks
-- `skill(macros:tmi)` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
-- `skill(macros:dry-run)` - one-shot failsafe: describe what you would do for the next request instead of doing it, then wait for confirmation
-- `skill(macros:timeless)` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- `skill(macros:dredge)` with an optional freeform query - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
-- `skill(macros:timestamp)` - shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
-- `skill(macros:new)` - scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro and composes with other active skills; user-scope macros default to a `my-` name prefix
+Bundled skills (all under `plugins/macros/skills/`):
+- `mapreduce` with a task - split tasks into chunks, dispatch parallel subagents, consolidate results
+- `chunked` with a task - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
+- `doubt` with an optional freeform question - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
+- `consensus` with a count - run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
+- `seq` with a count - run N serial blind passes with commits between rounds; requires clean worktree
+- `rigor` - while active, prioritize correctness, thorough investigation, and web-grounded verification over minimalism
+- `orchestrate` - while active, delegate execution to subagents by default and operate at the high level, keeping your own context for direction and synthesis; an escape hatch keeps trivial work inline
+- `askme` - shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
+- `delegate` - shorthand: prefer subagents to save context space and parallelize independent subtasks
+- `tmi` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
+- `dry-run` - one-shot failsafe: describe what you would do for the activating request instead of doing it, then wait for confirmation
+- `timeless` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
+- `dredge` with an optional freeform query - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
+- `timestamp` - shorthand: prefix newly created files/folders with a `yymmdd-HHMMSS` stamp from the `date` CLI; one timestamp per logical job bucket; one turn only
+- `new` - scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro and composes with other active skills; user-scope macros default to a `my-` name prefix
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.
 
-Reference: `skill(study:study)` with a URI.
+Source: `plugins/study/skills/study/`. Input: URI.
 
 ### gimme
 User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress - a checklist document, a drop-bin directory, and a notes template - then launches the user's configured editor/command on it.
 
-Reference: `skill(gimme:gimme)`.
+Source: `plugins/gimme/skills/gimme/`.
 
 ### promptopt
 Artifact-backed prompt optimization workflow for application prompts, prompt builders, agent instructions, routing prompts, and LLM workflows. Collects user-owned train/val cases and writes baseline outputs, candidate ledger, optimizer state, and decision record to its run workspace without editing source files.
 
-Reference: `skill(promptopt:promptopt)`.
+Source: `plugins/promptopt/skills/promptopt/`.
 
 ### zoomdoc
 Authors accessible, self-contained semantic-zoom HTML documents with document-defined ordered detail levels, arbitrary semantic structure, native controls, one-click copy of the current view as structure-preserving HTML, and a complete JavaScript-disabled fallback. Ships a renderer template and a deterministic validator with optional strict transcription coverage.
 
-Reference: `skill(zoomdoc:zoomdoc)`.
+Source: `plugins/zoomdoc/skills/zoomdoc/`.
 
 ### Other direct-install skills
 
 ### report-writer
 Structured technical analysis and debugging reports with standardized sections (Executive Summary, Key Findings, Root Cause Analysis, Recommendations).
 
-Reference: `skill(report-writer:report-writer)` with an optional topic.
+Source: `plugins/report-writer/skills/report-writer/`. Optional input: topic.
 
 ### rigorous-debug
 Evidence-based debugging protocol using the scientific method. Enforces hypothesis-driven investigation with controlled experiments. Requires one-time project-specific initialization before first use.
 
-Reference: `skill(rigorous-debug:rigorous-debug)`.
+Source: `plugins/rigorous-debug/skills/rigorous-debug/`.
 
 ### skill-writer
 Tools and guidance for creating effective `SKILL.md` agent skills following best practices.
 
-Reference: `skill(skill-writer:skill-writer)`.
+Source: `plugins/skill-writer/skills/skill-writer/`.
 
 ### phaser
-Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase - automatically consulted when writing Phaser code. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
+Battle-tested patterns and best practices for Phaser 3 game development. Passive knowledgebase intended for semantic activation during Phaser work. Covers scene architecture, physics, animations, input, object pooling, performance, and more.
 
 ## Skill Dependencies
 
 Each skill is fully self-contained. There are no cross-skill dependencies. Install only what you need.
 
-The skills (`write`, `write-phased`, `implement`) are included in the `spex` plugin. The top-level `spex` skill is a router/overview for Claude Code installs.
+The `write`, `write-phased`, and `implement` skills are included in the `spex` plugin. Plugin-level overviews live in `plugins/spex/README.md` and `plugins/macros/README.md`; they are documentation, not discoverable skills.
 
 ## File Structure Reference
 
@@ -153,15 +153,15 @@ shared/
 ├── .claude-plugin/
 │   └── marketplace.json              # Claude Code marketplace catalog
 ├── .agents/
-│   └── skill-configs/                # Agent-neutral skill config
+│   └── skill-configs/                # Repository-defined provider-neutral config
 ├── plugins/
 │   ├── interview/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/interview/
 │   ├── spex/
 │   │   ├── .claude-plugin/plugin.json
+│   │   ├── README.md
 │   │   └── skills/
-│   │       ├── spex/
 │   │       ├── write/
 │   │       ├── write-phased/
 │   │       └── implement/
@@ -191,8 +191,8 @@ shared/
 │   │       └── gemini/
 │   ├── macros/
 │   │   ├── .claude-plugin/plugin.json
+│   │   ├── README.md
 │   │   └── skills/
-│   │       ├── macros/
 │   │       ├── mapreduce/
 │   │       ├── chunked/
 │   │       ├── doubt/
@@ -242,7 +242,7 @@ Override precedence (first match wins):
 3. Project config: `.agents/skill-configs/<skill>/config.yaml` - committed to repo, shared with team
 4. Legacy fallback: `.claude/skill-configs/<skill>/` - only for skills that shipped older config paths
 
-Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
+Use `.agents/skill-configs/` for new configuration. This is a provider-neutral convention defined by this repository, not an Agent Skills ecosystem standard. `.claude/skill-configs/` is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
 
 ## Notes for LLMs
 
@@ -253,5 +253,5 @@ Use `.agents/skill-configs/` for new configuration. `.claude/skill-configs/` is 
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.
 - Provider-specific install roots are centralized in `docs/cross-platform/README.md`; verify target-agent docs before automating installs.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
-- `skill(rigorous-debug:rigorous-debug)` requires a one-time initialization step after installation. Ask the target agent to activate that skill before it is usable.
+- The rigorous-debug skill requires a one-time initialization step after installation. Ask the target agent to activate it before use.
 - Always verify that the clone location (`~/shared` or user-specified) does not conflict with existing directories before cloning.
