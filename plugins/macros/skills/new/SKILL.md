@@ -1,6 +1,6 @@
 ---
 name: new
-description: Scaffold a custom macro — an ordinary SKILL.md that behaves as a first-class member of the macros ecosystem. Writes to project scope (this repo) or user scope (all your projects) and pre-fills the composition line so the new macro composes with other skills.
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Scaffold a custom macro — an ordinary SKILL.md that behaves as a first-class member of the macros ecosystem. Writes to project scope (this repo) or user scope (all your projects) and pre-fills the composition line so the new macro composes with other skills.
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -47,12 +47,11 @@ Also avoid the bundled macro names (mapreduce, doubt, consensus, seq, rigor,
 askme, delegate, timeless, chunked, orchestrate, dry-run, dredge, timestamp,
 tmi, new). If the desired name collides, propose a distinct one and say why.
 
-## 3. Gather name, description, body
+## 3. Gather name, purpose, and body
 
 - **name** — from the user, or suggest one from their description.
-- **description** — one line. This is what the agent sees in the skill list
-  and uses to decide relevance, so make it say when to reach for the macro,
-  not just what it does.
+- **purpose** — one concise sentence describing what the macro does. It follows
+  the shared explicit-request gate in the generated skill description.
 - **body** — the macro's actual instructions, written in the second person as
   a prompt to the agent ("Do not include time estimates…", "Spawn N blind
   agents…"). If the user gave you the behavior in prose, refine it into clear
@@ -72,7 +71,7 @@ frontmatter — it is the one thing that makes the macro quasi-native:
 ```markdown
 ---
 name: <name>
-description: <one-line description>
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — <one-line purpose>
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

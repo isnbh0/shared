@@ -1,6 +1,6 @@
 ---
 name: tmi
-description: Flag content that only makes sense if you were in the room when it was written — defensive justifications, phantom counterarguments, backstory, speculation
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Flag content that only makes sense if you were in the room when it was written — defensive justifications, phantom counterarguments, backstory, speculation
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

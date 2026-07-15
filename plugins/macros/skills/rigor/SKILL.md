@@ -1,6 +1,6 @@
 ---
 name: rigor
-description: Activate Rigor Mode — prioritize correctness, thoroughness, and web-grounded verification over minimalism while active
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Activate Rigor Mode — prioritize correctness, thoroughness, and web-grounded verification over minimalism while active
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

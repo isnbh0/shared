@@ -1,6 +1,6 @@
 ---
 name: doubt
-description: Spawns an independent subagent to critique recent work with web research. Use when the user wants a second opinion, says "doubt this", or wants to verify code against docs.
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Spawns an independent subagent to critique recent work with web research. Use when the user wants a second opinion, says "doubt this", or wants to verify code against docs.
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

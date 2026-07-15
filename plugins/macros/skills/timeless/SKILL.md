@@ -1,6 +1,6 @@
 ---
 name: timeless
-description: Shorthand that tells the agent to avoid time estimates — hours, days, calendar dates, or size buckets that map to time. Describe complexity and scope instead.
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Shorthand that tells the agent to avoid time estimates — hours, days, calendar dates, or size buckets that map to time. Describe complexity and scope instead.
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

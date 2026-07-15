@@ -1,6 +1,6 @@
 ---
 name: seq
-description: Run N serial blind passes on the same job with commits between. Each pass works on the current code state with fresh eyes. Requires a clean worktree.
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Run N serial blind passes on the same job with commits between. Each pass works on the current code state with fresh eyes. Requires a clean worktree.
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.

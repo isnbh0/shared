@@ -1,6 +1,6 @@
 ---
 name: mapreduce
-description: Split a task into parallel chunks, dispatch subagents, and consolidate results
+description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — Split a task into parallel chunks, dispatch subagents, and consolidate results
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
