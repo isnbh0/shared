@@ -37,6 +37,12 @@ skill_records = Dir.glob("plugins/*/skills/*/SKILL.md").sort.map do |path|
   error.call("#{path}: description must be nonempty") unless data["description"].is_a?(String) && !data["description"].strip.empty?
   error.call("#{path}: argument-hint is host-specific") if data.key?("argument-hint")
 
+  normalized_text = text.gsub(/\s+/, " ")
+  blanket_stop = /\bif you encounter any error\b.{0,80}\bstop\b/i
+  if plugin == "spex" && normalized_text.match?(blanket_stop)
+    error.call("#{path}: blanket stop-on-error policy; distinguish recoverable failures from genuine blockers")
+  end
+
   if data["disable-model-invocation"] == true
     policy_path = File.join(File.dirname(path), "agents/openai.yaml")
     if !File.file?(policy_path)

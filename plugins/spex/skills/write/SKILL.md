@@ -3,16 +3,23 @@ name: write
 description: Write a specification document
 ---
 
-Do NOT re-invoke this skill recursively.
-Do NOT re-read these instructions or any other document in a loop.
-If you encounter any error or are unsure how to proceed, STOP and tell the user.
-Execute the workflow below once, then stop.
+Do not re-invoke this skill recursively or reread instructions in a loop.
+Treat failed tool calls, patch-context mismatches, test failures, and command
+mistakes as recoverable unless they reveal a genuine blocker. Inspect the
+current state, correct the cause, and continue. Retrying or adapting a failed
+operation within this workflow is allowed; do not restart from the beginning.
+If a patch no longer matches, reread the affected file and regenerate a smaller
+patch against its current contents.
+Stop only when progress requires missing configuration or authority,
+unavailable external state, destructive or irreversible action, a material
+product choice not resolved by the request or repository, or no defensible safe
+path remains after diagnosis.
 
 ## Task
 
 You are writing a specification document. The user's request contains the context/requirements for the spec.
 
-Write the spec, commit it, and STOP. Do not implement. Implementation is handled by a separate agent in a separate session.
+Write and commit one specification, then stop. Do not implement it in the same task.
 
 ## Setup
 

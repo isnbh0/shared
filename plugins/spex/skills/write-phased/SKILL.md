@@ -3,7 +3,17 @@ name: write-phased
 description: Write a phased specification document
 ---
 
-Do not re-invoke this skill recursively or reread instructions in a loop. If an error prevents safe progress, stop and tell the user.
+Do not re-invoke this skill recursively or reread instructions in a loop.
+Treat failed tool calls, patch-context mismatches, test failures, and command
+mistakes as recoverable unless they reveal a genuine blocker. Inspect the
+current state, correct the cause, and continue. Retrying or adapting a failed
+operation within this workflow is allowed; do not restart from the beginning.
+If a patch no longer matches, reread the affected file and regenerate a smaller
+patch against its current contents.
+Stop only when progress requires missing configuration or authority,
+unavailable external state, destructive or irreversible action, a material
+product choice not resolved by the request or repository, or no defensible safe
+path remains after diagnosis.
 
 ## Task
 
