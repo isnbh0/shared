@@ -35,7 +35,7 @@ dropbox/       # empty directory for file artifacts (screenshots, exports, etc.)
 
 Include items that require:
 
-- **Credentials, accounts, or auth** — API keys, OAuth grants, SSO logins, tokens you can't mint.
+- **Credentials, accounts, or auth** — API keys, OAuth grants, SSO logins, tokens you can't mint. See [Secrets](#secrets) for how these are handed over.
 - **Access to human-only platforms** — web UIs behind login walls, mobile apps, desktop software, hardware, paid services without CLI/API.
 - **External artifacts** — screenshots, exported data, signed documents, vendor responses, files from systems you can't reach.
 - **Taste or judgment calls** the user reserved for themselves — visual/UX decisions, naming, strategic direction, stakeholder sign-off.
@@ -47,11 +47,19 @@ Each checklist item:
 
 1. **Action** — imperative, specific, atomic (one credential, one file, one decision).
 2. **Why it's on you** — the concrete reason it can't be done from the agent loop.
-3. **Drop path** — an exact path inside the bundle where the result goes. Files → `dropbox/<name>.<ext>`. Pasted text/URLs → a named heading in `notes.md` (create the heading in the template). Only use "reply in chat" when no artifact is produced.
+3. **Drop path** — an exact path inside the bundle where the result goes. Files → `dropbox/<name>.<ext>`. Pasted text/URLs → a named heading in `notes.md` (create the heading in the template). Secrets → the OS secret store, never the bundle; see [Secrets](#secrets). Only use "reply in chat" when no artifact is produced.
 
 Order items by what unblocks the most downstream work first. Note dependencies between items.
 
 If **nothing** is blocked on the human, create no bundle, say so plainly in chat, and stop.
+
+## Secrets
+
+Never ask for a secret to be written into the bundle — not `dropbox/`, not `notes.md`, not chat. API keys, tokens, passwords, and connection strings go into the user's OS secret store; the bundle names only the reference.
+
+Give each secret a stable reference name (`SCREAMING_SNAKE_CASE`, e.g. `ACME_API_KEY`). In place of a drop path, the item carries the store command for the user's platform, written so the value is typed at a prompt rather than passed as an argument. Read the secret back by that name at the point of use, and keep it out of anything you write. Done means stored.
+
+If a config file needs the literal value, have the user edit that file directly; do not route the value through the bundle to get there.
 
 ## notes.md template
 

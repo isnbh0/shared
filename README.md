@@ -129,6 +129,7 @@ User-invoked inversion of delegation — hand the agent a request and get back a
 
 - Writes a timestamped bundle with `checklist.md`, `notes.md` (template with pre-labeled paste slots), and an empty `dropbox/` directory for file artifacts
 - Each checklist item has action / why-it's-on-you / drop-path so results land somewhere the agent can pick up without further direction
+- Secrets never enter the bundle — API keys and tokens get a store command for your OS secret store, so the bundle names only the reference
 - Optional `launch_command` config (e.g. `cursor {path}`, `code {path}`, `open {path}`) opens the bundle in your editor immediately
 - Never self-invoked — only runs when you explicitly activate the gimme skill
 

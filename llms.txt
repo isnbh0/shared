@@ -104,7 +104,7 @@ Document-grounded Socratic study sessions on any URL or local file. Calibrates t
 Source: `plugins/study/skills/study/`. Input: URI.
 
 ### gimme
-User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress - a checklist document, a drop-bin directory, and a notes template - then launches the user's configured editor/command on it.
+User-invoked inversion of delegation. Produces a filesystem bundle of human-only actions blocking progress - a checklist document, a drop-bin directory, and a notes template - then launches the user's configured editor/command on it. Secrets go to the OS secret store, never the bundle.
 
 Source: `plugins/gimme/skills/gimme/`.
 
