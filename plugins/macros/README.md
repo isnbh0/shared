@@ -8,6 +8,7 @@ Host-specific activation syntax is documented separately. This plugin identifies
 
 - `macros:mapreduce` — split work into independent parallel chunks, then consolidate the results.
 - `macros:chunked` — process an ordered partition sequentially, allowing later chunks to use earlier outputs.
+- `macros:packet` — package work for completion outside the current agent loop, then validate the returned artifacts and resume.
 - `macros:doubt` — launch an independent, web-researched critique of recent work or a supplied question.
 - `macros:consensus` — run blind agents on the same job concurrently, then merge consensus, unique findings, and conflicts.
 - `macros:seq` — run blind passes serially, committing each pass before the next.
@@ -24,7 +25,7 @@ Host-specific activation syntax is documented separately. This plugin identifies
 
 ## Configuration
 
-`macros:mapreduce` and `macros:chunked` resolve configuration in this order:
+`macros:mapreduce`, `macros:chunked`, and `macros:packet` resolve configuration in this order:
 
 1. An explicit workspace override for the current run
 2. `.agents/skill-configs/macros/config.local.yaml`
