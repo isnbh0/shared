@@ -37,7 +37,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install zoomdoc@isnbh0
 ```
 
-Only the eight plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the eight plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -79,12 +79,13 @@ External AI critique via CLI tools (Codex, Gemini). Gets an independent second o
 Sources: `plugins/critique/skills/codex/` and `plugins/critique/skills/gemini/`, each with an optional file path and focus.
 
 ### macros
-Subagent orchestration workflows and behavior modifiers. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, packet for durable filesystem round trips, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for correctness enforcement while active.
+Subagent orchestration workflows and behavior modifiers. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, packet for durable filesystem round trips, calibrate for progressive mental-model alignment, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for correctness enforcement while active.
 
 Bundled skills (all under `plugins/macros/skills/`):
 - `mapreduce` with a task - split tasks into chunks, dispatch parallel subagents, consolidate results
 - `chunked` with a task - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
 - `packet` with a task or returned packet path - package work for completion outside the current agent loop, then validate the returned artifacts and resume
+- `calibrate` with a target or task - align a mental model or state through adaptive passes from broad structure to consequential finer distinctions; compose with packet for file-based exchanges
 - `doubt` with an optional freeform question - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
 - `consensus` with a count - run N blind agents on the same job in parallel, merge findings into consensus/unique/conflicts (no edits for concurrent safety)
 - `seq` with a count - run N serial blind passes with commits between rounds; requires clean worktree
@@ -197,6 +198,7 @@ shared/
 │   │       ├── mapreduce/
 │   │       ├── chunked/
 │   │       ├── packet/
+│   │       ├── calibrate/
 │   │       ├── doubt/
 │   │       ├── consensus/
 │   │       ├── seq/
