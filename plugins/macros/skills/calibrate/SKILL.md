@@ -76,8 +76,9 @@ filesystem boundary:
 - On creation, packet the current model, purpose, frontier, exact probes, response locations, and
   incorporation rule.
 - On resume, incorporate validated returns, evaluate convergence, and identify the next frontier.
-- Follow packet's one-operation-per-activation rule. A later pass requires another explicit packet
-  activation.
+- Follow packet's lifecycle boundary. A later exchange normally requires another explicit packet
+  activation unless the user explicitly requested connected lifecycle steps and the return is
+  genuinely available.
 
 Without packet, conduct the same passes in conversation. Calibrate alone does not create files or
 require configuration.

@@ -91,7 +91,7 @@ Subagent orchestration workflows and behavior modifiers. Includes map-reduce for
 Bundled skills (all under `plugins/macros/skills/`):
 - `mapreduce` with a task - split tasks into chunks, dispatch parallel subagents, consolidate results
 - `chunked` with a task - sequence a task as ordered parts that add up to the whole; each iteration may read prior iterations' outputs
-- `packet` with a task or returned packet path - package work as a durable filesystem handoff, pause only work that depends on the return, then validate returned artifacts and resume
+- `packet` with a task or returned packet path - package work as a durable filesystem handoff with flexible structure, pause only work that depends on the return, then validate returned artifacts by their material contract and resume
 - `calibrate` with a target or task - align a mental model or state through adaptive passes from broad structure to consequential finer distinctions; compose with packet for file-based exchanges
 - `leeway` - grant interpretive latitude where the user intends it, avoiding needless rigidity and literalism without making it a new protocol
 - `doubt` with an optional freeform question - spawn a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
