@@ -1,6 +1,6 @@
-# Macros: Parallel Subagent Orchestration
+# Macros: Agent Workflows and Behavior Modifiers
 
-Macros are portable, composable skills for coordinating agent workflows. Each runtime skill is self-contained under `skills/<name>/SKILL.md`; this file is human reference documentation.
+Macros are portable, composable skills for coordinating agent workflows and shaping agent behavior. Each runtime skill is self-contained under `skills/<name>/SKILL.md`; this file is human reference documentation.
 
 Host-specific activation syntax is documented separately. This plugin identifies bundled skills by qualified names such as `macros:mapreduce`.
 
@@ -10,6 +10,7 @@ Host-specific activation syntax is documented separately. This plugin identifies
 - `macros:chunked` — process an ordered partition sequentially, allowing later chunks to use earlier outputs.
 - `macros:packet` — package work for completion outside the current agent loop, then validate the returned artifacts and resume.
 - `macros:calibrate` — align a mental model or state through adaptive passes from broad structure to consequential finer distinctions.
+- `macros:leeway` — grant interpretive latitude without needless rigidity or literalism.
 - `macros:doubt` — launch an independent, web-researched critique of recent work or a supplied question.
 - `macros:consensus` — run blind agents on the same job concurrently, then merge consensus, unique findings, and conflicts.
 - `macros:seq` — run blind passes serially, committing each pass before the next.
