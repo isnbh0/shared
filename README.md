@@ -35,6 +35,7 @@ Then install individual skills:
 
 ```bash
 /plugin install interview@isnbh0
+/plugin install clone@isnbh0
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
 /plugin install macros@isnbh0
@@ -51,6 +52,16 @@ Skills are listed by plain name below. Activation syntax depends on the host and
 ### Published (marketplace)
 
 Installable in Claude Code via `/plugin install <name>@isnbh0`:
+
+#### clone
+
+Copies a skill or plugin into a local project for adaptation without installing it.
+
+**Input:** skill/plugin identifier, path, or GitHub URL
+
+- Inspects ambiguous sources and asks the user what to copy
+- Proposes a project-local destination and confirms it before copying
+- Preserves the complete directory without activating or changing the source
 
 #### critique
 

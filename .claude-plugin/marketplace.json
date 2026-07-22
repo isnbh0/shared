@@ -2,6 +2,7 @@
   "name": "isnbh0",
   "owner": { "name": "isnbh0" },
   "plugins": [
+    { "name": "clone", "source": "./plugins/clone" },
     { "name": "interview", "source": "./plugins/interview" },
     { "name": "spex", "source": "./plugins/spex" },
     { "name": "critique", "source": "./plugins/critique" },

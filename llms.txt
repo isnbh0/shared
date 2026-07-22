@@ -27,6 +27,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 
 ```bash
 /plugin marketplace add isnbh0/shared
+/plugin install clone@isnbh0
 /plugin install interview@isnbh0
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
@@ -37,7 +38,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install zoomdoc@isnbh0
 ```
 
-Only the eight plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the nine plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -62,6 +63,12 @@ Use the same resolved `<install-root>` as Option A.
 Entries use plain skill names and exact source paths. Do not copy a host's activation sigil into portable skill instructions.
 
 ### Published as Claude Code marketplace plugins
+
+### clone
+
+Copies a selected skill or plugin into a local project without installing it. Resolves a skill/plugin identifier, path, or GitHub URL; confirms a proposed destination before copying.
+
+Source: `plugins/clone/skills/clone/`.
 
 ### interview
 Structured requirements discovery through conversational interviews. Extracts requirements, constraints, and design decisions through guided Q&A. Produces timestamped synthesis documents.
@@ -158,6 +165,9 @@ shared/
 ├── .agents/
 │   └── skill-configs/                # Repository-defined provider-neutral config
 ├── plugins/
+│   ├── clone/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/clone/
 │   ├── interview/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/interview/
@@ -253,7 +263,7 @@ Use `.agents/skill-configs/` for new configuration. This is a provider-neutral c
 ## Notes for LLMs
 
 - Ask or infer the target agent before installing. Do not assume Claude Code.
-- For Claude Code marketplace installs, prefer Option B for published plugins (interview, spex, critique, macros, study, gimme, promptopt, zoomdoc). Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace.
+- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, zoomdoc). Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace.
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.

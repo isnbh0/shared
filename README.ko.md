@@ -35,6 +35,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 
 ```bash
 /plugin install interview@isnbh0
+/plugin install clone@isnbh0
 /plugin install spex@isnbh0
 /plugin install critique@isnbh0
 /plugin install macros@isnbh0
@@ -51,6 +52,16 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 ### 게시됨 (마켓플레이스)
 
 Claude Code에서 `/plugin install <name>@isnbh0`으로 설치 가능:
+
+#### clone
+
+스킬이나 플러그인을 설치하지 않고 수정 가능한 로컬 프로젝트 사본으로 복사합니다.
+
+**입력:** 스킬/플러그인 식별자, 경로 또는 GitHub URL
+
+- 모호한 소스를 검사하고 무엇을 복사할지 사용자에게 확인
+- 프로젝트 로컬 대상 경로를 제안하고 복사 전에 확인
+- 전체 디렉터리를 보존하며 소스를 활성화하거나 변경하지 않음
 
 #### critique
 
