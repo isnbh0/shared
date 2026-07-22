@@ -109,7 +109,7 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
 - **chunked** — Runs a task as an ordered partition where each iteration may read prior iterations' outputs
-- **packet** — Packages work for completion outside the current agent loop, stops at a durable filesystem boundary, then validates the returned artifacts and resumes
+- **packet** — Packages work as a durable filesystem handoff, pauses only work that depends on the return, then validates the returned artifacts and resumes
 - **calibrate** — Aligns a mental model or state through adaptive passes from broad structure to consequential finer distinctions; composes with packet for file-based exchanges
 - **leeway** — Grants interpretive latitude where the user intends it, avoiding needless rigidity and literalism without making it a new protocol
 - **doubt** — Spawns a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity

@@ -8,7 +8,7 @@ Host-specific activation syntax is documented separately. This plugin identifies
 
 - `macros:mapreduce` — split work into independent parallel chunks, then consolidate the results.
 - `macros:chunked` — process an ordered partition sequentially, allowing later chunks to use earlier outputs.
-- `macros:packet` — package work for completion outside the current agent loop, then validate the returned artifacts and resume.
+- `macros:packet` — package work as a durable filesystem handoff, pause only work that depends on the return, then validate returned artifacts and resume.
 - `macros:calibrate` — align a mental model or state through adaptive passes from broad structure to consequential finer distinctions.
 - `macros:leeway` — grant interpretive latitude without needless rigidity or literalism.
 - `macros:doubt` — launch an independent, web-researched critique of recent work or a supplied question.
