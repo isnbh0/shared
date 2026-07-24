@@ -1329,7 +1329,7 @@ fn proof_shapes(shapes: &[Shape], canvas: i32) -> ProofOutcome {
         if px != PROOF_REFERENCE {
             if foreground_count > reference_count {
                 failures.push(format!(
-                    "fusion check at {px}px: {foreground_count} components exceed the {reference_count} expected at {PROOF_REFERENCE}px (a feature broke apart)"
+                    "fragmentation at {px}px: {foreground_count} components exceed the {reference_count} expected at {PROOF_REFERENCE}px (a feature broke apart)"
                 ));
             } else if foreground_count < reference_count {
                 scale_warnings += 1;
