@@ -106,6 +106,12 @@ struct Pictogram {
     declared_deviations: Vec<Deviation>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum ColorMode {
+    Literal,
+    Current,
+}
+
 #[derive(Debug)]
 struct Validated {
     pictogram: Pictogram,
@@ -128,13 +134,15 @@ fn run() -> Result<(), String> {
     }
 
     let command = args[1].as_str();
+    let mut color_mode = ColorMode::Literal;
     let (input, output, canon_path) = match command {
         "validate" | "proof" => {
             let (input, canon) = parse_validate_args(&args[2..])?;
             (input, None, canon)
         }
         "compile" => {
-            let (input, output, canon) = parse_compile_args(&args[2..])?;
+            let (input, output, canon, mode) = parse_compile_args(&args[2..])?;
+            color_mode = mode;
             (input, Some(output), canon)
         }
         _ => return Err(usage()),
@@ -163,7 +171,7 @@ fn run() -> Result<(), String> {
         }
         "compile" => {
             let output = output.expect("compile output");
-            let svg = compile_svg(&validated);
+            let svg = compile_svg(&validated, color_mode);
             write_output(&output, &svg)?;
             println!("wrote {}", output.display());
         }
@@ -193,7 +201,7 @@ fn usage() -> String {
     [
         "usage:",
         "  pictogram validate <source.xml> [--canon <canon.xml>]",
-        "  pictogram compile <source.xml> <output.svg> [--canon <canon.xml>]",
+        "  pictogram compile <source.xml> <output.svg> [--canon <canon.xml>] [--color-mode literal|current]",
         "  pictogram proof <source.xml> [--canon <canon.xml>]",
     ]
     .join("\n")
@@ -208,14 +216,32 @@ fn parse_validate_args(args: &[String]) -> Result<(PathBuf, PathBuf), String> {
     Ok((input, canon))
 }
 
-fn parse_compile_args(args: &[String]) -> Result<(PathBuf, PathBuf, PathBuf), String> {
+fn parse_compile_args(args: &[String]) -> Result<(PathBuf, PathBuf, PathBuf, ColorMode), String> {
     if args.len() < 2 {
         return Err(usage());
     }
     let input = PathBuf::from(&args[0]);
     let output = PathBuf::from(&args[1]);
-    let canon = parse_canon_option(&args[2..])?;
-    Ok((input, output, canon))
+    let mut canon = None;
+    let mut mode = ColorMode::Literal;
+    let mut index = 2;
+    while index < args.len() {
+        match (args[index].as_str(), args.get(index + 1)) {
+            ("--canon", Some(value)) => canon = Some(PathBuf::from(value)),
+            ("--color-mode", Some(value)) => {
+                mode = match value.as_str() {
+                    "literal" => ColorMode::Literal,
+                    "current" => ColorMode::Current,
+                    _ => return Err(usage()),
+                }
+            }
+            _ => return Err(usage()),
+        }
+        index += 2;
+    }
+    let canon =
+        canon.unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join(DEFAULT_CANON));
+    Ok((input, output, canon, mode))
 }
 
 fn parse_canon_option(args: &[String]) -> Result<PathBuf, String> {
@@ -917,7 +943,15 @@ fn derive_chains(bones: &[Bone]) -> Vec<Chain> {
     chains
 }
 
-fn compile_svg(validated: &Validated) -> String {
+fn role_color(canon: &Canon, role: &str, mode: ColorMode) -> String {
+    if mode == ColorMode::Current && role == "figure" {
+        "currentColor".to_string()
+    } else {
+        canon.palette[role].clone()
+    }
+}
+
+fn compile_svg(validated: &Validated, color_mode: ColorMode) -> String {
     let canon = &validated.canon;
     let pictogram = &validated.pictogram;
     let mut normal: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
@@ -995,7 +1029,8 @@ fn compile_svg(validated: &Validated) -> String {
         roles.sort();
         roles.dedup();
         for role in roles {
-            let color = &canon.palette[&role];
+            let color = role_color(canon, &role, color_mode);
+            let color = &color;
             let base_id = format!("{}-{}", sanitize_id(layer), sanitize_id(&role));
             if let Some(paths) = chains.get(&(layer.clone(), role.clone())) {
                 for path in paths {
@@ -1674,8 +1709,8 @@ mod tests {
     #[test]
     fn compiles_deterministically() {
         let result = validate_document(EXAMPLE, CANON).expect("example should validate");
-        let first = compile_svg(&result);
-        let second = compile_svg(&result);
+        let first = compile_svg(&result, ColorMode::Literal);
+        let second = compile_svg(&result, ColorMode::Literal);
         assert_eq!(first, second);
         assert!(first.contains("viewBox=\"0 0 48 48\""));
         assert!(!first.contains("<script"));
@@ -1703,7 +1738,7 @@ mod tests {
     #[test]
     fn compiles_actor_limbs_as_stroked_chains() {
         let result = validate_document(EXAMPLE, CANON).expect("example should validate");
-        let svg = compile_svg(&result);
+        let svg = compile_svg(&result, ColorMode::Literal);
         assert_eq!(svg.matches("stroke-linejoin=\"round\"").count(), 5);
         assert_eq!(svg.matches("stroke-linecap=\"round\"").count(), 5);
         assert_eq!(svg.matches("fill=\"none\"").count(), 5);
@@ -1779,6 +1814,28 @@ mod tests {
     }
 
     #[test]
+    fn literal_mode_matches_default() {
+        let result = validate_document(EXAMPLE, CANON).expect("example should validate");
+        let svg = compile_svg(&result, ColorMode::Literal);
+        assert!(svg.contains("#000000"));
+        assert!(!svg.contains("currentColor"));
+    }
+
+    #[test]
+    fn current_mode_replaces_figure_color() {
+        let result = validate_document(EXAMPLE, CANON).expect("example should validate");
+        let svg = compile_svg(&result, ColorMode::Current);
+        assert!(svg.matches("currentColor").count() >= 6);
+        assert!(svg.contains("stroke=\"currentColor\""));
+        assert!(svg.contains("fill=\"currentColor\""));
+        assert!(!svg.contains("#000000"));
+
+        let bird = validate_document(BIRD, CANON).expect("assembly should validate");
+        let svg = compile_svg(&bird, ColorMode::Current);
+        assert!(svg.contains("#5BA6C9"));
+    }
+
+    #[test]
     fn rejects_dtds() {
         let source = EXAMPLE.replacen(
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
@@ -1788,9 +1845,7 @@ mod tests {
         assert!(validate_document(&source, CANON).is_err());
     }
 
-    #[test]
-    fn supports_best_effort_subject_assemblies() {
-        let source = r#"
+    const BIRD: &str = r#"
 <p:pictogram xmlns:p="urn:labs:pictogram:1"
              id="bird"
              profile="aicher-inspired-48-v1">
@@ -1814,8 +1869,11 @@ mod tests {
   </p:expression>
 </p:pictogram>
 "#;
-        let result = validate_document(source, CANON).expect("assembly should validate");
+
+    #[test]
+    fn supports_best_effort_subject_assemblies() {
+        let result = validate_document(BIRD, CANON).expect("assembly should validate");
         assert_eq!(result.deviations.len(), 1);
-        assert!(compile_svg(&result).contains("#5BA6C9"));
+        assert!(compile_svg(&result, ColorMode::Literal).contains("#5BA6C9"));
     }
 }

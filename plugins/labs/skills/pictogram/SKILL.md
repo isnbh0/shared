@@ -66,10 +66,24 @@ CARGO_TARGET_DIR="${cargo_target_dir}" cargo run --quiet \
 CARGO_TARGET_DIR="${cargo_target_dir}" cargo run --quiet \
   --manifest-path "${SKILL_DIR}/Cargo.toml" -- \
   compile "${bundle}/${slug}.pictogram.xml" "${bundle}/${slug}.svg"
+
+CARGO_TARGET_DIR="${cargo_target_dir}" cargo run --quiet \
+  --manifest-path "${SKILL_DIR}/Cargo.toml" -- \
+  proof "${bundle}/${slug}.pictogram.xml"
 ```
 
 Fix validation errors and rerun. Warnings require judgment: improve the silhouette when practical,
 otherwise keep the output and report the bounded concern.
+
+The proof rasterizes the compiled geometry at 16, 24, 32, and 48 px and checks for accidental
+holes, fragmented features, and closed negative-space gaps. Fix proof failures by revising the
+pose or scene in the DSL source, then recompile and rerun the proof. Proof warnings are reported
+to the user like validation warnings.
+
+Default output is a black figure intended for a light field. For output embedded on unknown or
+dark backgrounds, compile with `--color-mode current`: the `figure` role emits `currentColor` so
+the embedding context's `color` property controls the figure, while `accent` keeps its palette
+value.
 
 After compilation, inspect the SVG as an image when the environment supports visual inspection.
 Check recognizability at small size, decisive negative spaces, and whether near/far limbs remain
@@ -82,5 +96,7 @@ distinguishable. Adjust the DSL source—not the SVG—and recompile.
 - Keep raw SVG, scripts, CSS, transforms, filters, gradients, external resources, and embedded text
   out of DSL source.
 - Treat contact and intent metadata as assertions. Do not silently move anatomy to satisfy them.
+- Judge silhouettes in monochrome first. Accent color must not be the only thing separating
+  masses that the proof reports as fused.
 
 Report the source and SVG paths, the profile, any declared deviations, and any perceptual caveat.
