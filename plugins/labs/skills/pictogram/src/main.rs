@@ -129,7 +129,7 @@ fn run() -> Result<(), String> {
 
     let command = args[1].as_str();
     let (input, output, canon_path) = match command {
-        "validate" => {
+        "validate" | "proof" => {
             let (input, canon) = parse_validate_args(&args[2..])?;
             (input, None, canon)
         }
@@ -167,6 +167,23 @@ fn run() -> Result<(), String> {
             write_output(&output, &svg)?;
             println!("wrote {}", output.display());
         }
+        "proof" => {
+            let shapes = shape_model(&validated);
+            let outcome = proof_shapes(&shapes, validated.canon.width);
+            for line in &outcome.lines {
+                println!("{line}");
+            }
+            for warning in &outcome.warnings {
+                eprintln!("warning: {warning}");
+            }
+            if !outcome.failures.is_empty() {
+                return Err(outcome.failures.join("\n"));
+            }
+            println!(
+                "OK: {} passes raster proof at 16/24/32/48 px",
+                validated.pictogram.id
+            );
+        }
         _ => unreachable!(),
     }
     Ok(())
@@ -177,6 +194,7 @@ fn usage() -> String {
         "usage:",
         "  pictogram validate <source.xml> [--canon <canon.xml>]",
         "  pictogram compile <source.xml> <output.svg> [--canon <canon.xml>]",
+        "  pictogram proof <source.xml> [--canon <canon.xml>]",
     ]
     .join("\n")
 }
@@ -1034,6 +1052,316 @@ fn compile_svg(validated: &Validated) -> String {
     )
 }
 
+#[derive(Debug)]
+enum Shape {
+    Capsule { start: Point, end: Point, width: f64 },
+    Disc { center: Point, radius: f64 },
+    Ring { center: Point, outer: f64, inner: f64 },
+    Rect { origin: Point, width: i32, height: i32 },
+    Tri { points: [Point; 3] },
+}
+
+fn shape_model(validated: &Validated) -> Vec<Shape> {
+    let canon = &validated.canon;
+    let mut shapes = Vec::new();
+    let chain_defs = derive_chains(&canon.bones);
+    for actor in &validated.pictogram.actors {
+        for chain in &chain_defs {
+            for pair in chain.joints.windows(2) {
+                shapes.push(Shape::Capsule {
+                    start: actor.joints[&pair[0]],
+                    end: actor.joints[&pair[1]],
+                    width: canon.body_width,
+                });
+            }
+        }
+        shapes.push(Shape::Disc {
+            center: actor.head,
+            radius: canon.head_radius as f64,
+        });
+    }
+    for assembly in &validated.pictogram.assemblies {
+        for primitive in &assembly.primitives {
+            shapes.push(match primitive {
+                Primitive::Bar { start, end } => Shape::Capsule {
+                    start: *start,
+                    end: *end,
+                    width: canon.equipment_width,
+                },
+                Primitive::Disc { center, radius } => Shape::Disc {
+                    center: *center,
+                    radius: *radius as f64,
+                },
+                Primitive::Ring { center, radius } => Shape::Ring {
+                    center: *center,
+                    outer: *radius as f64,
+                    inner: (*radius as f64 - canon.equipment_width).max(0.5),
+                },
+                Primitive::Box {
+                    origin,
+                    width,
+                    height,
+                } => Shape::Rect {
+                    origin: *origin,
+                    width: *width,
+                    height: *height,
+                },
+                Primitive::Wedge { points } => Shape::Tri { points: *points },
+            });
+        }
+    }
+    shapes
+}
+
+fn point_segment_distance(x: f64, y: f64, a: Point, b: Point) -> f64 {
+    let (ax, ay) = (a.x as f64, a.y as f64);
+    let (dx, dy) = (b.x as f64 - ax, b.y as f64 - ay);
+    let len2 = dx * dx + dy * dy;
+    let t = if len2 == 0.0 {
+        0.0
+    } else {
+        (((x - ax) * dx + (y - ay) * dy) / len2).clamp(0.0, 1.0)
+    };
+    let (ex, ey) = (x - (ax + t * dx), y - (ay + t * dy));
+    (ex * ex + ey * ey).sqrt()
+}
+
+fn shape_contains(shape: &Shape, x: f64, y: f64) -> bool {
+    match shape {
+        Shape::Capsule { start, end, width } => {
+            point_segment_distance(x, y, *start, *end) <= width / 2.0
+        }
+        Shape::Disc { center, radius } => {
+            let (dx, dy) = (x - center.x as f64, y - center.y as f64);
+            (dx * dx + dy * dy).sqrt() <= *radius
+        }
+        Shape::Ring {
+            center,
+            outer,
+            inner,
+        } => {
+            let (dx, dy) = (x - center.x as f64, y - center.y as f64);
+            let distance = (dx * dx + dy * dy).sqrt();
+            distance <= *outer && distance >= *inner
+        }
+        Shape::Rect {
+            origin,
+            width,
+            height,
+        } => {
+            x >= origin.x as f64
+                && x <= (origin.x + width) as f64
+                && y >= origin.y as f64
+                && y <= (origin.y + height) as f64
+        }
+        Shape::Tri { points } => {
+            let cross = |a: Point, b: Point| {
+                (b.x as f64 - a.x as f64) * (y - a.y as f64)
+                    - (b.y as f64 - a.y as f64) * (x - a.x as f64)
+            };
+            let signs = [
+                cross(points[0], points[1]),
+                cross(points[1], points[2]),
+                cross(points[2], points[0]),
+            ];
+            signs.iter().all(|s| *s >= 0.0) || signs.iter().all(|s| *s <= 0.0)
+        }
+    }
+}
+
+fn rasterize(shapes: &[Shape], canvas: i32, px: usize) -> Vec<bool> {
+    let mut grid = vec![false; px * px];
+    let step = canvas as f64 / px as f64;
+    for row in 0..px {
+        for col in 0..px {
+            let x = (col as f64 + 0.5) * step;
+            let y = (row as f64 + 0.5) * step;
+            grid[row * px + col] = shapes.iter().any(|shape| shape_contains(shape, x, y));
+        }
+    }
+    grid
+}
+
+fn label_components(grid: &[bool], px: usize, value: bool) -> (Vec<i32>, usize) {
+    let mut labels = vec![-1i32; grid.len()];
+    let mut count = 0usize;
+    for start in 0..grid.len() {
+        if grid[start] != value || labels[start] != -1 {
+            continue;
+        }
+        let label = count as i32;
+        count += 1;
+        labels[start] = label;
+        let mut stack = vec![start];
+        while let Some(index) = stack.pop() {
+            let (col, row) = (index % px, index / px);
+            let mut visit = |neighbor: usize| {
+                if grid[neighbor] == value && labels[neighbor] == -1 {
+                    labels[neighbor] = label;
+                    stack.push(neighbor);
+                }
+            };
+            if col > 0 {
+                visit(index - 1);
+            }
+            if col + 1 < px {
+                visit(index + 1);
+            }
+            if row > 0 {
+                visit(index - px);
+            }
+            if row + 1 < px {
+                visit(index + px);
+            }
+        }
+    }
+    (labels, count)
+}
+
+const PROOF_SCALES: [usize; 4] = [16, 24, 32, 48];
+const PROOF_REFERENCE: usize = 48;
+
+struct ProofOutcome {
+    lines: Vec<String>,
+    failures: Vec<String>,
+    warnings: Vec<String>,
+}
+
+fn proof_shapes(shapes: &[Shape], canvas: i32) -> ProofOutcome {
+    let mut lines = Vec::new();
+    let mut failures = Vec::new();
+    let mut warnings = Vec::new();
+
+    let ring_interiors: Vec<Shape> = shapes
+        .iter()
+        .filter_map(|shape| match shape {
+            Shape::Ring { center, inner, .. } => Some(Shape::Disc {
+                center: *center,
+                radius: *inner,
+            }),
+            _ => None,
+        })
+        .collect();
+
+    let reference_grid = rasterize(shapes, canvas, PROOF_REFERENCE);
+    let (reference_labels, reference_count) =
+        label_components(&reference_grid, PROOF_REFERENCE, true);
+
+    // group shapes by the reference component they belong to, for the closed-gap check
+    let mut groups: BTreeMap<i32, Vec<usize>> = BTreeMap::new();
+    for (index, shape) in shapes.iter().enumerate() {
+        let single = rasterize(std::slice::from_ref(shape), canvas, PROOF_REFERENCE);
+        if let Some(pixel) = single.iter().position(|covered| *covered) {
+            groups
+                .entry(reference_labels[pixel])
+                .or_default()
+                .push(index);
+        }
+    }
+
+    for px in PROOF_SCALES {
+        let grid = rasterize(shapes, canvas, px);
+        let (_, foreground_count) = label_components(&grid, px, true);
+        let (background_labels, background_count) = label_components(&grid, px, false);
+
+        let mut border_connected = BTreeSet::new();
+        for index in 0..grid.len() {
+            let (col, row) = (index % px, index / px);
+            if (col == 0 || row == 0 || col == px - 1 || row == px - 1) && !grid[index] {
+                border_connected.insert(background_labels[index]);
+            }
+        }
+
+        let ring_grid = rasterize(&ring_interiors, canvas, px);
+        let mut holes = 0;
+        for label in 0..background_count as i32 {
+            if border_connected.contains(&label) {
+                continue;
+            }
+            let expected = background_labels
+                .iter()
+                .enumerate()
+                .any(|(index, item)| *item == label && ring_grid[index]);
+            if !expected {
+                holes += 1;
+                failures.push(format!(
+                    "accidental-hole at {px}px: enclosed background region outside ring interiors"
+                ));
+            }
+        }
+
+        let mut scale_warnings = 0;
+        if px != PROOF_REFERENCE {
+            if foreground_count > reference_count {
+                failures.push(format!(
+                    "fusion check at {px}px: {foreground_count} components exceed the {reference_count} expected at {PROOF_REFERENCE}px (a feature broke apart)"
+                ));
+            } else if foreground_count < reference_count {
+                scale_warnings += 1;
+                warnings.push(format!(
+                    "fusion at {px}px: {foreground_count} components, expected {reference_count} (separate masses fused)"
+                ));
+            }
+        }
+
+        for (index, shape) in shapes.iter().enumerate() {
+            let single = rasterize(std::slice::from_ref(shape), canvas, px);
+            if !single.iter().any(|covered| *covered) {
+                failures.push(format!("vanished-feature at {px}px: shape {index} covers no pixels"));
+            }
+        }
+
+        if px == PROOF_SCALES[0] && groups.len() > 1 {
+            let group_pixels: Vec<Vec<(usize, usize)>> = groups
+                .values()
+                .map(|members| {
+                    let shapes: Vec<&Shape> = members.iter().map(|i| &shapes[*i]).collect();
+                    let mut pixels = vec![false; px * px];
+                    for shape in shapes {
+                        let single = rasterize(std::slice::from_ref(shape), canvas, px);
+                        for (index, covered) in single.iter().enumerate() {
+                            pixels[index] |= covered;
+                        }
+                    }
+                    pixels
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, covered)| **covered)
+                        .map(|(index, _)| (index % px, index / px))
+                        .collect()
+                })
+                .collect();
+            for first in 0..group_pixels.len() {
+                for second in first + 1..group_pixels.len() {
+                    let mut minimum = f64::INFINITY;
+                    for a in &group_pixels[first] {
+                        for b in &group_pixels[second] {
+                            let (dx, dy) = (a.0 as f64 - b.0 as f64, a.1 as f64 - b.1 as f64);
+                            minimum = minimum.min((dx * dx + dy * dy).sqrt());
+                        }
+                    }
+                    if minimum < 1.0 {
+                        scale_warnings += 1;
+                        warnings.push(format!(
+                            "closed-gap at {px}px: separation between components {first} and {second} did not survive"
+                        ));
+                    }
+                }
+            }
+        }
+
+        lines.push(format!(
+            "proof {px}px: components={foreground_count} holes={holes} warnings={scale_warnings}"
+        ));
+    }
+
+    ProofOutcome {
+        lines,
+        failures,
+        warnings,
+    }
+}
+
 fn segment_path(start: Point, end: Point, width: f64) -> String {
     let dx = (end.x - start.x) as f64;
     let dy = (end.y - start.y) as f64;
@@ -1382,6 +1710,72 @@ mod tests {
         assert_eq!(svg.matches("stroke-width=\"4\"").count(), 5);
         // the only remaining filled figure path is the head circle
         assert_eq!(svg.matches("fill=\"#000000\"").count(), 1);
+    }
+
+    #[test]
+    fn rasterizes_disc_coverage() {
+        let disc = [Shape::Disc {
+            center: Point { x: 24, y: 24 },
+            radius: 8.0,
+        }];
+        let large = rasterize(&disc, 48, 48);
+        let covered = large.iter().filter(|pixel| **pixel).count() as f64;
+        let expected = std::f64::consts::PI * 64.0;
+        assert!((covered - expected).abs() <= expected * 0.15);
+        let small = rasterize(&disc, 48, 16);
+        assert!(small.iter().any(|pixel| *pixel));
+    }
+
+    #[test]
+    fn detects_accidental_hole() {
+        let capsule = |a: (i32, i32), b: (i32, i32)| Shape::Capsule {
+            start: Point { x: a.0, y: a.1 },
+            end: Point { x: b.0, y: b.1 },
+            width: 4.0,
+        };
+        let triangle = [
+            capsule((10, 10), (38, 10)),
+            capsule((38, 10), (24, 38)),
+            capsule((24, 38), (10, 10)),
+        ];
+        let outcome = proof_shapes(&triangle, 48);
+        assert!(outcome
+            .failures
+            .iter()
+            .any(|failure| failure.contains("accidental-hole")));
+
+        let ring = [Shape::Ring {
+            center: Point { x: 24, y: 24 },
+            outer: 10.0,
+            inner: 7.0,
+        }];
+        let outcome = proof_shapes(&ring, 48);
+        assert!(!outcome
+            .failures
+            .iter()
+            .any(|failure| failure.contains("accidental-hole")));
+    }
+
+    #[test]
+    fn detects_fragmentation() {
+        let thin = [Shape::Capsule {
+            start: Point { x: 3, y: 10 },
+            end: Point { x: 3, y: 20 },
+            width: 1.0,
+        }];
+        let outcome = proof_shapes(&thin, 48);
+        assert!(outcome
+            .failures
+            .iter()
+            .any(|failure| failure.contains("vanished-feature")));
+    }
+
+    #[test]
+    fn bundled_example_passes_proof() {
+        let result = validate_document(EXAMPLE, CANON).expect("example should validate");
+        let shapes = shape_model(&result);
+        let outcome = proof_shapes(&shapes, result.canon.width);
+        assert!(outcome.failures.is_empty(), "{:?}", outcome.failures);
     }
 
     #[test]

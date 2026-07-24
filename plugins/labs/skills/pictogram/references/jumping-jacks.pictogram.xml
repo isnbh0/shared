@@ -9,7 +9,7 @@
   <p:intent verb="jumping-jacks" direction="stationary"/>
   <p:scene>
     <p:actor id="person" facing="front">
-      <p:head x="24" y="8"/>
+      <p:head x="24" y="10"/>
       <p:pose>
         <p:joint name="shoulder" x="24" y="16"/>
         <p:joint name="hip" x="24" y="26"/>
