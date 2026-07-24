@@ -175,12 +175,10 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-l
 
 Experimental skills backed by deterministic local toolchains.
 
-- **pictogram** — Authors a constrained XML pose description, validates it, and compiles it into
+- **pictogram** — Authors and validates a constrained XML pose description, then compiles it into
   deterministic SVG
-- Saves the editable DSL source and rendered SVG together in a timestamped workspace bundle
-- Uses a versioned Aicher-inspired visual canon, fixed human topology, and restricted primitives
-  for props or unusual subjects
-- Ships a Rust validator/compiler, RELAX NG schema, canon, and example
+- Saves the DSL source and SVG together in a timestamped workspace bundle
+- Includes a Rust validator/compiler, RELAX NG schema, versioned visual canon, and example
 
 ### Other (copy / symlink)
 

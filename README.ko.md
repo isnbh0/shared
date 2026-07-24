@@ -175,11 +175,9 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-l
 
 결정론적 로컬 도구 체인을 포함하는 실험적 스킬 모음입니다.
 
-- **pictogram** — 제약된 XML 포즈 설명을 작성·검증하고 결정론적 SVG로 컴파일
-- 편집 가능한 DSL 소스와 렌더링된 SVG를 타임스탬프 워크스페이스 번들에 함께 저장
-- 버전이 지정된 Aicher-inspired 비주얼 캐논, 고정된 사람 토폴로지, 소품이나 특이한
-  대상을 위한 제한된 프리미티브를 사용
-- Rust 검증기/컴파일러, RELAX NG 스키마, 캐논, 예제를 포함
+- **pictogram** — 제약된 XML 포즈 설명을 작성·검증한 다음 결정론적 SVG로 컴파일
+- DSL 소스와 SVG를 타임스탬프 워크스페이스 번들에 함께 저장
+- Rust 검증기/컴파일러, RELAX NG 스키마, 버전이 지정된 비주얼 캐논, 예제를 포함
 
 ### 기타 (복사 / 심볼릭 링크)
 
