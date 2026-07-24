@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p:pictogram xmlns:p="urn:labs:pictogram:1"
+             id="jumping-jacks"
+             profile="aicher-inspired-48-v1">
+  <p:metadata>
+    <p:title>Jumping jacks</p:title>
+    <p:description>A person with raised arms and spread legs doing jumping jacks.</p:description>
+  </p:metadata>
+  <p:intent verb="jumping-jacks" direction="stationary"/>
+  <p:scene>
+    <p:actor id="person" facing="front">
+      <p:head x="24" y="8"/>
+      <p:pose>
+        <p:joint name="shoulder" x="24" y="16"/>
+        <p:joint name="hip" x="24" y="26"/>
+        <p:joint name="elbow-near" x="30" y="10"/>
+        <p:joint name="hand-near" x="36" y="4"/>
+        <p:joint name="elbow-far" x="18" y="10"/>
+        <p:joint name="hand-far" x="12" y="4"/>
+        <p:joint name="knee-near" x="30" y="32"/>
+        <p:joint name="foot-near" x="36" y="38"/>
+        <p:joint name="knee-far" x="18" y="32"/>
+        <p:joint name="foot-far" x="12" y="38"/>
+      </p:pose>
+    </p:actor>
+  </p:scene>
+</p:pictogram>

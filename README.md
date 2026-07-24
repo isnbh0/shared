@@ -43,6 +43,7 @@ Then install individual skills:
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
 /plugin install zoomdoc@isnbh0
+/plugin install labs@isnbh0
 ```
 
 ## Skills
@@ -170,6 +171,17 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-l
 - Uses native radio and disclosure controls, explicit `hidden` state, and a complete finest-level JavaScript-disabled fallback
 - Ships an accessible renderer and validator with optional strict coverage for source transcriptions
 
+#### labs
+
+Experimental skills backed by deterministic local toolchains.
+
+- **pictogram** — Authors a constrained XML pose description, validates it, and compiles it into
+  deterministic SVG
+- Saves the editable DSL source and rendered SVG together in a timestamped workspace bundle
+- Uses a versioned Aicher-inspired visual canon, fixed human topology, and restricted primitives
+  for props or unusual subjects
+- Ships a Rust validator/compiler, RELAX NG schema, canon, and example
+
 ### Other (copy / symlink)
 
 Available in the repo but not published to the marketplace. Install via symlink or copy:
@@ -218,14 +230,14 @@ Tools for creating effective `SKILL.md` agent skills.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram) support configurable workspace directories with layered precedence (first match wins):
 
 1. **Explicit override** — ask to use a specific workspace directory for this run
 2. **Local config** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
 3. **Project config** (`.agents/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
 4. **Legacy fallback** (`.claude/skill-configs/<skill>/`) — only for skills that shipped older config paths
 
-There are no built-in defaults for most file-producing skills. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`).
+There are no built-in defaults for most file-producing skills. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`, `pictograms`).
 
 Use `.agents/skill-configs/` for new configuration. This is a provider-neutral convention defined by this repository, not an Agent Skills ecosystem standard. The `.claude/skill-configs/` path is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
 

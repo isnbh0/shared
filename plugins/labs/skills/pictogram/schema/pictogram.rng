@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+         ns="urn:labs:pictogram:1">
+  <start>
+    <ref name="pictogram"/>
+  </start>
+
+  <define name="pictogram">
+    <element name="pictogram">
+      <attribute name="id"><data type="NCName"/></attribute>
+      <attribute name="profile"><value>aicher-inspired-48-v1</value></attribute>
+      <ref name="metadata"/>
+      <ref name="intent"/>
+      <ref name="scene"/>
+      <optional><ref name="expression"/></optional>
+    </element>
+  </define>
+
+  <define name="metadata">
+    <element name="metadata">
+      <element name="title"><text/></element>
+      <element name="description"><text/></element>
+    </element>
+  </define>
+
+  <define name="intent">
+    <element name="intent">
+      <attribute name="verb"><data type="NCName"/></attribute>
+      <optional>
+        <attribute name="direction">
+          <choice>
+            <value>left</value><value>right</value><value>up</value>
+            <value>down</value><value>stationary</value>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+
+  <define name="scene">
+    <element name="scene">
+      <oneOrMore>
+        <choice><ref name="actor"/><ref name="assembly"/></choice>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="actor">
+    <element name="actor">
+      <attribute name="id"><data type="NCName"/></attribute>
+      <attribute name="facing">
+        <choice><value>left</value><value>right</value><value>front</value></choice>
+      </attribute>
+      <element name="head"><ref name="xy"/></element>
+      <element name="pose">
+        <oneOrMore>
+          <element name="joint">
+            <attribute name="name">
+              <choice>
+                <value>shoulder</value><value>hip</value>
+                <value>elbow-near</value><value>hand-near</value>
+                <value>elbow-far</value><value>hand-far</value>
+                <value>knee-near</value><value>foot-near</value>
+                <value>knee-far</value><value>foot-far</value>
+              </choice>
+            </attribute>
+            <ref name="xy"/>
+          </element>
+        </oneOrMore>
+      </element>
+    </element>
+  </define>
+
+  <define name="assembly">
+    <element name="assembly">
+      <attribute name="id"><data type="NCName"/></attribute>
+      <attribute name="role">
+        <choice><value>prop</value><value>subject</value></choice>
+      </attribute>
+      <attribute name="layer">
+        <choice>
+          <value>far-equipment</value><value>far-limbs</value><value>torso</value>
+          <value>near-limbs</value><value>head</value><value>near-equipment</value>
+        </choice>
+      </attribute>
+      <optional>
+        <attribute name="color-role">
+          <choice><value>figure</value><value>accent</value></choice>
+        </attribute>
+      </optional>
+      <oneOrMore>
+        <choice>
+          <element name="bar">
+            <attribute name="x1"><data type="integer"/></attribute>
+            <attribute name="y1"><data type="integer"/></attribute>
+            <attribute name="x2"><data type="integer"/></attribute>
+            <attribute name="y2"><data type="integer"/></attribute>
+            <empty/>
+          </element>
+          <element name="disc">
+            <attribute name="cx"><data type="integer"/></attribute>
+            <attribute name="cy"><data type="integer"/></attribute>
+            <attribute name="radius"><data type="positiveInteger"/></attribute>
+            <empty/>
+          </element>
+          <element name="ring">
+            <attribute name="cx"><data type="integer"/></attribute>
+            <attribute name="cy"><data type="integer"/></attribute>
+            <attribute name="radius"><data type="positiveInteger"/></attribute>
+            <empty/>
+          </element>
+          <element name="box">
+            <attribute name="x"><data type="integer"/></attribute>
+            <attribute name="y"><data type="integer"/></attribute>
+            <attribute name="width"><data type="positiveInteger"/></attribute>
+            <attribute name="height"><data type="positiveInteger"/></attribute>
+            <empty/>
+          </element>
+          <element name="wedge">
+            <attribute name="x1"><data type="integer"/></attribute>
+            <attribute name="y1"><data type="integer"/></attribute>
+            <attribute name="x2"><data type="integer"/></attribute>
+            <attribute name="y2"><data type="integer"/></attribute>
+            <attribute name="x3"><data type="integer"/></attribute>
+            <attribute name="y3"><data type="integer"/></attribute>
+            <empty/>
+          </element>
+        </choice>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="expression">
+    <element name="expression">
+      <oneOrMore>
+        <element name="deviation">
+          <attribute name="feature"><data type="NCName"/></attribute>
+          <attribute name="target"><data type="string"/></attribute>
+          <attribute name="cost"><data type="nonNegativeInteger"/></attribute>
+          <attribute name="reason"><data type="string"/></attribute>
+          <empty/>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="xy">
+    <attribute name="x"><data type="integer"/></attribute>
+    <attribute name="y"><data type="integer"/></attribute>
+    <empty/>
+  </define>
+</grammar>

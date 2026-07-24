@@ -1,0 +1,5 @@
+# Directory for timestamped source-and-SVG bundles.
+workspace_dir: .agent-workspace/pictograms
+
+# Cargo build artifacts stay outside the installed skill directory.
+cargo_target_dir: .agent-workspace/pictograms/.cargo-target

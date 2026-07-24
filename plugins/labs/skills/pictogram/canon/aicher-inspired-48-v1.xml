@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<canon xmlns="urn:labs:pictogram:canon:1"
+       id="aicher-inspired-48-v1"
+       version="1.0">
+  <canvas width="48" height="48" grid-step="2" safe-margin="4"/>
+  <palette>
+    <role id="figure" value="#000000"/>
+    <role id="accent" value="#5BA6C9"/>
+  </palette>
+  <geometry head-radius="4" body-width="4" equipment-width="3"/>
+  <directions>
+    <vector dx="0" dy="-1" cost="0"/>
+    <vector dx="1" dy="-1" cost="0"/>
+    <vector dx="1" dy="0" cost="0"/>
+    <vector dx="1" dy="1" cost="0"/>
+    <vector dx="0" dy="1" cost="0"/>
+    <vector dx="-1" dy="1" cost="0"/>
+    <vector dx="-1" dy="0" cost="0"/>
+    <vector dx="-1" dy="-1" cost="0"/>
+    <vector dx="1" dy="-2" cost="1"/>
+    <vector dx="2" dy="-1" cost="1"/>
+    <vector dx="1" dy="2" cost="1"/>
+    <vector dx="2" dy="1" cost="1"/>
+    <vector dx="-1" dy="2" cost="1"/>
+    <vector dx="-2" dy="1" cost="1"/>
+    <vector dx="-1" dy="-2" cost="1"/>
+    <vector dx="-2" dy="-1" cost="1"/>
+  </directions>
+  <anatomy id="reduced-human">
+    <bone role="torso" from="shoulder" to="hip"
+          min-length="8" max-length="12" layer="torso"/>
+    <bone role="upper-arm-far" from="shoulder" to="elbow-far"
+          min-length="6" max-length="10" layer="far-limbs"/>
+    <bone role="lower-arm-far" from="elbow-far" to="hand-far"
+          min-length="6" max-length="10" layer="far-limbs"/>
+    <bone role="upper-leg-far" from="hip" to="knee-far"
+          min-length="8" max-length="12" layer="far-limbs"/>
+    <bone role="lower-leg-far" from="knee-far" to="foot-far"
+          min-length="8" max-length="14" layer="far-limbs"/>
+    <bone role="upper-arm-near" from="shoulder" to="elbow-near"
+          min-length="6" max-length="10" layer="near-limbs"/>
+    <bone role="lower-arm-near" from="elbow-near" to="hand-near"
+          min-length="6" max-length="10" layer="near-limbs"/>
+    <bone role="upper-leg-near" from="hip" to="knee-near"
+          min-length="8" max-length="12" layer="near-limbs"/>
+    <bone role="lower-leg-near" from="knee-near" to="foot-near"
+          min-length="8" max-length="14" layer="near-limbs"/>
+  </anatomy>
+  <layers>
+    <layer id="far-equipment" order="10"/>
+    <layer id="far-limbs" order="20"/>
+    <layer id="torso" order="30"/>
+    <layer id="near-limbs" order="40"/>
+    <layer id="head" order="50"/>
+    <layer id="near-equipment" order="60"/>
+  </layers>
+  <limits max-actors="2"
+          max-assemblies="3"
+          max-primitives-per-assembly="8"
+          max-expression-cost="4"/>
+</canon>

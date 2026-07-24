@@ -36,9 +36,10 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
 /plugin install zoomdoc@isnbh0
+/plugin install labs@isnbh0
 ```
 
-Only the nine plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the ten plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `pictogram` skill is included in `labs`. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -128,6 +129,14 @@ Authors accessible, self-contained semantic-zoom HTML documents with document-de
 
 Source: `plugins/zoomdoc/skills/zoomdoc/`.
 
+### labs
+Experimental skills backed by deterministic local toolchains.
+
+Bundled skill:
+- `pictogram` with an action or subject - author a constrained XML pose description, validate it, and compile deterministic SVG while saving both source and output
+
+Source: `plugins/labs/skills/pictogram/`.
+
 ### Other direct-install skills
 
 ### report-writer
@@ -197,6 +206,16 @@ shared/
 │   │       ├── config.example.yaml
 │   │       ├── template.html
 │   │       └── validate.py
+│   ├── labs/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/pictogram/
+│   │       ├── SKILL.md
+│   │       ├── config.example.yaml
+│   │       ├── Cargo.toml
+│   │       ├── canon/
+│   │       ├── schema/
+│   │       ├── references/
+│   │       └── src/
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/
@@ -239,7 +258,7 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
 
 | Skill | Example workspace |
 |-------|-------------------|
@@ -250,6 +269,7 @@ Skills that produce files (interview, spex, report-writer, macros, study, gimme,
 | study | `.agent-workspace/study/sessions` |
 | gimme | `.agent-workspace/gimme` |
 | promptopt | `.agent-workspace/promptopt/runs` |
+| pictogram | `.agent-workspace/pictograms` |
 
 Override precedence (first match wins):
 
@@ -263,7 +283,7 @@ Use `.agents/skill-configs/` for new configuration. This is a provider-neutral c
 ## Notes for LLMs
 
 - Ask or infer the target agent before installing. Do not assume Claude Code.
-- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, zoomdoc). Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace.
+- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, zoomdoc, labs). Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`.
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.

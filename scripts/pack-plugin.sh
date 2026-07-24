@@ -12,5 +12,6 @@ rm -f "$out"
      "*/__pycache__/*" \
      "*.pyc" \
      "*.pyo" \
-     "*/.pytest_cache/*" )
+     "*/.pytest_cache/*" \
+     "*/target/*" )
 echo "wrote $out"

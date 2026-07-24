@@ -1,0 +1,8 @@
+[package]
+name = "pictogram"
+version = "1.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+roxmltree = "0.21.1"

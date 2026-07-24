@@ -57,3 +57,6 @@ $RECYCLE.BIN/
 **/__pycache__/
 *.egg-info/
 .pytest_cache/
+
+# Rust artifacts
+**/target/

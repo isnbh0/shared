@@ -10,6 +10,7 @@
     { "name": "study", "source": "./plugins/study" },
     { "name": "gimme", "source": "./plugins/gimme" },
     { "name": "promptopt", "source": "./plugins/promptopt" },
-    { "name": "zoomdoc", "source": "./plugins/zoomdoc" }
+    { "name": "zoomdoc", "source": "./plugins/zoomdoc" },
+    { "name": "labs", "source": "./plugins/labs" }
   ]
 }

@@ -43,6 +43,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
 /plugin install zoomdoc@isnbh0
+/plugin install labs@isnbh0
 ```
 
 ## 스킬
@@ -170,6 +171,16 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-l
 - 네이티브 라디오·디스클로저 컨트롤과 명시적 `hidden` 상태를 사용하며, JavaScript 없이도 최상세 레벨로 온전히 읽힘
 - 접근 가능한 렌더러와 검증기를 포함하고, 소스 전사 모드에서는 선택적으로 엄격한 커버리지 검사 수행
 
+#### labs
+
+결정론적 로컬 도구 체인을 포함하는 실험적 스킬 모음입니다.
+
+- **pictogram** — 제약된 XML 포즈 설명을 작성·검증하고 결정론적 SVG로 컴파일
+- 편집 가능한 DSL 소스와 렌더링된 SVG를 타임스탬프 워크스페이스 번들에 함께 저장
+- 버전이 지정된 Aicher-inspired 비주얼 캐논, 고정된 사람 토폴로지, 소품이나 특이한
+  대상을 위한 제한된 프리미티브를 사용
+- Rust 검증기/컴파일러, RELAX NG 스키마, 캐논, 예제를 포함
+
 ### 기타 (복사 / 심볼릭 링크)
 
 저장소에 포함되어 있지만 마켓플레이스에는 게시되지 않은 스킬입니다. 심볼릭 링크 또는 복사로 설치:
@@ -218,14 +229,14 @@ Phaser 작업 시 의미 기반으로 활성화되는 패시브 지식 베이스
 
 ## 워크스페이스 설정
 
-파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
+파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
 
 1. **명시적 오버라이드** — 이번 실행에 사용할 워크스페이스 디렉터리를 요청
 2. **로컬 설정** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignore 대상, 개인 오버라이드
 3. **프로젝트 설정** (`.agents/skill-configs/<skill>/config.yaml`) — 커밋 대상, 팀 공유
 4. **레거시 폴백** (`.claude/skill-configs/<skill>/`) — 오래된 설정 경로를 배포한 스킬에만 해당
 
-대부분의 파일 생성 스킬에는 기본값이 없습니다. 각 스킬은 첫 사용 시 설정을 안내합니다. 출력은 `.agent-workspace/<folder>` 규칙을 따릅니다 (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`).
+대부분의 파일 생성 스킬에는 기본값이 없습니다. 각 스킬은 첫 사용 시 설정을 안내합니다. 출력은 `.agent-workspace/<folder>` 규칙을 따릅니다 (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`, `pictograms`).
 
 새 설정은 `.agents/skill-configs/`를 사용하세요. 이는 Agent Skills 생태계 표준이 아니라 이 저장소에서 정의한 제공자 중립 규칙입니다. `.claude/skill-configs/` 경로는 이전에 해당 경로를 사용했던 스킬의 마이그레이션 지원용으로만 유지되며, 새 스킬은 이 폴백을 추가할 필요가 없습니다. 2027-01-31 이후 레거시 폴백 제거를 검토합니다.
 
