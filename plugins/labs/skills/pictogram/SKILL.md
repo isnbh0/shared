@@ -76,7 +76,8 @@ Fix validation errors and rerun. Warnings require judgment: improve the silhouet
 otherwise keep the output and report the bounded concern.
 
 The proof rasterizes the compiled geometry at 16, 24, 32, and 48 px and checks for accidental
-holes, fragmented features, and closed negative-space gaps.
+holes, fragmented features, and closed negative-space gaps. Fix proof failures by revising the
+pose or scene in the DSL source, then recompile and rerun the proof.
 
 Default output is a black figure intended for a light field. For output embedded on unknown or
 dark backgrounds, compile with `--color-mode current`: the `figure` role emits `currentColor` so

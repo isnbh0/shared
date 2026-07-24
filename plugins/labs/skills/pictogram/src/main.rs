@@ -232,7 +232,7 @@ fn parse_compile_args(args: &[String]) -> Result<(PathBuf, PathBuf, PathBuf, Col
                 mode = match value.as_str() {
                     "literal" => ColorMode::Literal,
                     "current" => ColorMode::Current,
-                    _ => return Err(usage()),
+                    other => return Err(format!("unknown color mode {other:?}\n{}", usage())),
                 }
             }
             _ => return Err(usage()),
