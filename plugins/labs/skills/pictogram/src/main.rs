@@ -876,20 +876,51 @@ fn validate_declarations(
     }
 }
 
+struct Chain {
+    layer: String,
+    joints: Vec<String>,
+}
+
+fn derive_chains(bones: &[Bone]) -> Vec<Chain> {
+    let mut chains: Vec<Chain> = Vec::new();
+    for bone in bones {
+        match chains.last_mut() {
+            Some(chain)
+                if chain.layer == bone.layer && chain.joints.last() == Some(&bone.from) =>
+            {
+                chain.joints.push(bone.to.clone());
+            }
+            _ => chains.push(Chain {
+                layer: bone.layer.clone(),
+                joints: vec![bone.from.clone(), bone.to.clone()],
+            }),
+        }
+    }
+    chains
+}
+
 fn compile_svg(validated: &Validated) -> String {
     let canon = &validated.canon;
     let pictogram = &validated.pictogram;
     let mut normal: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
     let mut rings: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+    let mut chains: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
 
+    let chain_defs = derive_chains(&canon.bones);
     for actor in &pictogram.actors {
-        for bone in &canon.bones {
-            let start = actor.joints[&bone.from];
-            let end = actor.joints[&bone.to];
-            normal
-                .entry((bone.layer.clone(), "figure".to_string()))
+        for chain in &chain_defs {
+            let d = chain
+                .joints
+                .iter()
+                .map(|name| actor.joints[name])
+                .enumerate()
+                .map(|(i, p)| format!("{} {} {}", if i == 0 { "M" } else { "L" }, p.x, p.y))
+                .collect::<Vec<_>>()
+                .join(" ");
+            chains
+                .entry((chain.layer.clone(), "figure".to_string()))
                 .or_default()
-                .push(segment_path(start, end, canon.body_width));
+                .push(d);
         }
         normal
             .entry(("head".to_string(), "figure".to_string()))
@@ -939,6 +970,7 @@ fn compile_svg(validated: &Validated) -> String {
         let mut roles: Vec<_> = normal
             .keys()
             .chain(rings.keys())
+            .chain(chains.keys())
             .filter(|(candidate, _)| candidate == layer)
             .map(|(_, role)| role.clone())
             .collect();
@@ -947,6 +979,18 @@ fn compile_svg(validated: &Validated) -> String {
         for role in roles {
             let color = &canon.palette[&role];
             let base_id = format!("{}-{}", sanitize_id(layer), sanitize_id(&role));
+            if let Some(paths) = chains.get(&(layer.clone(), role.clone())) {
+                for path in paths {
+                    let id = unique_id(&format!("{base_id}-chain"), &mut id_counts);
+                    body.push_str(&format!(
+                        "  <path id=\"{}\" fill=\"none\" stroke=\"{}\" stroke-width=\"{}\" stroke-linejoin=\"round\" stroke-linecap=\"round\" d=\"{}\"/>\n",
+                        id,
+                        xml_escape(color),
+                        format_number(canon.body_width),
+                        path
+                    ));
+                }
+            }
             if let Some(paths) = normal.get(&(layer.clone(), role.clone())) {
                 let id = unique_id(&base_id, &mut id_counts);
                 body.push_str(&format!(
@@ -1308,6 +1352,36 @@ mod tests {
         assert!(first.contains("viewBox=\"0 0 48 48\""));
         assert!(!first.contains("<script"));
         assert!(!first.contains("transform="));
+    }
+
+    #[test]
+    fn derives_five_chains_from_bundled_canon() {
+        let canon = parse_canon(CANON).expect("canon should parse");
+        let chains = derive_chains(&canon.bones);
+        let expected: Vec<(&str, Vec<&str>)> = vec![
+            ("torso", vec!["shoulder", "hip"]),
+            ("far-limbs", vec!["shoulder", "elbow-far", "hand-far"]),
+            ("far-limbs", vec!["hip", "knee-far", "foot-far"]),
+            ("near-limbs", vec!["shoulder", "elbow-near", "hand-near"]),
+            ("near-limbs", vec!["hip", "knee-near", "foot-near"]),
+        ];
+        assert_eq!(chains.len(), expected.len());
+        for (chain, (layer, joints)) in chains.iter().zip(&expected) {
+            assert_eq!(&chain.layer, layer);
+            assert_eq!(chain.joints, *joints);
+        }
+    }
+
+    #[test]
+    fn compiles_actor_limbs_as_stroked_chains() {
+        let result = validate_document(EXAMPLE, CANON).expect("example should validate");
+        let svg = compile_svg(&result);
+        assert_eq!(svg.matches("stroke-linejoin=\"round\"").count(), 5);
+        assert_eq!(svg.matches("stroke-linecap=\"round\"").count(), 5);
+        assert_eq!(svg.matches("fill=\"none\"").count(), 5);
+        assert_eq!(svg.matches("stroke-width=\"4\"").count(), 5);
+        // the only remaining filled figure path is the head circle
+        assert_eq!(svg.matches("fill=\"#000000\"").count(), 1);
     }
 
     #[test]
