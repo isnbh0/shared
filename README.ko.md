@@ -68,12 +68,6 @@ Claude Code에서 `/plugin install <name>@isnbh0`으로 설치 가능:
 
 CLI 도구(Claude, Codex, Gemini)를 통한 외부 AI 코드 리뷰 도구입니다.
 
-**Claude Code에서 설치 없이 바로 사용:**
-
-```bash
-claude --plugin-url https://github.com/isnbh0/shared/releases/download/critique-latest/critique.zip
-```
-
 | 스킬 | 선택 입력 |
 |------|-----------|
 | claude | 파일 경로, 초점 |

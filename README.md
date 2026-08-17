@@ -68,12 +68,6 @@ Copies a skill or plugin into a local project for adaptation without installing 
 
 External AI critique via CLI tools (Claude, Codex, Gemini).
 
-**Try it without installing in Claude Code:**
-
-```bash
-claude --plugin-url https://github.com/isnbh0/shared/releases/download/critique-latest/critique.zip
-```
-
 | Skill | Optional inputs |
 |-------|-----------------|
 | claude | file path, focus |
