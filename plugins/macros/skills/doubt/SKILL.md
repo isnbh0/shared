@@ -53,8 +53,8 @@ ${SCOPE}
 1. Read the diff and each touched file in full. Understand what the code does and why.
 2. Identify concerns: correctness bugs, logic errors, edge cases, security issues, robustness gaps, API misuse, missing error handling at system boundaries.
 3. Research: search the web to verify assumptions. Check library docs, API references, known gotchas, and version-specific behavior. Cite your sources with URLs.
-4. Fix: for each concern, apply the fix directly. Own your suggestions — don't just describe, do.
-5. Report: list what you found and fixed (or would fix), ranked by severity. For anything you flagged but chose not to fix, explain why.
+4. Recommend: for each concern, explain the concrete fix, but do not modify files.
+5. Report: list what you found and recommend, ranked by severity.
 
 ## What NOT to do
 - Don't flag style, formatting, or naming unless it causes a bug.
@@ -66,7 +66,7 @@ ${SCOPE}
 ## Output format
 Severity-ranked bullet list. For each item:
 - **[severity]** One-line description
-- What you found → what you fixed (or why you didn't)
+- What you found → the concrete fix you recommend
 - Source: [url] (if you researched it)
 ```
 
@@ -82,7 +82,7 @@ ${SCOPE}
 
 1. Read relevant code in the project for context.
 2. Research the question on the web. Find authoritative sources.
-3. If the research reveals issues in the code, fix them.
+3. If the research reveals issues in the code, explain the concrete fixes, but do not modify files.
 4. Answer the question with evidence. Cite sources with URLs.
 
 ## Output format
@@ -97,5 +97,6 @@ Direct answer first, then supporting evidence as a bullet list with citations.
 
 ## Notes
 
-- Permission control (whether agents can edit files or access the web) is handled by the host agent/tooling. This skill assumes full access.
+- Launch the critic with read-only access. Do not grant editing or writing tools; applying findings is a separate user-authorized step.
+- Web access is optional and is controlled by the host agent/tooling.
 - If web access is unavailable, agents still produce useful critique — just without external verification.
