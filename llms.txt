@@ -44,6 +44,7 @@ Only the ten plugins above are published to the Claude Code marketplace. The `ma
 **Claude Code one-shot trial:**
 
 ```bash
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/critique-latest/critique.zip
 claude --plugin-url https://github.com/isnbh0/shared/releases/download/interview-latest/interview.zip
 claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-latest/zoomdoc.zip
 ```
@@ -82,9 +83,9 @@ Two-phase specification and implementation workflow that separates planning from
 Sources: `plugins/spex/skills/write/`, `plugins/spex/skills/write-phased/`, and `plugins/spex/skills/implement/`.
 
 ### critique
-External AI critique via CLI tools (Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using sandboxed execution.
+External AI critique via CLI tools (Claude, Codex, Gemini). Gets an independent second opinion on specs, code, or recent changes using restricted execution.
 
-Sources: `plugins/critique/skills/codex/` and `plugins/critique/skills/gemini/`, each with an optional file path and focus.
+Sources: `plugins/critique/skills/claude/`, `plugins/critique/skills/codex/`, and `plugins/critique/skills/gemini/`, each with an optional file path and focus.
 
 ### macros
 Subagent orchestration workflows and behavior modifiers. Includes map-reduce for parallel task splitting, chunked for ordered sequential parts, packet for durable filesystem round trips, calibrate for progressive mental-model alignment, leeway for interpretive latitude, doubt for research-backed code critique, consensus for multi-agent review, seq for serial blind passes, and rigor for correctness enforcement while active.
@@ -219,6 +220,7 @@ shared/
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/
+│   │       ├── claude/
 │   │       ├── codex/
 │   │       └── gemini/
 │   ├── macros/

@@ -1,0 +1,7 @@
+# Claude critique configuration
+# Copy this file to .agents/skill-configs/claude/config.yaml (project scope)
+# or .agents/skill-configs/claude/config.local.yaml (local/personal scope)
+
+# Rolling aliases include sonnet (balanced), opus (deep reasoning), and haiku (fast/efficient).
+# Full model identifiers and provider-specific model names are also supported.
+model: sonnet

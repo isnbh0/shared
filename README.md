@@ -66,14 +66,22 @@ Copies a skill or plugin into a local project for adaptation without installing 
 
 #### critique
 
-External AI critique via CLI tools (Codex, Gemini).
+External AI critique via CLI tools (Claude, Codex, Gemini).
+
+**Try it without installing in Claude Code:**
+
+```bash
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/critique-latest/critique.zip
+```
 
 | Skill | Optional inputs |
 |-------|-----------------|
+| claude | file path, focus |
 | codex | file path, focus |
 | gemini | file path, focus |
 
 - Gets an independent second opinion on specs, code, or recent changes
+- **Claude backend:** Runs a configured, review-only Claude Code CLI session
 - **Codex backend:** Runs a configured Codex CLI review
 - **Gemini backend:** Runs a configured Gemini CLI review
 
