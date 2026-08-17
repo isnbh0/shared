@@ -61,7 +61,7 @@ Map explicit effort requests to `--effort low|medium|high|xhigh|max`. Omit `--ef
 
 ## Invocation
 
-Canonicalize the project root and shell-quote it as one argument. Validate the configured model as a single nonempty scalar without control characters, then shell-quote it as one argument. Build the complete review prompt in memory and shell-quote it as one argument. Never interpolate raw configuration, paths, focus text, file lists, or prompt content into a shell command. In a POSIX shell, robust single-quote escaping replaces every embedded `'` with `'"'"'`; prefer a host execution API that accepts an argv array when available.
+Treat the project root, model, effort, and generated prompt as untrusted command input. Prefer an execution API that accepts an argv array. When a shell is required, canonicalize the project root, validate scalar configuration (including effort against its fixed enum), and shell-quote every dynamic argument. Never interpolate raw configuration or prompt content into a command.
 
 The placeholders beginning with `<shell-quoted-...>` below mean already-escaped, single shell arguments. Do not wrap them in another pair of quotes. This base invocation uses the model's default effort:
 
@@ -79,7 +79,7 @@ claude --safe-mode -p \
   <shell-quoted-review-prompt> </dev/null
 ```
 
-When the user explicitly requests effort, validate it against the fixed enum `low`, `medium`, `high`, `xhigh`, or `max`, then insert the literal pair `--effort <validated-level>` after `--model`. Never pass an empty effort value.
+When the user explicitly requests effort, insert the literal pair `--effort <validated-level>` after `--model`. Never pass an empty effort value.
 
 The restrictions are intentional:
 

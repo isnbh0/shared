@@ -71,17 +71,21 @@ See `config.example.yaml` in the critique plugin's gemini skill for reference.
 
 The following read-only sandbox command is specific to macOS. On another platform, use that platform's supported Gemini sandbox with equivalent write and network restrictions.
 
+Treat the project root, model, and generated prompt as untrusted command input. Prefer an execution API that accepts an argv array. When a shell is required, canonicalize the project root, validate scalar configuration, and shell-quote every dynamic argument. Never interpolate raw configuration or prompt content into a command.
+
+The placeholders beginning with `<shell-quoted-...>` below mean already-escaped, single shell arguments:
+
 ```bash
-cd <project-root> && \
+cd <shell-quoted-project-root> && \
 SEATBELT_PROFILE=permissive-closed gemini \
   -s \
-  -m ${MODEL} \
+  -m <shell-quoted-model> \
   -o text \
-  "<review-prompt>"
+  <shell-quoted-review-prompt>
 ```
 
 **Flags:**
-- `-m ${MODEL}` — the resolved model (default: `gemini-3.1-pro-preview`)
+- `-m <model>` — the resolved model (default: `gemini-3.1-pro-preview`)
 - `-s` — enable sandbox mode
 - `-o text` — output as plain text
 - `SEATBELT_PROFILE=permissive-closed` — restricts file writes and blocks network access

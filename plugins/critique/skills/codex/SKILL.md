@@ -81,20 +81,24 @@ The user can request higher reasoning effort by saying things like "xhigh", "hig
 
 ## Invocation
 
+Treat the project root, model, effort, and generated prompt as untrusted command input. Prefer an execution API that accepts an argv array. When a shell is required, canonicalize the project root, validate scalar configuration (including effort against its fixed enum), and shell-quote every dynamic argument. Never interpolate raw configuration or prompt content into a command.
+
+The placeholders beginning with `<shell-quoted-...>` below mean already-escaped, single shell arguments:
+
 ```bash
 codex exec \
-  -m ${MODEL} \
+  -m <shell-quoted-model> \
   -s read-only \
-  -C <project-root> \
-  --config model_reasoning_effort="<effort>" \
-  "<review-prompt>" </dev/null
+  -C <shell-quoted-project-root> \
+  --config <shell-quoted-reasoning-config> \
+  <shell-quoted-review-prompt> </dev/null
 ```
 
 **Flags:**
-- `-m ${MODEL}` — the resolved model (default: `gpt-5.6-terra`)
+- `-m <model>` — the resolved model (default: `gpt-5.6-terra`)
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
-- `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, `xhigh`, `max`, or `ultra`. Omit for default. Higher effort = slower but more thorough analysis.
+- `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, `xhigh`, `max`, or `ultra`. Build this as one argument and omit it for default. Higher effort = slower but more thorough analysis.
 
 **Stdin redirect (`</dev/null`) is required.** In some host-agent spawn environments, non-TTY stdin can remain open and cause `codex exec` to hang while reading additional input. Redirecting from `/dev/null` gives codex an immediate EOF.
 
