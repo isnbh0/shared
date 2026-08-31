@@ -1,5 +1,11 @@
 # Developer Guide
 
+## Commit discipline
+
+Commit changes routinely to preserve traceability. Use judgment to choose
+sensible commit boundaries and messages. When work is incomplete or cannot be
+validated, prefer a clear `wip:` commit over leaving it uncommitted.
+
 ## Publishing a New Claude Code Marketplace Plugin
 
 ### File structure
