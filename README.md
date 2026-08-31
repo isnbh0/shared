@@ -111,10 +111,11 @@ Document-grounded Socratic study sessions on any URL or local file.
 
 Two-phase specification and implementation workflow that separates planning from execution.
 
-Three self-contained skills:
+Four self-contained skills:
 
 - **write** — Create a spec, commit it, and stop — no implementation
 - **write-phased** — Create a multi-phase spec for complex features
+- **write-phased-gradual** — Create a rolling phased spec that plans one useful increment ahead
 - **implement** — Follow an existing spec, implement, update status, and commit
 
 #### macros

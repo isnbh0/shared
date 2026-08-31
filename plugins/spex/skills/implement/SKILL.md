@@ -19,7 +19,8 @@ defensible safe path remains after diagnosis.
 
 You are implementing an existing specification. The user's request may include the spec file path.
 
-Implement according to the spec. Do not write new specs in this session.
+Implement according to the spec. Do not write a replacement spec in this session. Updating an
+existing gradual spec as its frontier advances is part of implementation.
 
 ## Setup
 
@@ -91,7 +92,8 @@ The script outputs the name of the latest spec (file or directory). Construct th
 **Reading the spec** depends on whether it's a file or directory:
 
 - **File** (single-phase spec): Read the `.md` file directly.
-- **Directory** (phased spec): Read `{dir}/README.md` for the overview, then read each `PN-*.md` file for phase details.
+- **Directory** (phased spec): Read `{dir}/README.md` for the overview, then read every phase
+  document it links in numeric order.
 
 Understand:
 - Problem statement
@@ -99,6 +101,112 @@ Understand:
 - Technical approach
 - All implementation details
 - Testing requirements
+
+If a directory spec's overview contains `**Planning Mode:** Gradual`, follow the gradual workflow
+below instead of Steps 2–8. Specifications without that exact field continue through the existing
+workflow unchanged.
+
+## Gradual Phased Specifications
+
+A gradual implementation run handles exactly one concrete application phase, advances the
+specification frontier in a separate commit, and stops. It does not continue into the next phase.
+
+### Valid Resting States
+
+Read the overview and all phase files in numeric order. Confirm that they match one of these states:
+
+- **Initial:** the current frontier awaits concretization and the next phase is the trailing
+  placeholder.
+- **Ready:** earlier phases are complete, the current frontier is concrete and ready, and the next
+  phase is the trailing placeholder.
+- **Terminal:** every concrete phase is complete, there is no placeholder, and the spec is ready to
+  archive.
+
+If an explicitly selected spec is already terminal but not archived, archive it in a
+specification-only commit and stop. No application work remains.
+
+Before implementation, stop and repair the specification in a specification-only commit if phase
+numbers are not monotonic, links do not resolve, a completed phase lacks a real application commit,
+more than one concrete pending phase exists, or the nonterminal spec does not have exactly one
+trailing placeholder.
+
+### Concretize the Current Frontier
+
+If the current frontier has `State: Awaiting concretization`:
+
+1. Reinspect the repository and verify the overview's baseline against its current state.
+2. Choose the smallest coherent step that materially advances the overall goal.
+3. Rewrite the current phase in place using its concrete phase contract. Include a concrete outcome,
+   verified entry state, repository-relative paths, completed-phase contracts, complete
+   implementation guidance, exact tests, headless verification, and an application commit boundary.
+4. Keep the following phase unchanged as the trailing placeholder.
+5. Set the phase to `State: In Progress`. Update the overview's phase summary, set its status to `In
+   Progress`, retain the current frontier, refresh the verified baseline, durable decisions, and
+   deferred work, and set the next action to implement the current phase.
+
+Do not introduce speculative content for later phases. Run the gradual quality gate, stage only the
+specification directory, commit the concretization, and then continue with the concrete phase.
+
+If the current frontier is already `State: Ready`, use it as written. Before application changes,
+mark that phase and the overview `In Progress`, stage only the specification directory, and commit
+that status change. When concretization and the status transition happen together, use one
+specification-only commit.
+
+### Implement One Phase
+
+1. Track the concrete phase's implementation tasks, verification, application commit, and frontier
+   update.
+2. Implement only the current concrete phase.
+3. Run every required test and verification command. Interactive verification is allowed only when
+   the user explicitly authorized it.
+4. Stage only application and test files; exclude the specification directory.
+5. Commit the working application with the phase reference, following repository conventions.
+6. Record the resulting application commit hash for the specification update.
+
+The application commit must exist before the phase is marked complete. Do not combine application
+changes with concretization, rollover, or archival changes.
+
+### Complete or Advance
+
+After the application commit, reinspect the repository and decide from evidence whether the overall
+goal is complete.
+
+If the goal is complete:
+
+1. Mark the current phase and its checklist complete and record its application commit.
+2. Remove the unused trailing placeholder.
+3. Update the overview to `Status: Completed`, clear the current frontier, record the completion
+   date, and make the next action `None — specification complete`.
+4. Move the entire specification directory to `${SPECS_DIR}/archive/implemented/`.
+5. Run the gradual quality gate, stage only the specification changes, commit them, and stop.
+
+If more work remains:
+
+1. Mark the current phase and its checklist complete and record its application commit.
+2. Reinspect the repository and rewrite the existing trailing placeholder in place as the next
+   concrete phase. Its choice must respond to the state left by the completed application commit.
+3. Set the promoted phase to `State: Ready`. Add `P(N+2).md` with `State: Trailing placeholder` and
+   no speculative implementation content.
+4. Update the overview's verified baseline, durable decisions and contracts, deferred work, phase
+   summary, links, and progress. Set the current frontier to the promoted phase, the status to
+   `Requires Implementation`, and the next action to implement that phase.
+5. Confirm that the spec now has completed phases, exactly one concrete ready phase, and exactly one
+   trailing placeholder.
+6. Run the gradual quality gate, stage only the specification changes, commit them, and stop before
+   implementing the new frontier.
+
+### Gradual Quality Gate
+
+Before every gradual specification commit, verify:
+
+- Every referenced existing path is tracked and available to a fresh agent; proposed paths are
+  compatible with ignore rules.
+- Any current concrete phase is independently implementable and contains exact tests and headless
+  verification commands.
+- No speculative implementation content appears in the trailing placeholder.
+- Completed phase commits exist and are application commits for the recorded work.
+- Phase numbers are monotonic, links resolve, and the overview agrees with the phase files.
+- Only the intended specification files are staged.
 
 **Step 2: Create implementation todo list**
 
