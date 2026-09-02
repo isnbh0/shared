@@ -44,6 +44,7 @@ Then install individual skills:
 /plugin install promptopt@isnbh0
 /plugin install zoomdoc@isnbh0
 /plugin install labs@isnbh0
+/plugin install merbook@isnbh0
 ```
 
 ## Skills
@@ -183,6 +184,17 @@ Experimental skills backed by deterministic local toolchains.
   deterministic SVG
 - Saves the DSL source and SVG together in a timestamped workspace bundle
 - Includes a Rust validator/compiler, RELAX NG schema, versioned visual canon, and example
+
+#### merbook
+
+Semantic Mermaid diagram archetypes and composable patterns for purpose-driven flowcharts.
+
+Four self-contained skills, invoked by name:
+
+- **action-flow** — Every arrow is a one-way action initiated by its source toward its target; explains who acts on whom
+- **artifact-process-flow** — How processes consume or consult durable information and what they produce
+- **multi-view** — What stays stable across two or more views of one shared graph and what each view changes
+- **numbered-edges** — Explicit steps, phases, or ordering on selected edges under a declared scope
 
 ### Other (copy / symlink)
 

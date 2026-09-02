@@ -44,6 +44,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install promptopt@isnbh0
 /plugin install zoomdoc@isnbh0
 /plugin install labs@isnbh0
+/plugin install merbook@isnbh0
 ```
 
 ## 스킬
@@ -182,6 +183,17 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-l
 - **pictogram** — 제약된 XML 포즈 설명을 작성·검증한 다음 결정론적 SVG로 컴파일
 - DSL 소스와 SVG를 타임스탬프 워크스페이스 번들에 함께 저장
 - Rust 검증기/컴파일러, RELAX NG 스키마, 버전이 지정된 비주얼 캐논, 예제를 포함
+
+#### merbook
+
+목적 중심 플로우차트를 위한 시맨틱 Mermaid 다이어그램 아키타입과 조합 가능한 패턴 모음입니다.
+
+이름으로 호출하는 네 개의 독립 스킬:
+
+- **action-flow** — 모든 화살표가 소스에서 타깃으로 향하는 단방향 행위를 나타내며, 누가 누구에게 작용하는지 설명
+- **artifact-process-flow** — 프로세스가 지속 정보를 소비·참조하고 무엇을 생산하는지 표현
+- **multi-view** — 하나의 공유 그래프를 둘 이상의 뷰로 보여주며 무엇이 유지되고 각 뷰에서 무엇이 달라지는지 표현
+- **numbered-edges** — 선언된 범위 안에서 선택된 엣지에 명시적 단계, 페이즈, 순서 부여
 
 ### 기타 (복사 / 심볼릭 링크)
 
