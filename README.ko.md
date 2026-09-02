@@ -66,13 +66,14 @@ Claude Code에서 `/plugin install <name>@isnbh0`으로 설치 가능:
 
 #### critique
 
-CLI 도구(Claude, Codex, Gemini)를 통한 외부 AI 코드 리뷰 도구입니다.
+CLI 도구(Claude, Codex, Gemini, Pi)를 통한 외부 AI 코드 리뷰 도구입니다.
 
 | 스킬 | 선택 입력 |
 |------|-----------|
 | claude | 파일 경로, 초점 |
 | codex | 파일 경로, 초점 |
 | gemini | 파일 경로, 초점 |
+| pi | 파일 경로, 초점 |
 
 - 명세, 코드, 최근 변경사항에 대한 독립적인 세컨드 오피니언 제공
 - **Claude 백엔드:** 리뷰 전용으로 제한된 Claude Code CLI 세션 실행

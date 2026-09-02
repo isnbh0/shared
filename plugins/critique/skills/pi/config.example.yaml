@@ -1,0 +1,10 @@
+# Pi critique configuration
+# Copy this file to .agents/skill-configs/pi/config.yaml (project scope)
+# or .agents/skill-configs/pi/config.local.yaml (local/personal scope)
+
+# Model in pi's "provider/model" form. Run `pi --list-models` to see what is
+# wired locally (for example openai-codex, anthropic, or zai providers).
+# Leave this file absent to use the default model configured in pi itself.
+# Note: some providers reached through pi bill per token rather than against
+# a subscription.
+model: openai-codex/gpt-5.6-terra

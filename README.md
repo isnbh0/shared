@@ -66,13 +66,14 @@ Copies a skill or plugin into a local project for adaptation without installing 
 
 #### critique
 
-External AI critique via CLI tools (Claude, Codex, Gemini).
+External AI critique via CLI tools (Claude, Codex, Gemini, Pi).
 
 | Skill | Optional inputs |
 |-------|-----------------|
 | claude | file path, focus |
 | codex | file path, focus |
 | gemini | file path, focus |
+| pi | file path, focus |
 
 - Gets an independent second opinion on specs, code, or recent changes
 - **Claude backend:** Runs a configured, review-only Claude Code CLI session
