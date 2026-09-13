@@ -17,14 +17,6 @@ Run `date +%y%m%d-%H%M%S` in a shell. Do this **once** per logical job bucket â€
 - **Out of scope:** edits, renames, or moves of existing files.
 - Applies whether the user named the destination explicitly or you picked the name yourself.
 
-## Where the prefix goes
-
-Before creating anything, present a single inferred plan covering all destinations in this job bucket and ask the user to confirm or correct. Example:
-
-> Plan: `260428-143022-report.md`, `260428-143022-notes/draft.md`. OK?
-
-Only ask per-destination when there is genuine ambiguity (e.g., the user says "stamp the project folder" and it's unclear which path level should carry the prefix).
-
 ## Idempotency
 
 If a destination name already begins with a `\d{6}-\d{6}-` prefix, leave it alone â€” don't re-stamp.
