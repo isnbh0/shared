@@ -38,9 +38,10 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install zoomdoc@isnbh0
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
+/plugin install system1-machine@isnbh0
 ```
 
-Only the eleven plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
+Only the twelve plugins above are published to the Claude Code marketplace. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, skill-writer, phaser) must be installed via direct copy or symlink.
 
 **Claude Code one-shot trial:**
 
@@ -149,6 +150,14 @@ Bundled skills:
 
 Source: `plugins/merbook/skills/<skill>/`.
 
+### system1-machine
+Design a system around many cheap, low-latency judgments rather than one expensive call, such as those from TypeSafe's Jev or another System One model. A design skill, not an integration skill: it decomposes a problem into judgments, deterministic operations, and the artifacts between them, and leaves API contracts to the substrate's own documentation and TypeSafe's own agent skill.
+
+Bundled skill:
+- `system1-machine` - design the machine that makes the judgments, not the single prompt
+
+Source: `plugins/system1-machine/skills/system1-machine/`.
+
 ### Other direct-install skills
 
 ### report-writer
@@ -236,6 +245,12 @@ shared/
 │   │       ├── artifact-process-flow/
 │   │       ├── multi-view/
 │   │       └── numbered-edges/
+│   ├── system1-machine/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/
+│   │       └── system1-machine/
+│   │           ├── SKILL.md
+│   │           └── references/
 │   ├── critique/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/
@@ -305,7 +320,7 @@ Use `.agents/skill-configs/` for new configuration. This is a provider-neutral c
 ## Notes for LLMs
 
 - Ask or infer the target agent before installing. Do not assume Claude Code.
-- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, zoomdoc, labs, merbook). Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`. The merbook archetype and pattern skills are included in `merbook`.
+- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, zoomdoc, labs, merbook, system1-machine). Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`. The merbook archetype and pattern skills are included in `merbook`.
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.

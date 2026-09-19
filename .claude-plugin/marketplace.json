@@ -12,6 +12,7 @@
     { "name": "promptopt", "source": "./plugins/promptopt" },
     { "name": "zoomdoc", "source": "./plugins/zoomdoc" },
     { "name": "labs", "source": "./plugins/labs" },
-    { "name": "merbook", "source": "./plugins/merbook" }
+    { "name": "merbook", "source": "./plugins/merbook" },
+    { "name": "system1-machine", "source": "./plugins/system1-machine" }
   ]
 }

@@ -45,6 +45,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install zoomdoc@isnbh0
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
+/plugin install system1-machine@isnbh0
 ```
 
 ## 스킬
@@ -194,6 +195,16 @@ claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-l
 - **artifact-process-flow** — 프로세스가 지속 정보를 소비·참조하고 무엇을 생산하는지 표현
 - **multi-view** — 하나의 공유 그래프를 둘 이상의 뷰로 보여주며 무엇이 유지되고 각 뷰에서 무엇이 달라지는지 표현
 - **numbered-edges** — 선언된 범위 안에서 선택된 엣지에 명시적 단계, 페이즈, 순서 부여
+
+#### system1-machine
+
+TypeSafe의 Jev를 비롯한 System One 모델처럼, 하나의 비싼 호출 대신 값싸고 지연이 낮은 다수의
+판단을 중심으로 시스템을 설계합니다.
+
+- **system1-machine** — 문제를 판단, 결정론적 연산, 그 사이의 아티팩트로 분해하여 어떤 프롬프트를
+  쓸지가 아니라 어떤 기계를 만들지를 설계 질문으로 전환
+- 연동 스킬이 아닌 설계 스킬입니다. API 계약은 해당 substrate의 문서에 맡기고, Jev 참조 문서는
+  설계를 좌우하는 속성만 다룹니다
 
 ### 기타 (복사 / 심볼릭 링크)
 

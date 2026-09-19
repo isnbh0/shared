@@ -45,6 +45,7 @@ Then install individual skills:
 /plugin install zoomdoc@isnbh0
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
+/plugin install system1-machine@isnbh0
 ```
 
 ## Skills
@@ -195,6 +196,17 @@ Four self-contained skills, invoked by name:
 - **artifact-process-flow** — How processes consume or consult durable information and what they produce
 - **multi-view** — What stays stable across two or more views of one shared graph and what each view changes
 - **numbered-edges** — Explicit steps, phases, or ordering on selected edges under a declared scope
+
+#### system1-machine
+
+Design a system around many cheap, low-latency judgments rather than one expensive call,
+such as those from TypeSafe's Jev or another System One model.
+
+- **system1-machine** — Decomposes a problem into judgments, deterministic operations, and the
+  artifacts between them, so the design question becomes what machine to build rather than what
+  prompt to write
+- A design skill, not an integration skill: API contracts stay with the substrate's own docs,
+  with a Jev reference covering only the properties that constrain a design
 
 ### Other (copy / symlink)
 
