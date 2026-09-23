@@ -19,11 +19,11 @@ Host-specific activation syntax is documented separately. This plugin identifies
 - `macros:askme` — ask the user at ambiguities and decision points instead of assuming.
 - `macros:delegate` — prefer subagents when they save context or enable concurrency.
 - `macros:dry-run` — describe the intended actions for the current request without performing side effects.
-- `macros:dredge` — search prior coding-agent transcripts for relevant context.
+- `macros:dredge` — search prior coding-agent transcripts and, when coverage matters, prompt histories; distinguish missing transcripts from missing requests.
 - `macros:timeless` — avoid time estimates and describe complexity, scope, risk, and ordering instead.
 - `macros:timestamp` — prefix new paths with one timestamp per logical job bucket.
 - `macros:tmi` — flag artifact content that only makes sense with conversational backstory.
-- `macros:new` — scaffold a standalone custom macro skill.
+- `macros:new` — scaffold a standalone custom macro skill for selected hosts from one source directory.
 
 ## Configuration
 

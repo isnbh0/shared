@@ -107,9 +107,9 @@ Bundled skills (all under `plugins/macros/skills/`):
 - `tmi` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
 - `dry-run` - one-shot failsafe: describe what you would do for the activating request instead of doing it, then wait for confirmation
 - `timeless` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- `dredge` with an optional freeform query - search prior coding-agent chat transcripts (Claude Code, Codex, ...) for context; defaults to current project, widens scope and time window from natural-language hints in the query. Optional AgentsView backend when the `agentsview` CLI is installed (configured at `~/.agents/skill-configs/dredge/`); falls back to grep over Claude Code transcripts otherwise
+- `dredge` with an optional freeform query - search prior coding-agent transcripts for context; check available prompt histories for exhaustive searches and distinguish requests with missing transcripts. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code grep fallback)
 - `timestamp` - shorthand: resolve the timestamp value referred to by the user with `date +%y%m%d-%H%M%S`
-- `new` - scaffold a custom macro: writes a user- or project-scope skill that behaves as a first-class macro and composes with other active skills; user-scope macros default to a `my-` name prefix
+- `new` - scaffold a custom macro for a project or user and selected agent hosts from one source directory; user-scope macros default to a `my-` name prefix
 
 ### study
 Document-grounded Socratic study sessions on any URL or local file. Calibrates to user familiarity, persists session notes with resumption across sittings, and supports freeform persona/behavior customization via config.

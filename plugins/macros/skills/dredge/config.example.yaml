@@ -26,5 +26,7 @@ agentsview:
   # indexed (Claude Code, Codex, Cursor, Copilot, Gemini, ...). Restrict to a subset
   # by listing names, e.g. [claude, codex].
   agents: all
-  # Include subagent / automated / one-shot sessions (noisy). Off by default.
+  # Include subagent sessions in ordinary searches. Off by default; complete
+  # inventories also include children, automated, and one-shot
+  # sessions when the CLI supports them, unless the user narrows the scope.
   include_children: false
