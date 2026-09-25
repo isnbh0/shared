@@ -1,0 +1,57 @@
+# Tractatus Bibliothecarius
+
+A synthetic outline shaped like the *Tractatus*, for testing.
+
+It has two intro paragraphs.
+
+- 1 The library is everything that is shelved.
+  - 1.1 The library is the totality of volumes, not of pages.
+    - 1.11 The library is determined by the volumes, and by these being *all* the volumes.
+    - 1.12 For the totality of volumes determines what is shelved,
+      and also what is lent out.
+    - 1.13 The volumes in catalogue space are the library.
+  - 1.2 The library divides into volumes.
+    - 1.21 Any volume can be shelved or not, and everything else remain the same.
+- 2 What is shelved, the volume, is the existence of editions.
+  - 2.01 An edition is a combination of pages.
+    - 2.011 It is essential to a page that it can be bound into an edition.
+    - 2.012 Nothing in the library is accidental.
+      - 2.0121 A page that could stand alone would seem to be a mere loose leaf.
+      - 2.0122 The page is independent insofar as it can occur in every edition.
+      - 2.0123 If I know a page, I know all its possible bindings.
+        - 2.01231 To know a page I must know its internal, not its external, qualities.
+    - 2.013 Every page is, as it were, in a space of possible editions.
+  - 2.02 Pages are simple.
+    - 2.021 Pages form the substance of the library.
+  - 2.1 We make ourselves catalogues of volumes.
+    - 2.11 The catalogue presents the facts in catalogue space.
+    - 2.12 The catalogue is a model of the library.
+3. 3 The logical catalogue of the volumes is the thought.
+    1. 3.001 "A volume is thinkable" means we can catalogue it.
+    2. 3.01 The totality of true thoughts is a catalogue of the library.
+    3. 3.1 In the thought the volume is expressed perceptibly.
+        1. 3.11 We use the perceptible sign as a projection of the possible volume.
+        2. 3.12 The sign through which we express the thought I call the call number.
+* 4 The thought is the significant call number.
+  * 4.001 The totality of call numbers is the language.
+  * 4.01 The call number is a picture of reality.
+    - 4.011 At first sight the call number does not seem to be a picture: $p \supset q$.
+    - 4.012 It is obvious that we perceive a call number of the form $aRb$ as a picture.
+  * 4.1 A call number presents the existence of editions.
+    - 4.11 The totality of true call numbers is the whole catalogue (see [the series](#5.1)).
+    - 4.12 A [dangerous link](javascript:alert(1)) renders as plain text.
+- 5 A call number is a truth-function of elementary call numbers.
+  - 5.01 The elementary call numbers are the truth-arguments.
+  - 5.1 The truth-functions can be ordered in series.
+    - 5.101 Written as `(TTTT)(p, q)`, it is a tautology.
+    - 5.11 If the truth-grounds common to a number of call numbers are **all** also truth-grounds of another, the latter follows.
+  - Unnumbered aside: not every item carries a label.
+    - Neither does this one, which costs $5 and \$6.
+- 6 The general form of a truth-function is $[\bar p, \bar\xi, N(\bar\xi)]$.
+  - 6.1 The call numbers of logic are tautologies.
+  - 6.54 My call numbers are elucidatory in this way: he who understands me finally recognizes them as senseless.
+  Lazy continuation of 6.54 at a shallower indent.
+
+    A second paragraph of 6.54.
+- 7 Whereof one cannot catalogue, thereof one must be silent.
+- \2024 is not a label, because it is escaped.

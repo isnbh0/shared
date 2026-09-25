@@ -1,0 +1,3073 @@
+<!doctype html>
+<html lang="en" data-math-timeout="15000">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js; style-src 'unsafe-inline'; font-src https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Outline</title>
+  <style>
+    @layer reset, tokens, base, layout, components, states;
+
+    @layer reset {
+      *, *::before, *::after { box-sizing: border-box; }
+      body { margin: 0; }
+      .outline, .outline ul { list-style: none; margin: 0; padding: 0; }
+    }
+
+    @layer tokens {
+      :root {
+        /* Dynalist theme_default / theme_dark */
+        --bg: light-dark(#fff, #181818);
+        --fg: light-dark(#222, #eee);
+        --note: light-dark(#4e4e4e, #cacaca);
+        --bullet: light-dark(#7a7a7a, #a7a7a7);       /* graphics: >= 3:1 on --bg and --active */
+        --label: light-dark(#6b6b6b, #a7a7a7);        /* text: Dynalist's #7a7a7a is 4.29:1 on white */
+        --chrome-hover: light-dark(#4e4e4e, #cacaca);
+        --guide: light-dark(#eee, #444);              /* decorative, exempt from law V */
+        --active: light-dark(#cce8ff, #003766);
+        --selection: light-dark(rgb(204 232 255 / 0.99), rgb(0 55 102 / 0.99));
+        --code-fg: light-dark(#c7254e, #e26182);      /* dark: #c7254e is ~2.9:1 on #262626 */
+        --code-bg: light-dark(#f5f5f5, #262626);
+        --link-focus: #008aff;                        /* Dynalist theme-color */
+        /* Spacing panel: a raised surface, retuned per scheme rather than inverted. Light: white
+           card, hairline border, soft shadow. Dark: a surface lighter than the page, since a
+           shadow barely reads on #181818, with a border that separates it from the page. */
+        --panel-bg: light-dark(#fff, #242424);
+        --panel-border: light-dark(#ddd, #3d3d3d);
+        --panel-shadow: light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.6));
+        /* Find: Dynalist's match yellow; its dark #74740e is 3.02:1 under notes, so the lightest
+           olive step that keeps --note >= 4.5:1. The box border is Dynalist's. */
+        --match: light-dark(#ffff99, #58580b);
+        --find-border: light-dark(#ccc, #444);
+
+        /* Reader knobs. The Spacing panel sets only these five, as inline style on :root. Line
+           height is a ratio and the note size follows the text size, so size and leading stay
+           coupled. Dynalist large / cozy is 20/24 with a 32px pitch; these defaults are looser. */
+        --font-size: 20px;
+        --lh: 1.5;
+        --item-gap: 10px;     /* space between consecutive rows */
+        --indent: 30px;       /* per level: a child's row starts under its parent's text */
+        --column: 820px;
+
+        --line: calc(var(--font-size) * var(--lh));             /* 30px */
+        --note-size: calc(var(--font-size) - 3px);              /* 17px */
+        --note-line: calc(var(--note-size) * var(--lh));        /* 25.5px */
+        --note-gap: 0px;      /* Dynalist: a note's line box starts where its item's first line ends */
+        --title-size: 28px;
+        --title-line: 34px;
+        --title-inset: 6px;   /* the root row's highlight is flush with the rows'; its text clears the ring */
+        --bullet-col: 22px;
+        --text-gap: 4px;      /* Dynalist: 15px from the bullet centre (11px in) to the text; a child
+                                 starts --indent - 26px right of its parent's text (4px by default) */
+        --column-pad-start: 88px;   /* Dynalist: the title's text starts 88px into the column */
+        --column-pad-end: 34px;     /* Dynalist: the page tools end 34px before the column's edge */
+        --group-gap: 4px;     /* Dynalist: extra space after each nested group of children closes */
+
+        --page-pad: 16px;     /* narrow viewports: the page's inline padding */
+        --hit: 24px;          /* the smallest target (WCAG 2.5.8); 44px under a coarse pointer */
+
+        --font-ui: "Whitney", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        --font-mono: Consolas, ui-monospace, SFMono-Regular, Menlo, Courier, monospace;
+      }
+      /* A finger: 44px targets (WCAG 2.5.5), rows 44px apart, and room for the bullet's slop at
+         the page's edge. The Spacing panel's item-gap default follows (SPACING in the script). */
+      @media (any-pointer: coarse) {
+        :root { --item-gap: 14px; --hit: 44px; --page-pad: 20px; }
+      }
+    }
+
+    @layer base {
+      html {
+        background: var(--bg);
+        color: var(--fg);
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;   /* :active and :focus-visible styles instead */
+        scroll-padding-block-start: var(--head-block, 0px);   /* the sticky header's height */
+      }
+      /* No double-tap zoom delay on controls; pinch zoom stays everywhere. */
+      button, input, a, .toggle { touch-action: manipulation; }
+      body {
+        font: 16px/1.25 var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      ::selection { background: var(--selection); }
+      strong { font-weight: 700; }
+      em { font-style: italic; }
+    }
+
+    @layer layout {
+      main, .page-head {
+        max-inline-size: var(--column);   /* border-box: includes the padding */
+        margin-inline: auto;
+        padding-inline: var(--column-pad-start) var(--column-pad-end);
+      }
+      /* The header holds the breadcrumbs (when zoomed), the find box and the page tools above the
+         title: the title is the tree's root item, so it spans the whole column. The box and the
+         tools sit at the end. The crumbs take the rest of the row while it leaves them 12rem, and
+         otherwise a row of their own below it (the container query), so they never collapse. The
+         header keeps its height at every column width while the crumbs are hidden (the column knob
+         never moves the title). */
+      .page-head {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
+        row-gap: 8px;
+        column-gap: 16px;
+        container-type: inline-size;
+        /* Dynalist's icon row and title; the tools end on the column's edge, like its icons. */
+        padding-block-start: 25px;
+        padding-inline-end: 8px;
+        margin-block-end: 9.5px;
+      }
+      /* Zoomed, Dynalist's header row sits 13px lower and the title 13px lower; its crumbs
+         start 11px before the title and sit slightly below the row's centre. */
+      .page-head:has(> #crumbs:not([hidden])) { padding-block-start: 38px; margin-block-end: 9px; }
+      #crumbs { position: relative; inset-block-start: 1.5px; margin-inline-start: -11px; }
+      .find { order: 1; }
+      .page-tools { order: 2; display: flex; flex: none; gap: 16px; }
+      #crumbs { display: flex; align-items: center; gap: 8px; flex: 1 1 0; min-inline-size: 12rem; }
+      /* One line that scrolls sideways (renderCrumbs scrolls it to the end): each crumb shrinks to
+         6em and ellipsises before the line scrolls. */
+      #crumbs ol {
+        display: flex;
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+        min-inline-size: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+      }
+      #crumbs li { display: flex; align-items: center; min-inline-size: min(6em, max-content); flex: 0 1 auto; }
+      #crumbs li::after { content: ">" / ""; flex: none; padding-inline: 9px; color: var(--label); }
+      #crumbs li:last-child::after { padding-inline-end: 0; }
+      #up-button { display: none; }
+      @container (max-width: 42rem) {
+        #crumbs { order: 3; flex-basis: 100%; min-inline-size: 0; inset-block-start: 0; margin-inline-start: 0; }
+        .find { flex: 1 1 8rem; }
+      }
+      main { padding-block-end: max(50px, env(safe-area-inset-bottom)); container-type: inline-size; }
+      #doc-title {
+        margin: 0;
+        font-size: var(--title-size);
+        line-height: var(--title-line);
+        font-weight: 400;
+        overflow-wrap: anywhere;
+      }
+      .intro {
+        margin-block-start: 5px;                /* the root's note sits 5px under the title */
+        font-size: var(--note-size);
+        line-height: var(--note-line);
+        color: var(--note);
+        overflow-wrap: anywhere;
+      }
+      .intro p { margin: 0; }
+      .intro p + p { margin-block-start: var(--note-line); }
+      .outline { font-size: var(--font-size); line-height: var(--line); }
+      /* A group's 1px guide runs under its parent's bullet centre (10px margin, then the border,
+         whose right edge is the bullet centre at 11px), and the padding makes up the rest of the
+         step: 10 + 1 + (step - 11) = step. The step is the indent, capped so that the deepest level
+         of the displayed tree (--depth, set by renderTree) keeps a 16ch measure in the column
+         (law M3): 100cqi is #main's content width. Below an 11px step the guide moves in with it. */
+      .outline ul {
+        /* 16.5ch: the ch unit comes from the first available font, which can run a few percent
+           narrower than the digits the system font renders. */
+        /* 16.5ch: the ch unit comes from the first available font, which can run a few percent
+           narrower than the digits the system font renders. */
+        --measure: calc(100cqi - var(--bullet-col) - var(--text-gap) - 16.5ch);
+        --step: min(var(--indent), max(2px, var(--measure) / max(1, var(--depth, 1) - 1)));
+        margin-inline-start: min(calc(var(--bullet-col) / 2 - 1px), calc(var(--step) - 1px));
+        padding-inline-start: max(0px, calc(var(--step) - var(--bullet-col) / 2));
+        border-inline-start: 1px solid var(--guide);
+      }
+      /* Dynalist leaves --group-gap after each nested group closes. The margin sits outside the
+         group's border, so its guide ends at its last descendant, but inside its item, which is a
+         block formatting context: the gap belongs to the item (a range fill covers it), two groups
+         closing together leave 2 * --group-gap, and the outer guide runs past the inner one by
+         --group-gap, as Dynalist's does. A guide starts at its parent's text, not its row: the
+         group rises into the row's bottom padding. */
+      .outline [role="treeitem"] { display: flow-root; }
+      .outline [role="group"] {
+        margin-block: calc(var(--item-gap) / -2) var(--group-gap);
+        padding-block-start: calc(var(--item-gap) / 2);
+      }
+      /* The root's children are the top level: no indent and no guide. */
+      #item-root > [role="group"] { margin: 0; padding: 0; border: 0; }
+      /* The label gutter grows with the longest label (--label-chars, set by renderTree): monospace
+         advances are at most 0.62em, and the label ends 8px left of the outline. */
+      main, .page-head {
+        padding-inline-start: max(var(--column-pad-start), calc(var(--label-chars, 0) * 0.62 * 12px + 8px));
+      }
+      /* Narrow viewports (WCAG 1.4.10 reflow at 320px): the column knob is ignored, and the indent
+         scales down (16px at the default 30px), still capped by the measure. */
+      @media (max-width: 40rem) {
+        main, .page-head {
+          padding-inline: max(var(--page-pad), env(safe-area-inset-left)) max(var(--page-pad), env(safe-area-inset-right));
+          max-inline-size: none;
+        }
+        .outline ul { --step: min(var(--indent) * 16 / 30, max(2px, var(--measure) / max(1, var(--depth, 1) - 1))); }
+      }
+      /* Phones and tablets: a compact header that stays on screen (find, the ⋯ menu and Up are
+         always in reach), except where the viewport is too short to spare it. */
+      @media (max-width: 40rem), (hover: none) {
+        .page-head, .page-head:has(> #crumbs:not([hidden])) {
+          position: sticky;
+          inset-block-start: 0;
+          z-index: 2;
+          background: var(--bg);
+          padding-block: max(8px, env(safe-area-inset-top)) 8px;
+          margin-block-end: 9.5px;
+          border-block-end: 1px solid var(--guide);
+        }
+        .page-tools { gap: 4px; }
+        #crumbs { inset-block-start: 0; margin-inline-start: 0; }
+        #up-button { display: inline-flex; }
+      }
+      @media (max-height: 25rem) {
+        .page-head, .page-head:has(> #crumbs:not([hidden])) { position: static; }
+      }
+    }
+
+    @layer components {
+      /* Bullet, label and text share the first line's baseline (law M2): the toggle's line box
+         has the same strut as the text's first line, so a taller first line (typeset math) moves
+         the bullet down with its baseline instead of overprinting it. */
+      .row {
+        display: flex;
+        align-items: baseline;
+        gap: var(--text-gap);
+        /* Dynalist's highlight reaches a whole gap above the text and half a gap below, so a row
+           rises half a gap into the one before it; the pitch stays line + gap. */
+        padding-block: var(--item-gap) calc(var(--item-gap) / 2);
+        margin-block-start: calc(var(--item-gap) / -2);
+      }
+      .text { flex: 1 1 auto; min-inline-size: 0; overflow-wrap: anywhere; }
+      .para { display: block; }
+      /* The root row: title and intro, no bullet. It starts --title-inset before the item rows, so
+         the title's text lines up with the column's start while its highlight keeps room for the
+         focus ring. The 10px below it matches Dynalist's gap from the title to the first item. */
+      .row.root-row {
+        display: block;
+        padding-inline: var(--title-inset);
+        margin-inline-start: calc(-1 * var(--title-inset));
+        margin-block: 0 10px;
+        padding-block: calc(var(--item-gap) / 2);
+      }
+      .para + .para {                           /* Dynalist note */
+        font-size: var(--note-size);
+        line-height: var(--note-line);
+        color: var(--note);
+        margin: var(--note-gap) 0 0;
+      }
+      /* Number labels sit in a gutter left of the outline, on the first line's baseline. The label
+         is the first thing in the item's first paragraph (so it is read first, as part of the
+         item's name), inside a zero-size .gutter whose strut puts its line's baseline on the
+         text's. The label's containing block is #outline (no element between them is positioned),
+         so its right edge is 8px left of the outline at every depth. */
+      .outline { position: relative; }
+      .gutter {
+        display: inline-block;
+        inline-size: 0;
+        block-size: 0;
+        font: 12px/var(--line) var(--font-mono);
+        white-space: nowrap;
+      }
+      .gutter::before { content: ""; display: inline-block; }
+      .label {
+        position: absolute;
+        inset-inline-end: calc(100% + 8px);
+        font: inherit;
+        font-variant-numeric: tabular-nums;
+        color: var(--label);
+      }
+      /* Narrow viewports: the label is an inline prefix of the text that wraps with it, so it never
+         takes the measure from the text. */
+      @media (max-width: 40rem) {
+        .gutter { display: contents; line-height: 1; white-space: normal; }   /* the space after the label breaks */
+        .gutter::before { content: none; }
+        .label { position: static; line-height: 1; white-space: nowrap; }
+      }
+      /* The bullet is the toggle, a --bullet-col x --line box whose glyph centre is on the first
+         line's centre, 11px in. Its hit area reaches over the gap to the text and, under a coarse
+         pointer, --slop-s before it and --slop-b above and below (44px at the default spacing);
+         the negative margins keep the layout where the glyph box alone would put it. ::before is
+         in flow (it gives the toggle the line box that sets its baseline); ::after is the ring. */
+      .toggle {
+        --slop-s: 0px;
+        --slop-b: 0px;
+        flex: none;
+        position: relative;
+        box-sizing: content-box;
+        inline-size: var(--bullet-col);
+        block-size: var(--line);
+        padding: var(--slop-b) var(--text-gap) var(--slop-b) var(--slop-s);
+        margin: calc(-1 * var(--slop-b)) calc(-1 * var(--text-gap)) calc(-1 * var(--slop-b)) calc(-1 * var(--slop-s));
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      @media (any-pointer: coarse) {
+        .toggle {
+          --slop-s: 18px;
+          --slop-b: max(0px, min(44px - var(--line), var(--item-gap)) / 2);
+          z-index: 1;   /* the slop reaches under a wide gutter's label: the bullet wins the tap */
+        }
+      }
+      .toggle::before,
+      .toggle::after {
+        content: "";
+        box-sizing: border-box;
+        translate: -50% -50%;
+      }
+      /* leaf or expanded: 6.4px disc */
+      .toggle::before {
+        display: inline-block;
+        vertical-align: top;
+        position: relative;
+        left: calc(var(--bullet-col) / 2);
+        top: calc(var(--line) / 2);
+        inline-size: 6.4px;
+        block-size: 6.4px;
+        border-radius: 50%;
+        background: var(--bullet);
+      }
+      .toggle::after {
+        display: none;
+        position: absolute;
+        left: calc(var(--slop-s) + var(--bullet-col) / 2);
+        top: calc(var(--slop-b) + var(--line) / 2);
+      }
+      /* collapsed parent: 6px dot inside a 12px ring (1.5px stroke, 1.5px gap). The stroke is an
+         inset shadow: Chromium floors border widths to whole CSS pixels, so a 1.5px border paints 1px. */
+      [aria-expanded="false"] > .row > .toggle::before { inline-size: 6px; block-size: 6px; }
+      [aria-expanded="false"] > .row > .toggle::after {
+        display: block;
+        inline-size: 12px;
+        block-size: 12px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1.5px var(--bullet);
+      }
+      @media (hover: hover) {
+        /* expanded parent: minus */
+        [aria-expanded] > .row:hover > .toggle::before {
+          inline-size: 11px;
+          block-size: 1.5px;
+          border-radius: 0;
+        }
+        /* collapsed parent: plus */
+        [aria-expanded="false"] > .row:hover > .toggle::before { inline-size: 10.5px; }
+        [aria-expanded="false"] > .row:hover > .toggle::after {
+          inline-size: 1.5px;
+          block-size: 10.5px;
+          box-shadow: none;
+          border-radius: 0;
+          background: var(--bullet);
+        }
+      }
+      code, .math:not([data-math="typeset"]) {
+        font-family: var(--font-mono);
+        font-size: calc(var(--font-size) - 2px);
+        line-height: 1;                       /* the mono box must not grow the --line line box */
+        padding: 0 5px;
+        border-radius: 4px;
+        background: var(--code-bg);
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+      }
+      code { color: var(--code-fg); }
+      .math:not([data-math="typeset"]) { color: var(--fg); }
+      .para + .para code,
+      .para + .para .math:not([data-math="typeset"]) { font-size: calc(var(--note-size) - 2px); }
+      .intro code,
+      .intro .math:not([data-math="typeset"]) { font-size: calc(var(--note-size) - 2px); }
+      .row mjx-container { font-size: 1em; }
+      /* Math wider than its line scrolls sideways inside its own box (law M1). layoutMath marks
+         it: an inline-block that scrolls has no text baseline in every engine, so it is top-aligned. */
+      .math.wide {
+        display: inline-block;
+        max-inline-size: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        vertical-align: top;
+        overscroll-behavior-x: contain;
+        padding-block: 2px;
+      }
+      /* MathJax's clipped copy for screen readers is as wide as its MathML, which can be wider
+         than the typeset math: at 1px it no longer widens the page. (A layered !important beats
+         MathJax's unlayered one.) */
+      .math mjx-assistive-mml { width: 1px !important; }
+      .text a, .intro a, #doc-title a { color: inherit; text-decoration: underline; }
+      .help-button, .panel-button, form[method="dialog"] button, .menu button {
+        flex: none;
+        border: 0;
+        background: none;
+        padding: 4px 0;
+        font: 14px/20px var(--font-ui);
+        color: var(--label);
+        cursor: pointer;
+      }
+      .panel-button { padding: 2px 0; min-inline-size: 24px; }       /* 24px tall */
+      #actions-button { min-inline-size: var(--hit); font-size: 18px; }
+      #up-button { gap: 4px; align-items: center; }
+      @media (hover: hover) {
+        .help-button:hover, .panel-button:hover, form[method="dialog"] button:hover {
+          color: var(--chrome-hover);
+          text-decoration: underline;
+        }
+        #crumbs a:hover { text-decoration: underline; }
+        .menu button:not(:disabled):hover { background: var(--active); }
+      }
+      .help-button:focus-visible, .panel-button:focus-visible, form[method="dialog"] button:focus-visible,
+      .menu button:focus-visible, #spacing input:focus-visible {
+        outline: 2px solid var(--link-focus);
+        outline-offset: 2px;
+      }
+      .menu button:focus-visible { outline-offset: -2px; }
+      /* Crumbs: plain text in the text colour; the ellipsis sits on the link, so the ">" before
+         it is never clipped. */
+      #crumbs a {
+        min-inline-size: min(var(--hit), 100%);
+        max-inline-size: 16em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font: 16px/24px var(--font-ui);
+        color: var(--fg);
+        text-decoration: none;
+      }
+      #crumbs a:focus-visible { text-decoration: underline; outline: 2px solid var(--link-focus); outline-offset: -2px; }
+      @media (max-width: 40rem) {
+        #crumbs a { max-inline-size: 12em; }
+      }
+      /* Find: Dynalist's box (18px text, 30px tall, 300px wide, radius 5), with the label colour
+         for its text and placeholder (law V: Dynalist's lighter grey is 4.29:1 on white). */
+      .find { display: flex; align-items: center; min-inline-size: 0; }
+      .find input {
+        font: inherit;
+        font-size: 18px;
+        block-size: 30px;
+        inline-size: 300px;
+        min-inline-size: 0;
+        border: 1px solid var(--find-border);
+        border-radius: 5px;
+        background: var(--bg);
+        color: var(--label);
+        padding-inline: 8px;
+      }
+      .find input:focus-visible { outline: 2px solid var(--link-focus); outline-offset: 1px; }
+      .find input::placeholder { color: var(--label); opacity: 1; }
+      /* The count sits before the box, so the box stays put at the header's end as the count
+         appears and changes; on a narrow header the box starts the line and the count follows. */
+      .find-count {
+        order: -1;
+        color: var(--label);
+        font-size: 15px;
+        margin-inline-end: 8px;
+        white-space: nowrap;
+        flex: none;
+      }
+      .find-count:empty { margin-inline-end: 0; }
+      ::highlight(find) { background-color: var(--match); color: var(--fg); }
+      /* A narrow header shares one row between the box and the tools: the count sits inside the
+         box's end, over room the box keeps free for it. */
+      @container (max-width: 42rem) {
+        .find { position: relative; max-inline-size: 300px; }
+        .find input { inline-size: 100%; }
+        .find:has(.find-count:not(:empty)) input { padding-inline-end: 6.5em; }
+        .find-count {
+          position: absolute;
+          inset-inline-end: 8px;
+          margin: 0;
+          font-size: 13px;
+          pointer-events: none;
+        }
+      }
+      /* Coarse pointers: every control is a 44px target (law M4). */
+      @media (any-pointer: coarse) {
+        .help-button, .panel-button, form[method="dialog"] button {
+          min-block-size: 44px;
+          min-inline-size: 44px;
+          padding: 4px 8px;
+        }
+        #actions-button { font-size: 22px; }
+        #crumbs a { line-height: 44px; }
+        .find input { block-size: 44px; }
+      }
+      dialog {
+        max-inline-size: min(40rem, 90vw);
+        border: 0;
+        border-radius: 6px;
+        padding: 20px 24px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/20px var(--font-ui);
+        box-shadow: 0 5px 20px rgb(0 0 0 / 0.25);
+      }
+      dialog::backdrop { background: rgb(0 0 0 / 0.4); }
+      dialog h2 { margin: 0; font-size: 20px; line-height: 26px; font-weight: 400; }
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .panel-head form { margin: 0; }
+      .vh {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      /* Help: the Close button is first, so the dialog opens at its top; the section for the
+         pointer in hand comes first. */
+      #help { max-block-size: calc(100svh - 32px); }
+      #help .help-body { display: flex; flex-direction: column; gap: 16px; margin-block-start: 8px; }
+      #help h3 { margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 600; }
+      @media (hover: none) {
+        #help .help-touch { order: -1; }
+      }
+      dl.keys, dl.touch {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.375rem 1.25rem;
+        margin: 0;
+      }
+      dl.keys dt { white-space: nowrap; }
+      dl.keys dd, dl.touch dd { margin: 0; }
+      @media (max-width: 30rem) {
+        dl.keys, dl.touch { grid-template-columns: 1fr; row-gap: 0; }
+        dl.keys dd, dl.touch dd { margin-block-end: 0.5rem; color: var(--note); }
+        dl.keys dt { white-space: normal; }
+      }
+      kbd {
+        font: 13px/18px var(--font-mono);
+        padding: 0 4px;
+        border: 1px solid var(--guide);
+        border-radius: 4px;
+        background: var(--code-bg);
+        color: var(--fg);
+      }
+      .empty, .status { color: var(--note); font-style: normal; }
+      .status:empty { display: none; }
+
+      /* Sheets: the Spacing panel and the ⋯ menu. Non-modal, so the outline stays live and
+         visible behind them. With a mouse: Spacing sits fixed at the top right over the page
+         margin and the menu drops from its button. Narrow or touch: both are bottom sheets. */
+      .sheet {
+        position: fixed;
+        margin: 0;
+        z-index: 3;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 12px 16px 14px;
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        background: var(--panel-bg);
+        color: var(--fg);
+        box-shadow: 0 6px 24px var(--panel-shadow);
+        font: 14px/20px var(--font-ui);
+      }
+      .sheet:focus { outline: none; }
+      #spacing {
+        inset: 16px 16px auto auto;
+        inline-size: min(16rem, calc(100vw - 32px));
+        max-block-size: calc(100vh - 32px);
+      }
+      #actions {
+        inset: var(--menu-top, 56px) var(--menu-right, 16px) auto auto;
+        inline-size: min(18rem, calc(100vw - 32px));
+        max-block-size: calc(100vh - var(--menu-top, 56px) - 16px);
+        padding: 6px 0;
+      }
+      @media (max-width: 40rem), (any-pointer: coarse) {
+        #spacing, #actions {
+          inset: auto 0 0 0;
+          margin-inline: auto;
+          inline-size: min(100%, 32rem);
+          max-inline-size: 100%;
+          max-block-size: 50svh;
+          border-block-end: 0;
+          border-radius: 12px 12px 0 0;
+          padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+          padding-block-end: max(14px, env(safe-area-inset-bottom));
+        }
+        #actions { max-block-size: 75svh; padding-block-start: 6px; }
+      }
+      #spacing h2 { margin: 0; font-size: 16px; line-height: 24px; }
+      #spacing .panel-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      #spacing .knobs { display: grid; gap: 10px; margin-block: 10px 8px; }
+      #spacing .knob {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: baseline;
+        column-gap: 8px;
+      }
+      #spacing output { color: var(--note); font-variant-numeric: tabular-nums; }
+      #spacing input[type="range"] {
+        grid-column: 1 / -1;
+        inline-size: 100%;
+        block-size: var(--hit);
+        margin: 0;
+        accent-color: var(--link-focus);
+      }
+      #spacing .step { display: none; }
+      /* In a sheet, each slider has − and + steps beside it (a thumb is hard to nudge by one). */
+      @media (max-width: 40rem), (any-pointer: coarse) {
+        #spacing .knob { grid-template-columns: auto 1fr auto; align-items: center; }
+        #spacing .knob label { grid-column: 1 / 3; }
+        #spacing .step { display: block; font-size: 20px; color: var(--fg); }
+        #spacing input[type="range"] { grid-column: 2; }
+      }
+      /* The column knob does nothing on a narrow viewport, so it is not offered there. */
+      @media (max-width: 40rem) {
+        #spacing .knob-column { display: none; }
+      }
+      #spacing .spacing-note { margin: 0; color: var(--label); font-size: 13px; text-align: end; }
+      #spacing .spacing-ref { margin: 0 0 12px; color: var(--label); font-size: 13px; line-height: 18px; }
+      #spacing .status { margin: 6px 0 0; min-block-size: 20px; }
+      #spacing .status:empty { display: block; }      /* stays in the accessibility tree as a live region */
+
+      /* The ⋯ menu: what the keyboard commands do, for the selected item (or the page). */
+      .menu-target {
+        margin: 0;
+        padding: 6px 16px 8px;
+        color: var(--note);
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-block-end: 1px solid var(--guide);
+      }
+      .menu { display: flex; flex-direction: column; padding-block: 4px; }
+      .menu button {
+        display: block;
+        inline-size: 100%;
+        min-block-size: var(--hit);
+        padding: 6px 16px;
+        text-align: start;
+        font-size: 15px;
+        color: var(--fg);
+      }
+      .menu button:disabled { color: var(--label); cursor: default; }
+      .menu .level {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding-inline: 16px 8px;
+        font-size: 15px;
+      }
+      .menu .level > span:first-child { flex: 1 1 auto; }
+      .menu .level output { min-inline-size: 1.5em; text-align: center; font-variant-numeric: tabular-nums; }
+      .menu .level button { inline-size: auto; min-inline-size: var(--hit); padding: 0; text-align: center; font-size: 20px; }
+      .menu hr { inline-size: 100%; margin: 4px 0; border: 0; border-block-start: 1px solid var(--guide); }
+      @media (any-pointer: coarse) {
+        .menu-target, .menu button { padding-inline: 20px; }
+        .menu .level { padding-inline: 20px 12px; }
+      }
+
+      /* Copy link's toast: non-modal, outside the tree, never focusable or clickable. */
+      .toast {
+        position: fixed;
+        inset-block-end: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+        inset-inline-start: 50%;
+        z-index: 4;
+        translate: -50% 0;
+        margin: 0;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 15px;
+        background: var(--fg);
+        color: var(--bg);
+        pointer-events: none;
+      }
+      @media (forced-colors: active) {
+        .toast { border: 1px solid CanvasText; }
+      }
+    }
+
+    @layer states {
+      [hidden] { display: none !important; }
+      [role="treeitem"]:focus { outline: none; }
+      /* The highlight follows the state (law D), not focus: selected rows, none in idle mode. */
+      [role="treeitem"][aria-selected="true"] > .row { background: var(--active); }
+      /* A range selects whole subtrees: fill the item's box, indent and guides included, so the
+         subtree reads as one block. A single selection leaves its children unselected, so only
+         its row is filled. */
+      [role="treeitem"][aria-selected="true"]:has(> [role="group"] > [aria-selected="true"]) { background: var(--active); }
+      /* Dynalist draws no guides inside a range's fill. */
+      [role="treeitem"][aria-selected="true"]:has(> [role="group"] > [aria-selected="true"]) [role="group"] {
+        border-inline-start-color: transparent;
+      }
+      [role="treeitem"][aria-selected="true"] > .row .label { color: var(--note); }   /* --label is 4.2:1 on --active */
+      /* In selected mode the ring marks the active item whenever focus is in the tree, however it
+         got there; law D keeps focus in the tree on the active item. Idle mode shows no ring. */
+      #outline[data-mode="selected"] [role="treeitem"]:focus > .row {
+        outline: 2px solid var(--link-focus);
+        outline-offset: -2px;
+      }
+      [aria-expanded] > .row > .toggle { cursor: pointer; }
+      @media (forced-colors: active) {
+        [role="treeitem"][aria-selected="true"] > .row {
+          background: none;
+          outline: 1px solid Highlight;
+        }
+        [role="treeitem"][aria-selected="true"] { background: none; }
+        .toggle::before { background: CanvasText; forced-color-adjust: none; }
+        [aria-expanded="false"] > .row > .toggle::after {
+          box-shadow: inset 0 0 0 1.5px CanvasText;
+          forced-color-adjust: none;
+        }
+        @media (hover: hover) {
+          [aria-expanded="false"] > .row:hover > .toggle::after { box-shadow: none; background: CanvasText; }
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { transition: none !important; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <nav id="crumbs" aria-label="Breadcrumb" hidden>
+      <button type="button" class="help-button" id="up-button"><span aria-hidden="true">↑</span>Up</button>
+      <ol></ol>
+    </nav>
+    <div class="find" id="find" role="search">
+      <input id="find-input" type="search" aria-label="Find in outline" placeholder="Find"
+             autocomplete="off" spellcheck="false" enterkeyhint="search">
+      <span class="find-count" id="find-count" aria-live="polite"></span>
+    </div>
+    <div class="page-tools">
+      <button type="button" class="help-button" id="actions-button" aria-label="More actions"
+              aria-haspopup="dialog" aria-controls="actions" aria-expanded="false">⋯</button>
+      <button type="button" class="help-button" id="spacing-button"
+              aria-haspopup="dialog" aria-controls="spacing" aria-expanded="false">Spacing</button>
+      <button type="button" class="help-button" id="help-button"
+              aria-haspopup="dialog" aria-controls="help">Help</button>
+    </div>
+  </header>
+  <main id="main">
+    <!-- The document is the tree's root item: its row is the title and the intro (the root's
+         note), and renderTree appends the top-level items as its group. -->
+    <ul class="outline" id="outline" role="tree" aria-label="Outline" aria-multiselectable="true" data-mode="idle">
+      <li role="treeitem" id="item-root" data-id="root" aria-labelledby="doc-title">
+        <div class="row root-row" id="row-root">
+          <h1 id="doc-title">Outline</h1>
+          <div class="intro" id="intro"></div>
+        </div>
+      </li>
+    </ul>
+    <p class="empty" hidden>This outline has no items.</p>
+    <p class="status" id="status" role="status"></p>
+  </main>
+  <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+  <dialog id="help" aria-labelledby="help-title">
+    <div class="panel-head">
+      <h2 id="help-title">Help</h2>
+      <form method="dialog"><button>Close</button></form>
+    </div>
+    <div class="help-body">
+      <section class="help-keys" aria-labelledby="help-keys-title">
+        <h3 id="help-keys-title">Keyboard</h3>
+        <dl class="keys"></dl>
+      </section>
+      <section class="help-touch" aria-labelledby="help-touch-title">
+        <h3 id="help-touch-title">Touch</h3>
+        <dl class="touch"></dl>
+      </section>
+    </div>
+  </dialog>
+  <dialog id="actions" class="sheet" aria-labelledby="actions-title actions-target" tabindex="-1">
+    <h2 id="actions-title" class="vh">Actions</h2>
+    <p class="menu-target" id="actions-target"></p>
+    <div class="menu"></div>
+  </dialog>
+  <dialog id="spacing" class="sheet" aria-labelledby="spacing-title" tabindex="-1">
+    <div class="panel-head">
+      <h2 id="spacing-title">Spacing</h2>
+      <button type="button" class="panel-button" id="spacing-close">Close</button>
+    </div>
+    <div class="knobs"></div>
+    <p class="spacing-ref">Dynalist large / cozy ≈ text 20 px, line height 1.2, item spacing 8 px</p>
+    <div class="panel-foot">
+      <button type="button" class="panel-button" id="spacing-reset">Reset</button>
+      <p class="spacing-note" id="spacing-storage"></p>
+    </div>
+    <p class="status" id="spacing-status" role="status"></p>
+  </dialog>
+  <noscript><p>This outline viewer needs JavaScript.</p></noscript>
+
+  <!-- CONTENT: written by embed.py; do not edit by hand -->
+  <script type="application/json" id="outline-source">"# Outline\n\n- 1 Replace this outline with your content.\n  - 1.1 Each list item is one proposition; indentation sets its parent.\n  - 1.2 A leading number like 1.2 is shown as the item's label."</script>
+
+  <script type="module">
+    // ── parse ────────────────────────────────────────────
+    /** @typedef {{ id: string, label: string|null, text: string, children: OutlineNode[] }} OutlineNode */
+    /** @typedef {{ title: string|null, intro: string[], items: OutlineNode[], warnings: string[] }} OutlineDocument */
+
+    // The `s` flag lets `.` match U+2028/U+2029, which JS treats as line terminators but
+    // markdown does not; lines are split on "\n" only.
+    const ITEM_RE = /^( *)([-*+]|\d+[.)])(?:( +)(.*))?$/s;
+    const TITLE_RE = /^#\s+(.+)$/s;
+    const LABEL_RE = /^(\d+(?:\.\d+)*)(?:\s+(.*))?$/s;
+    const TAB_STOP = 4;
+
+    /** Expand tabs to spaces at tab stops of 4 columns (one column per code point). */
+    function expandTabs(line) {
+      if (!line.includes("\t")) return line;
+      let out = "";
+      let col = 0;
+      for (const ch of line) {
+        if (ch === "\t") {
+          const n = TAB_STOP - (col % TAB_STOP);
+          out += " ".repeat(n);
+          col += n;
+        } else {
+          out += ch;
+          col += 1;
+        }
+      }
+      return out;
+    }
+
+    const leadingSpaces = (line) => line.length - line.replace(/^ +/, "").length;
+    const appendLine = (para, line) => (para === "" ? line : `${para} ${line}`);
+    const joinParas = (paras) => paras.filter((p) => p !== "").join("\n\n");
+
+    /** Total: every string parses to an outline (law P). Pure; no DOM access. */
+    function parseOutline(markdown) {
+      /** @type {OutlineDocument} */
+      const doc = { title: null, intro: [], items: [], warnings: [] };
+      const lines = String(markdown).replace(/\r\n?/g, "\n").split("\n");
+      const stack = [];      // { indent, contentCol, node }
+      const entries = [];    // { node, paras } for every item, in document order
+      let current = null;    // the most recent item's entry
+      let introPara = null;  // lines of the intro paragraph being built
+      let seenNonBlank = false;
+      let blankSeen = false;
+
+      const flushIntro = () => {
+        if (introPara !== null) doc.intro.push(introPara.join(" "));
+        introPara = null;
+      };
+
+      lines.forEach((raw, i) => {
+        const line = expandTabs(raw).replace(/[ \t\f\v]+$/, "");
+
+        if (line === "") {
+          blankSeen = true;
+          if (current === null) flushIntro();
+          return;
+        }
+
+        const m = ITEM_RE.exec(line);
+        if (m !== null) {
+          if (current === null) flushIntro();
+          const indent = m[1].length;
+          const marker = m[2];
+          const spaces = m[3] ?? "";
+          let text = m[4] ?? "";
+          const contentCol = indent + marker.length + Math.max(1, spaces.length);
+          while (stack.length > 0 && stack[stack.length - 1].indent >= indent) stack.pop();
+
+          let label = null;
+          if (/^\\\d/.test(text)) {
+            text = text.slice(1);
+          } else {
+            const l = LABEL_RE.exec(text);
+            if (l !== null) {
+              label = l[1];
+              text = l[2] ?? "";
+            }
+          }
+
+          /** @type {OutlineNode} */
+          const node = { id: "", label, text: "", children: [] };
+          const siblings = stack.length > 0 ? stack[stack.length - 1].node.children : doc.items;
+          siblings.push(node);
+          const entry = { indent, contentCol, node, paras: [text] };
+          stack.push(entry);
+          entries.push(entry);
+          current = entry;
+          seenNonBlank = true;
+          blankSeen = false;
+          return;
+        }
+
+        if (current === null) {
+          // Preamble: optional title, then intro paragraphs.
+          if (!seenNonBlank) {
+            seenNonBlank = true;
+            const t = TITLE_RE.exec(line);
+            if (t !== null) {
+              doc.title = t[1];
+              blankSeen = false;
+              return;
+            }
+          }
+          if (introPara === null) introPara = [];
+          introPara.push(line.slice(leadingSpaces(line)));
+          blankSeen = false;
+          return;
+        }
+
+        // Continuation of the most recent item.
+        const indent = leadingSpaces(line);
+        const text = line.slice(indent);
+        if (!blankSeen) {
+          const last = current.paras.length - 1;
+          current.paras[last] = appendLine(current.paras[last], text);
+        } else {
+          if (indent < current.contentCol) {
+            doc.warnings.push(`line ${i + 1}: paragraph after blank line is not indented under its item`);
+          }
+          current.paras.push(text);
+        }
+        blankSeen = false;
+      });
+      flushIntro();
+
+      for (const { node, paras } of entries) node.text = joinParas(paras);
+
+      // Ids: a label that occurs once is the id; everything else is positional.
+      const counts = new Map();
+      for (const { node } of entries) {
+        if (node.label !== null) counts.set(node.label, (counts.get(node.label) ?? 0) + 1);
+      }
+      for (const [label, n] of counts) {
+        if (n > 1) doc.warnings.push(`duplicate label "${label}"; using positional ids`);
+      }
+      const assign = (nodes, path) => {
+        nodes.forEach((node, k) => {
+          const p = [...path, k + 1];
+          node.id = node.label !== null && counts.get(node.label) === 1 ? node.label : `p-${p.join("-")}`;
+          assign(node.children, p);
+        });
+      };
+      assign(doc.items, []);
+      return doc;
+    }
+
+    // ── inline ───────────────────────────────────────────
+    /** @typedef {
+     *   {type:"text", value:string} | {type:"code", value:string} | {type:"math", tex:string} |
+     *   {type:"em"|"strong", children:InlineToken[]} | {type:"link", dest:string, children:InlineToken[]}
+     * } InlineToken */
+    const SYNTAX = "\\`*_$[]";   // exactly the characters escapeInline escapes; Phase 6 relies on this set
+
+    const isSpace = (c) => c !== undefined && c <= " ";                    // any character up to U+0020
+    const isPunct = (c) => c !== undefined && /^[!-/:-@[-`{-~]$/.test(c);  // ASCII punctuation
+    const isAlnum = (c) => c !== undefined && /^[\p{L}\p{N}]$/u.test(c);
+    const isDigit = (c) => c !== undefined && c >= "0" && c <= "9";
+    const runLength = (s, i, c) => {
+      let j = i;
+      while (s[j] === c) j += 1;
+      return j - i;
+    };
+
+    // Rules 1–3 are also the "atoms" that the closer searches of rules 5 and 6 skip over.
+    // Each returns { token, end } or null; `end` is the index just past what was consumed.
+
+    /** Rule 1: `\` + ASCII punctuation is that character as text. */
+    function ruleEscape(s, i) {
+      return s[i] === "\\" && isPunct(s[i + 1]) ? { token: { type: "text", value: s[i + 1] }, end: i + 2 } : null;
+    }
+
+    /** Rule 2: a backtick run opens code that closes at the next run of exactly the same length. */
+    function ruleCode(s, i) {
+      if (s[i] !== "`") return null;
+      const n = runLength(s, i, "`");
+      for (let j = s.indexOf("`", i + n); j !== -1; ) {
+        const m = runLength(s, j, "`");
+        if (m === n) {
+          let value = s.slice(i + n, j);
+          if (value.length >= 2 && value[0] === " " && value.at(-1) === " " && value.trim() !== "") {
+            value = value.slice(1, -1);
+          }
+          return { token: { type: "code", value }, end: j + n };
+        }
+        j = s.indexOf("`", j + m);
+      }
+      return { token: { type: "text", value: s.slice(i, i + n) }, end: i + n };
+    }
+
+    /** Rule 3: `$…$` math; a run of two or more `$` is literal text. */
+    function ruleDollar(s, i) {
+      if (s[i] !== "$") return null;
+      const run = runLength(s, i, "$");
+      if (run >= 2) return { token: { type: "text", value: s.slice(i, i + run) }, end: i + run };
+      if (s[i + 1] === undefined || isSpace(s[i + 1])) return { token: { type: "text", value: "$" }, end: i + 1 };
+      // Skipping `\x` pairs means a `$` is a closer only after an even number of backslashes.
+      for (let k = i + 1; k < s.length; ) {
+        if (s[k] === "\\") { k += 2; continue; }
+        if (s[k] !== "$") { k += 1; continue; }
+        const m = runLength(s, k, "$");
+        if (m === 1 && k >= i + 2 && !isSpace(s[k - 1]) && !isDigit(s[k + 1])) {
+          return { token: { type: "math", tex: s.slice(i + 1, k) }, end: k + 1 };
+        }
+        k += m;
+      }
+      return { token: { type: "text", value: "$" }, end: i + 1 };
+    }
+
+    /** Rule 4: `[label](dest)`; any failure means the rule does not match. */
+    function ruleLink(s, i) {
+      if (s[i] !== "[") return null;
+      let depth = 0;
+      let j = i + 1;
+      for (; j < s.length; j += 1) {
+        if (s[j] === "\\" && isPunct(s[j + 1])) { j += 1; continue; }
+        if (s[j] === "[") depth += 1;
+        else if (s[j] === "]") {
+          if (depth === 0) break;
+          depth -= 1;
+        }
+      }
+      if (j >= s.length || j === i + 1 || s[j + 1] !== "(") return null;
+      const label = s.slice(i + 1, j);
+      let dest = "";
+      depth = 0;
+      for (let k = j + 2; k < s.length; k += 1) {
+        const c = s[k];
+        if (isSpace(c)) return null;
+        if (c === "\\" && isPunct(s[k + 1])) { dest += s[k + 1]; k += 1; continue; }
+        if (c === ")") {
+          if (depth === 0) {
+            return { token: { type: "link", dest, children: parseInline(label, { links: false }) }, end: k + 1 };
+          }
+          depth -= 1;
+        } else if (c === "(") depth += 1;
+        dest += c;
+      }
+      return null;
+    }
+
+    /** Index of the first closer at or after `from` that `isCloser` accepts, skipping rules 1–3; or -1. */
+    function findCloser(s, from, isCloser) {
+      for (let k = from; k < s.length; ) {
+        const atom = ruleEscape(s, k) ?? ruleCode(s, k) ?? ruleDollar(s, k);
+        if (atom !== null) { k = atom.end; continue; }
+        if (isCloser(k)) return k;
+        k += 1;
+      }
+      return -1;
+    }
+
+    /** Rule 5: `**strong**`. */
+    function ruleStrong(s, i, options) {
+      if (s[i] !== "*" || s[i + 1] !== "*" || s[i + 2] === undefined || isSpace(s[i + 2])) return null;
+      const k = findCloser(s, i + 2, (k) => k >= i + 3 && s[k] === "*" && s[k + 1] === "*" && !isSpace(s[k - 1]));
+      if (k === -1) return null;
+      return { token: { type: "strong", children: parseInline(s.slice(i + 2, k), options) }, end: k + 2 };
+    }
+
+    /** Rule 6: `*em*` or `_em_` (underscores do not open or close inside words). */
+    function ruleEm(s, i, options) {
+      const d = s[i];
+      if ((d !== "*" && d !== "_") || s[i + 1] === undefined || isSpace(s[i + 1])) return null;
+      if (d === "_" && isAlnum(s[i - 1])) return null;
+      const k = findCloser(s, i + 1, (k) =>
+        k >= i + 2 && s[k] === d && !isSpace(s[k - 1]) && !(d === "_" && isAlnum(s[k + 1])));
+      if (k === -1) return null;
+      return { token: { type: "em", children: parseInline(s.slice(i + 1, k), options) }, end: k + 1 };
+    }
+
+    /** Total and pure (law I): one ordered rule table; the first rule that matches at `i` wins. */
+    function parseInline(source, { links = true } = {}) {
+      const s = String(source);
+      const options = { links };
+      /** @type {InlineToken[]} */
+      const out = [];
+      const push = (token) => {
+        const last = out.at(-1);
+        if (token.type !== "text") out.push(token);
+        else if (token.value === "") return;
+        else if (last?.type === "text") out[out.length - 1] = { type: "text", value: last.value + token.value };
+        else out.push(token);
+      };
+      for (let i = 0; i < s.length; ) {
+        const m =
+          ruleEscape(s, i) ??
+          ruleCode(s, i) ??
+          ruleDollar(s, i) ??
+          (links ? ruleLink(s, i) : null) ??
+          ruleStrong(s, i, options) ??
+          ruleEm(s, i, options) ??
+          { token: { type: "text", value: s[i] }, end: i + 1 };   // rule 7
+        push(m.token);
+        i = m.end;
+      }
+      return out;
+    }
+
+    /** Makes every syntax character literal: parseInline(escapeInline(s)) is the text s. */
+    const escapeInline = (s) => [...String(s)].map((c) => (SYNTAX.includes(c) ? `\\${c}` : c)).join("");
+
+    /** Text, code, math source and children, joined (link destinations are not text). */
+    function plainText(tokens) {
+      return tokens
+        .map((t) => (t.type === "text" || t.type === "code" ? t.value : t.type === "math" ? t.tex : plainText(t.children)))
+        .join("");
+    }
+
+    // ── model ────────────────────────────────────────────
+    /** The root item's id. The document is the root: its row is the title (and intro), and the
+     *  top-level items are its children. Labels are digits and positional ids start with "p-",
+     *  so no item can take this id. */
+    const ROOT = "root";
+
+    /** @returns {{ doc: OutlineDocument, root: OutlineNode, byId: Map<string, { node: OutlineNode, parentId: string|null }> }} */
+    function createModel(doc) {
+      const byId = new Map();
+      const root = { id: ROOT, label: null, text: "", children: doc.items };
+      byId.set(ROOT, { node: root, parentId: null });
+      const walk = (nodes, parentId) => {
+        for (const node of nodes) {
+          byId.set(node.id, { node, parentId });
+          walk(node.children, node.id);
+        }
+      };
+      walk(doc.items, ROOT);
+      return { doc, root, byId };
+    }
+
+    /** Ids hold no "_", so mapping "." to "_" is injective. */
+    const cssSafe = (id) => id.replaceAll(".", "_");
+
+    /** Child nodes of `id`; `null` means the tree's top level, which is the root alone. */
+    const childrenOf = (model, id) => (id === null ? [model.root] : model.byId.get(id)?.node.children ?? []);
+    const parentOf = (model, id) => model.byId.get(id)?.parentId ?? null;
+    const siblingsOf = (model, id) => (model.byId.has(id) ? childrenOf(model, parentOf(model, id)) : []);
+    const hasChildren = (model, id) => (model.byId.get(id)?.node.children.length ?? 0) > 0;
+
+    /** Nearest ancestor first. */
+    function ancestorsOf(model, id) {
+      const out = [];
+      for (let p = parentOf(model, id); p !== null; p = parentOf(model, p)) out.push(p);
+      return out;
+    }
+
+    function descendantIds(model, id) {
+      const out = [];
+      const walk = (nodes) => {
+        for (const n of nodes) {
+          out.push(n.id);
+          walk(n.children);
+        }
+      };
+      walk(childrenOf(model, id));
+      return out;
+    }
+
+    // ── state ────────────────────────────────────────────
+    /** @typedef {{ has(id: string): boolean, ids: readonly string[] }} IdSet */
+    /** "selected": the active item is highlighted and ringed. "idle" (after Escape): nothing is. */
+    /** @typedef {"selected" | "idle"} Mode */
+    /** The selection runs over the siblings from anchorId to activeId (its focus end), each with
+     *  its whole subtree; anchorId === activeId is a single selection. */
+    /** `expanded` never holds the root, which is always open (isOpen): nothing collapses it. */
+    /** `zoomId` is the displayed root (law Z): the document root, or a zoomed item, which is
+     *  open while displayed. `expanded` may hold the zoomed item (its expansion in the document). */
+    /** `query` is the find box's text, kept verbatim; `filter` is derived from it (law Q): null
+     *  when the query is blank, otherwise the matches and the items shown, below the zoom. */
+    /** @typedef {{ matches: Set<string>, shown: Set<string> }} Filter */
+    /** @typedef {{ expanded: IdSet, activeId: string|null, anchorId: string|null, mode: Mode, zoomId: string, query: string, filter: Filter|null }} State */
+
+    function idSet(ids) {
+      const set = new Set(ids);
+      return Object.freeze({ has: (id) => set.has(id), ids: Object.freeze([...set]) });
+    }
+
+    /** Open: the displayed root always. While a query filters, an item with a shown child;
+     *  otherwise an expanded item. `state.expanded` is untouched by filtering (law Q). Reads the
+     *  module-level `model`. */
+    const isOpen = (state, id) =>
+      id === ROOT || id === state.zoomId ||
+      (state.filter !== null ? childrenOf(model, id).some((n) => state.filter.shown.has(n.id)) : state.expanded.has(id));
+
+    /** An item's find text, lower-cased: its label, then its paragraphs as plain text (math as
+     *  its TeX source), cached per model. */
+    function haystackOf(model, id) {
+      model.haystacks ??= new Map();
+      let h = model.haystacks.get(id);
+      if (h === undefined) {
+        const { node } = model.byId.get(id);
+        const paras = node.text === "" ? [] : node.text.split("\n\n");
+        h = [node.label ?? "", ...paras.map((p) => plainText(parseInline(p)))].join("\n").toLowerCase();
+        model.haystacks.set(id, h);
+      }
+      return h;
+    }
+
+    /** The find terms: lower-cased, split on white space; none for a blank query. */
+    const findTerms = (query) => query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+    /** One entry: a navigation key while filtering reuses the same frozen filter. */
+    let filterMemo = { model: null, scopeId: null, query: null, filter: null };
+
+    /** Matches (items holding every term) and their ancestors below scopeId, never scopeId
+     *  itself, in document order; null for a blank query. */
+    function deriveFilter(model, scopeId, query) {
+      const memo = filterMemo;
+      if (memo.model === model && memo.scopeId === scopeId && memo.query === query) return memo.filter;
+      const terms = findTerms(query);
+      let filter = null;
+      if (terms.length > 0) {
+        const ids = descendantIds(model, scopeId);        // document order
+        const matches = new Set();
+        const shown = new Set();
+        for (const id of ids) {
+          const hay = haystackOf(model, id);
+          if (!terms.every((t) => hay.includes(t))) continue;
+          matches.add(id);
+          for (let a = id; a !== scopeId && !shown.has(a); a = parentOf(model, a)) shown.add(a);
+        }
+        filter = Object.freeze({ matches, shown: new Set(ids.filter((id) => shown.has(id))) });
+      }
+      filterMemo = { model, scopeId, query, filter };
+      return filter;
+    }
+
+    /** The only constructor of State (laws S, Z and Q). Total: any proposal becomes a lawful state. */
+    function makeState(model, { expanded = [], activeId = null, anchorId = null, mode = "selected", zoomId = ROOT, query = "" } = {}) {
+      const exp = idSet([...expanded].filter((id) => id !== ROOT && model.byId.has(id) && hasChildren(model, id)));
+      const zoom = model.byId.has(zoomId) ? zoomId : ROOT;   // any item, leaves included
+      const q = String(query);
+      const filter = deriveFilter(model, zoom, q);
+      const inZoom = (id) => id === zoom || ancestorsOf(model, id).includes(zoom);
+      // By default the zoom's first child is active; a zoomed leaf or an empty document has only
+      // the displayed root.
+      let active = model.byId.has(activeId) && inZoom(activeId) ? activeId : (childrenOf(model, zoom)[0]?.id ?? zoom);
+      if (filter !== null) {
+        // While filtering, a hidden active item becomes the first match, or the displayed root.
+        if (active !== zoom && !filter.shown.has(active)) active = filter.matches.values().next().value ?? zoom;
+      } else if (active !== zoom) {
+        // The outermost collapsed ancestor below the zoom: the displayed root is always shown,
+        // whatever its own ancestors' expansion in the document.
+        for (const a of ancestorsOf(model, active)) {
+          if (a === zoom) break;
+          if (!exp.has(a)) active = a;
+        }
+      }
+      const m = mode === "idle" ? "idle" : "selected";
+      // A range needs a sibling anchor inside the zoom, never the displayed root, and no filter;
+      // anything else (idle, a moved or hidden focus end) collapses the selection to the active item.
+      const ranged = m === "selected" && filter === null && active !== zoom && anchorId !== active &&
+        model.byId.has(anchorId) && inZoom(anchorId) && parentOf(model, anchorId) === parentOf(model, active);
+      return Object.freeze({ expanded: exp, activeId: active, anchorId: ranged ? anchorId : active, mode: m, zoomId: zoom, query: q, filter });
+    }
+
+    /** What renderTree produces: nothing expanded, selected or filtered, no Tab stop. sync's starting point only. */
+    const BLANK = Object.freeze({ expanded: idSet([]), activeId: null, anchorId: null, mode: "idle", zoomId: ROOT, query: "", filter: null });
+    /** BLANK for a tree rendered at zoom `zoomId`. */
+    const blankFor = (zoomId) => Object.freeze({ ...BLANK, zoomId });
+
+    const isRange = (state) => state.anchorId !== state.activeId;
+
+    /** The selected siblings, in document order: the anchor-to-focus run, or the active item. */
+    function selectionRoots(model, state) {
+      if (state.mode === "idle" || state.activeId === null) return [];
+      if (!isRange(state)) return [state.activeId];
+      const ids = siblingsOf(model, state.activeId).map((n) => n.id);
+      const [a, b] = [ids.indexOf(state.anchorId), ids.indexOf(state.activeId)].sort((x, y) => x - y);
+      return ids.slice(a, b + 1);
+    }
+
+    /** Ids whose rows are selected (aria-selected, highlighted): none in idle, the active item
+     *  alone in a single selection, and every item of a range's subtrees. */
+    function selectedIds(model, state) {
+      const roots = selectionRoots(model, state);
+      if (!isRange(state)) return new Set(roots);
+      return new Set(roots.flatMap((id) => [id, ...descendantIds(model, id)]));
+    }
+
+    /** Rendered and not inside a collapsed group: in the zoom, with every ancestor below it open. */
+    function isVisible(model, state, id) {
+      if (id === state.zoomId) return true;
+      const up = ancestorsOf(model, id);
+      const z = up.indexOf(state.zoomId);
+      if (state.filter !== null && !state.filter.shown.has(id)) return false;
+      return z !== -1 && up.slice(0, z).every((a) => isOpen(state, a));
+    }
+
+    /** Depth-first from the displayed root, descending only into open items; while filtering,
+     *  only shown items. */
+    function visibleIds(model, state) {
+      const out = [];
+      const walk = (nodes) => {
+        for (const n of nodes) {
+          if (state.filter !== null && n.id !== state.zoomId && !state.filter.shown.has(n.id)) continue;
+          out.push(n.id);
+          if (isOpen(state, n.id)) walk(n.children);
+        }
+      };
+      walk([model.byId.get(state.zoomId).node]);
+      return out;
+    }
+
+    // ── view ─────────────────────────────────────────────
+    function h(tag, className, text) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text !== undefined) el.textContent = text;
+      return el;
+    }
+
+    /** Rendered elements per item id: the treeitem and, for parents, its group. */
+    const view = { items: new Map(), groups: new Map() };
+    /** @type {ReturnType<typeof createModel> | null} */
+    let model = null;
+    /** The current State. Only dispatch assigns it after startup. */
+    let state = BLANK;
+    /** The document's plain title, set once by renderDocument (document.title may change). */
+    let DOC_TITLE = "";
+
+    function ariaHidden(el) {
+      el.setAttribute("aria-hidden", "true");
+      return el;
+    }
+
+    /** The only creator of <a> from author text (law H; renderCrumbs builds plain-text crumbs).
+     *  Builds nodes with createElement/textContent/setAttribute only. An item link's click zooms
+     *  into its target (bindContentLinks); its href stays #id, which as a URL reveals. */
+    function renderInline(tokens, byId, { inTree = false } = {}) {
+      const frag = document.createDocumentFragment();
+      for (const t of tokens) {
+        if (t.type === "text") frag.append(document.createTextNode(t.value));
+        else if (t.type === "code") frag.append(h("code", "", t.value));
+        else if (t.type === "math") frag.append(makeMathSpan(t.tex));
+        else if (t.type === "em" || t.type === "strong") {
+          const el = h(t.type);
+          el.append(renderInline(t.children, byId, { inTree }));
+          frag.append(el);
+        } else if (t.type === "link") {
+          const children = renderInline(t.children, byId, { inTree });
+          const target = linkTarget(t.dest, byId);
+          if (target === null) {
+            frag.append(children);
+          } else {
+            const a = h("a");
+            a.setAttribute("href", hrefOf(target));
+            if (inTree) a.setAttribute("tabindex", "-1");   // no Tab stops inside treeitems (law D)
+            a.append(children);
+            frag.append(a);
+          }
+        }
+      }
+      return frag;
+    }
+
+    /** Builds the displayed subtree of `zoomId` as the projection of blankFor(zoomId) (laws D, Z):
+     *  once at startup, and again on every zoom change. */
+    function renderTree(model, zoomId) {
+      // The tree element outlives a zoom: reset its mode too, or sync(blank, next) would skip an
+      // idle next and leave the old page's "selected" (law S).
+      document.getElementById("outline").dataset.mode = BLANK.mode;
+      view.items.clear();
+      view.groups.clear();
+      const item = (node) => {
+        const safe = cssSafe(node.id);
+        const li = h("li");
+        li.id = `item-${safe}`;
+        li.dataset.id = node.id;
+        li.setAttribute("role", "treeitem");
+        li.tabIndex = -1;
+        li.setAttribute("aria-selected", "false");
+        li.setAttribute("aria-labelledby", `row-${safe}`);
+
+        const row = h("div", "row");
+        row.id = `row-${safe}`;
+        row.append(ariaHidden(h("span", "toggle")));   // glyphs are CSS pseudo-elements
+        const text = h("span", "text");
+        const paras = node.text === "" ? (node.label === null ? [] : [""]) : node.text.split("\n\n");
+        text.append(...paras.map((p, i) => {
+          const para = h("span", "para");
+          if (i === 0 && node.label !== null) {
+            // The label leads the item's name; the gutter places it (in the margin, or inline
+            // when narrow), and its space separates it from the text in the name.
+            const gutter = h("span", "gutter");
+            gutter.append(h("span", "label", node.label), " ");
+            para.append(gutter);
+          }
+          para.append(renderInline(parseInline(p), model.byId, { inTree: true }));
+          return para;
+        }));
+        row.append(text);
+        li.append(row);
+        view.items.set(node.id, li);
+
+        if (node.children.length > 0) {
+          li.setAttribute("aria-expanded", "false");
+          const group = h("ul");
+          group.setAttribute("role", "group");
+          group.hidden = true;
+          group.append(...node.children.map(item));
+          li.append(group);
+          view.groups.set(node.id, group);
+        }
+        return li;
+      };
+      // The root <li> and its row (title and intro) are in the page and stand for the displayed
+      // root: the document, or the zoomed item. Its children become its group. It has no toggle
+      // and never collapses, so its aria-expanded is "true" for good (absent without children),
+      // and its group is not in view.groups, so sync never writes it.
+      const root = document.getElementById("item-root");
+      root.querySelector(':scope > [role="group"]')?.remove();
+      root.dataset.id = zoomId;
+      root.tabIndex = -1;
+      root.setAttribute("aria-selected", "false");
+      view.items.set(zoomId, root);
+      const top = childrenOf(model, zoomId);
+      if (top.length > 0) {
+        root.setAttribute("aria-expanded", "true");
+        const group = h("ul");
+        group.setAttribute("role", "group");
+        group.append(...top.map(item));
+        root.append(group);
+      } else {
+        root.removeAttribute("aria-expanded");
+      }
+      // The label gutter's width (a style write, not state). Code points, 0 without labels.
+      let labelChars = 0;
+      for (const { node } of model.byId.values()) {
+        if (node.label !== null) labelChars = Math.max(labelChars, [...node.label].length);
+      }
+      document.documentElement.style.setProperty("--label-chars", String(labelChars));
+      // The displayed subtree's depth (its top level is 1): the indent step is capped so its
+      // deepest level keeps a readable measure (law M3). Static per zoom: expanding never reflows.
+      const depth = (id) => 1 + Math.max(0, ...childrenOf(model, id).map((n) => depth(n.id)));
+      document.documentElement.style.setProperty("--depth", String(depth(zoomId) - 1));
+    }
+
+    /** The only writer of aria-expanded, group `hidden`, treeitem `hidden` (the find filter),
+     *  treeitem tabindex and aria-selected, and the tree's data-mode, after renderTree. */
+    function sync(prev, next, { focus = false, block = "nearest" } = {}) {
+      const tree = document.getElementById("outline");
+      if (prev.mode !== next.mode) tree.dataset.mode = next.mode;
+      // view.groups holds the displayed subtree's parents, never the displayed root.
+      for (const [id, group] of view.groups) {
+        const open = isOpen(next, id);
+        if (open === isOpen(prev, id)) continue;
+        view.items.get(id).setAttribute("aria-expanded", String(open));
+        group.hidden = !open;
+      }
+      if (prev.filter !== next.filter) {
+        const out = (s, id) => s.filter !== null && !s.filter.shown.has(id);
+        for (const [id, li] of view.items) {
+          if (id === next.zoomId) continue;     // the displayed root is always shown
+          const hide = out(next, id);
+          if (hide !== out(prev, id)) li.hidden = hide;
+        }
+      }
+      if (prev.activeId !== next.activeId) {
+        if (prev.activeId !== null) view.items.get(prev.activeId).tabIndex = -1;
+        if (next.activeId !== null) view.items.get(next.activeId).tabIndex = 0;
+      }
+      const was = selectedIds(model, prev);
+      const now = selectedIds(model, next);
+      for (const id of was) if (!now.has(id)) view.items.get(id).setAttribute("aria-selected", "false");
+      for (const id of now) if (!was.has(id)) view.items.get(id).setAttribute("aria-selected", "true");
+      if (focus && next.activeId !== null) {
+        const li = view.items.get(next.activeId);
+        li.focus({ preventScroll: true });
+        if (block !== null) li.querySelector(".row").scrollIntoView({ block });
+      }
+    }
+
+    /** The only place that assigns `state` after startup. */
+    function dispatch(proposal, options) {
+      if (proposal === null) return;
+      const next = makeState(model, {
+        expanded: proposal.expanded ?? state.expanded.ids,
+        activeId: proposal.activeId ?? state.activeId,
+        anchorId: proposal.anchorId ?? null,    // only extending keeps a range
+        mode: proposal.mode ?? "selected",      // any action but Escape selects
+        zoomId: state.zoomId,                   // only setZoom changes the zoom
+        query: proposal.query ?? state.query,
+      });
+      // Assign before projecting: sync's focus() fires focusin synchronously, and the
+      // focusin handler must already see the new state.
+      const prev = state;
+      state = next;
+      project(prev, next, options);
+      scheduleSave();
+    }
+
+    /** The one projection step from `prev` to `next`, after dispatch or a zoom's re-render
+     *  (`force`: the tree was rebuilt, so old highlight ranges point into removed nodes). */
+    function project(prev, next, options = {}) {
+      sync(prev, next, options);
+      paintHighlights(prev, next, { force: options.force === true });
+      syncFindBox(next);
+    }
+
+    /** Decoration, not state: the CSS Custom Highlight "find" over every occurrence of every
+     *  term in the matches' row text. No DOM changes, so nothing here needs a style attribute
+     *  (the CSP) or touches law D. Repaints only when the query or the zoom changed, or `force`. */
+    function paintHighlights(prev, next, { force = false } = {}) {
+      if (!force && prev.query === next.query && prev.zoomId === next.zoomId) return;
+      const registry = globalThis.CSS?.highlights;
+      if (registry === undefined || typeof Highlight !== "function") return;   // the filter works without
+      registry.delete("find");
+      if (next.filter === null) return;
+      const terms = findTerms(next.query);
+      const ranges = [];
+      for (const id of next.filter.matches) {
+        const text = view.items.get(id)?.querySelector(":scope > .row > .text");
+        if (!text) continue;
+        const walker = document.createTreeWalker(text, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+          if (node.parentElement.closest(".math, mjx-container, .gutter")) continue;   // math is matched on its source; labels are not text
+          const lower = node.data.toLowerCase();
+          if (lower.length !== node.data.length) continue;   // offsets would not map back (İ)
+          for (const term of terms) {
+            for (let i = lower.indexOf(term); i !== -1; i = lower.indexOf(term, i + term.length)) {
+              const range = new Range();
+              range.setStart(node, i);
+              range.setEnd(node, i + term.length);
+              ranges.push(range);
+            }
+          }
+        }
+      }
+      registry.set("find", new Highlight(...ranges));
+    }
+
+    /** The find box shows the state's query (after a clear by Esc, Enter, a URL reveal or a
+     *  zoom) and the match count. Typing is the box's other writer. */
+    function syncFindBox(next) {
+      const input = document.getElementById("find-input");
+      if (input.value !== next.query) input.value = next.query;
+      const n = next.filter?.matches.size;
+      const text = n === undefined ? "" : n === 0 ? "No matches" : n === 1 ? "1 match" : `${n} matches`;
+      const count = document.getElementById("find-count");
+      if (count.textContent !== text) count.textContent = text;
+    }
+
+    const itemIdOf = (el) => el.closest('[role="treeitem"]')?.dataset.id ?? null;
+    const flip = (set, id) => (set.has(id) ? set.ids.filter((x) => x !== id) : [...set.ids, id]);
+
+    function bindMouse(outline) {
+      outline.addEventListener("mousedown", (e) => {
+        // A press on a toggle or a link leaves DOM focus where it is (law D): the click then
+        // focuses the toggle's item, or follows the link. Shift+press on a row selects items, not text.
+        if (e.target.closest(".toggle, a") || (e.shiftKey && e.target.closest(".row"))) e.preventDefault();
+      });
+      outline.addEventListener("click", (e) => {
+        if (e.target.closest("a")) return;   // links zoom (bindContentLinks), not rows
+        const row = e.target.closest(".row");
+        if (row === null) return;
+        const id = itemIdOf(row);
+        if (e.target.closest(".toggle") && (IS_APPLE ? e.metaKey : e.ctrlKey)) {
+          // ⌘-click (Ctrl-click) on a bullet zooms into its item, and never also toggles it.
+          setZoom(id, { history: "push", activeId: id, focus: true });
+          return;
+        }
+        // The clicked row is under the pointer, so a click never scrolls (block: null).
+        if (e.target.closest(".toggle") && hasChildren(model, id) && state.filter === null) {
+          // A bullet click acts on its item: it selects that item alone, in idle mode too, and
+          // expands or collapses it. While filtering it only selects: a toggle would change
+          // `expanded` unseen and surprise the reader when the filter clears.
+          dispatch({ expanded: flip(state.expanded, id), activeId: id }, { focus: true, block: null });
+        } else if (e.shiftKey) {
+          dispatch(selectTo(model, state, id), { focus: true, block: null });
+        } else {
+          dispatch({ activeId: id }, { focus: true, block: null });
+        }
+      });
+      // Anything else that moves DOM focus onto a treeitem (a press on group padding, a drag
+      // that never becomes a click) makes that item active, so focus inside the tree is
+      // always on the active item (law D). Tabbing into the tree selects: in idle, focus
+      // would otherwise arrive with no visible indicator.
+      let tabbing = false;
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Tab") return;
+        tabbing = true;
+        setTimeout(() => { tabbing = false; });   // focus moves in this task, before the timeout
+      }, true);
+      outline.addEventListener("focusin", (e) => {
+        if (e.target.getAttribute("role") !== "treeitem") return;
+        const id = e.target.dataset.id;
+        if (id !== state.activeId) dispatch({ activeId: id }, { focus: false });
+        else if (tabbing && state.mode === "idle") dispatch({ mode: "selected" }, { focus: false });
+      });
+    }
+
+    const isPageRoot = (el) => el === null || el === document.body || el === document.documentElement;
+
+    /** Focus the active item without scrolling; the mode is unchanged. */
+    function focusActive() {
+      if (state.activeId !== null) view.items.get(state.activeId).focus({ preventScroll: true });
+    }
+
+    /** No "no focus" state: a press on a non-interactive part of the page (margins, the
+     *  header around its buttons, the empty-outline note) leaves focus on <body>, so return it
+     *  to the active item. This runs on mouseup, after any drag: focus() does not collapse a
+     *  text selection, so text dragged out of the title, the intro or a row stays selected for the native copy. Presses
+     *  that start in a dialog or the Spacing panel are theirs. */
+    function bindFocusKeeping() {
+      let pressed = null;
+      document.addEventListener("mousedown", (e) => { pressed = e.target; }, true);
+      document.addEventListener("mouseup", () => {
+        const from = pressed;
+        pressed = null;
+        if (from instanceof Element && from.closest("dialog")) return;
+        if (document.querySelector("dialog:modal") !== null) return;
+        if (isPageRoot(document.activeElement)) focusActive();
+      });
+    }
+
+    /** Once at startup: the document's plain title, the empty note, and the page at the root. */
+    function renderDocument(model) {
+      const { doc } = model;
+      DOC_TITLE = plainText(parseInline(doc.title ?? "Outline", { links: false }));
+      document.querySelector(".empty").hidden = doc.items.length > 0;
+      renderHead(model, ROOT);
+      renderTree(model, ROOT);
+    }
+
+    /** The displayed root's row and the page title. At the root: the document title (no links)
+     *  and intro. Zoomed: the item's label and first paragraph as the title, its other paragraphs
+     *  as the intro; it is item text, so its links stay live and, like every tree link, are no Tab
+     *  stops. */
+    function renderHead(model, zoomId) {
+      const title = document.getElementById("doc-title");
+      let paras;
+      if (zoomId === ROOT) {
+        title.replaceChildren(renderInline(parseInline(model.doc.title ?? "Outline", { links: false }), model.byId));
+        paras = model.doc.intro;
+        document.title = DOC_TITLE;
+      } else {
+        const { node } = model.byId.get(zoomId);
+        const [first = "", ...notes] = node.text === "" ? [] : node.text.split("\n\n");
+        const tokens = parseInline(first);
+        title.replaceChildren(...(node.label === null ? [] : [`${node.label} `]), renderInline(tokens, model.byId, { inTree: true }));
+        paras = notes;
+        const plain = [node.label, plainText(tokens)].filter((t) => t !== null && t !== "").join(" ");
+        document.title = plain === "" ? DOC_TITLE : `${plain} – ${DOC_TITLE}`;
+      }
+      const intro = document.getElementById("intro");
+      intro.replaceChildren(...paras.map((p) => {
+        const para = h("p");
+        para.append(renderInline(parseInline(p), model.byId, { inTree: true }));   // the displayed root's note
+        return para;
+      }));
+      intro.hidden = paras.length === 0;
+      const root = document.getElementById("item-root");
+      if (paras.length > 0) root.setAttribute("aria-describedby", "intro");
+      else root.removeAttribute("aria-describedby");
+    }
+
+    // ── commands ─────────────────────────────────────────
+    /** @typedef {{ expanded?: Iterable<string>, activeId?: string }} Proposal */
+
+    /** Proposal for moving `by` steps through the visible items; null at the ends. */
+    function step(model, state, by) {
+      const ids = visibleIds(model, state);
+      const target = ids[ids.indexOf(state.activeId) + by];
+      return target === undefined ? null : { activeId: target };
+    }
+
+    /** Shift+↑/↓: move the focus end one sibling; past the first or last sibling, the range
+     *  becomes the parent (which holds them all) and later steps run among its siblings. */
+    function extend(model, state, by) {
+      if (state.activeId === state.zoomId) return null;   // the displayed root's siblings are outside
+      const sibs = siblingsOf(model, state.activeId);
+      const target = sibs[sibs.findIndex((n) => n.id === state.activeId) + by];
+      if (target !== undefined) return { activeId: target.id, anchorId: state.anchorId };
+      const parent = parentOf(model, state.activeId);
+      return parent === null ? null : { activeId: parent, anchorId: parent };
+    }
+
+    function extendToEnd(model, state, end) {
+      if (state.activeId === state.zoomId) return null;
+      const sibs = siblingsOf(model, state.activeId);
+      const target = end < 0 ? sibs[0] : sibs[sibs.length - 1];
+      return target === undefined || target.id === state.activeId ? null : { activeId: target.id, anchorId: state.anchorId };
+    }
+
+    /** Shift+click: a range from the anchor to `id`, at the deepest level holding both; when one
+     *  contains the other, the container alone. */
+    function selectTo(model, state, id) {
+      const from = [state.anchorId, ...ancestorsOf(model, state.anchorId)];
+      const to = [id, ...ancestorsOf(model, id)];
+      if (from.includes(id)) return { activeId: id };
+      if (to.includes(state.anchorId)) return { activeId: state.anchorId };
+      for (const a of from) {
+        const t = to.find((x) => parentOf(model, x) === parentOf(model, a));
+        if (t !== undefined) return { activeId: t, anchorId: a };
+      }
+      return { activeId: id };
+    }
+
+    /** Whether any child of the displayed root is expanded: its stand-in for its own expansion. */
+    const topLevelOpen = (model, state) => childrenOf(model, state.zoomId).some((n) => state.expanded.has(n.id));
+
+    /** ⌥⌘↑/↓: the nearest sibling in that direction; while filtering, the nearest shown one. */
+    function stepSibling(model, state, by) {
+      if (state.activeId === state.zoomId) return null;
+      const sibs = siblingsOf(model, state.activeId);
+      for (let i = sibs.findIndex((n) => n.id === state.activeId) + by; i >= 0 && i < sibs.length; i += by) {
+        if (state.filter === null || state.filter.shown.has(sibs[i].id)) return { activeId: sibs[i].id };
+      }
+      return null;
+    }
+
+    /** Expansion and range commands do nothing while a query filters: openness is derived from
+     *  the matches, and a change to `expanded` would surface only when the filter clears. */
+    const unfiltered = (command) => (model, state, arg) => (state.filter !== null ? null : command(model, state, arg));
+
+    /** Pure `(model, state, arg) => Proposal | null`; `arg` is the matched chord's, if any.
+     *  Commands never touch the DOM or keep laws. */
+    const COMMANDS = {
+      next: (model, state) => step(model, state, 1),
+      prev: (model, state) => step(model, state, -1),
+      first: (model, state) => {
+        const ids = visibleIds(model, state);
+        return ids.length === 0 ? null : { activeId: ids[0] };
+      },
+      last: (model, state) => {
+        const ids = visibleIds(model, state);
+        return ids.length === 0 ? null : { activeId: ids[ids.length - 1] };
+      },
+      right: (model, state) => {
+        const { expanded, activeId } = state;
+        if (activeId === null || !hasChildren(model, activeId)) return null;
+        if (state.filter !== null) {
+          // While filtering: the first shown child, or nothing.
+          const child = childrenOf(model, activeId).find((n) => state.filter.shown.has(n.id));
+          return child === undefined ? null : { activeId: child.id };
+        }
+        if (!isOpen(state, activeId)) return { expanded: [...expanded.ids, activeId] };
+        return { activeId: childrenOf(model, activeId)[0].id };
+      },
+      left: (model, { expanded, activeId, zoomId, filter }) => {
+        if (activeId === null || activeId === zoomId) return null;   // the displayed root never collapses
+        if (filter === null && expanded.has(activeId)) return { expanded: expanded.ids.filter((id) => id !== activeId) };
+        const parent = parentOf(model, activeId);
+        return parent === null ? null : { activeId: parent };
+      },
+      toggle: unfiltered((model, state) => {
+        const { expanded, activeId } = state;
+        if (activeId === null || !hasChildren(model, activeId)) return null;
+        if (activeId === state.zoomId) {
+          // The displayed root stays open; its children open or close one level instead.
+          const parents = childrenOf(model, activeId).filter((n) => n.children.length > 0).map((n) => n.id);
+          if (parents.length === 0) return null;
+          if (topLevelOpen(model, state)) return { expanded: expanded.ids.filter((id) => !parents.includes(id)) };
+          return { expanded: [...expanded.ids, ...parents] };
+        }
+        return { expanded: flip(expanded, activeId) };
+      }),
+      toggleSubtree: unfiltered((model, state) => {
+        const { expanded, activeId } = state;
+        if (activeId === null || !hasChildren(model, activeId)) return null;
+        // The displayed root counts as expanded while any of its children is: then everything
+        // below it closes. Its own entry (a zoomed item's expansion in the document) is kept.
+        const onRoot = activeId === state.zoomId;
+        const subtree = new Set([...(onRoot ? [] : [activeId]), ...descendantIds(model, activeId)]);
+        const open = onRoot ? topLevelOpen(model, state) : expanded.has(activeId);
+        if (open) return { expanded: expanded.ids.filter((id) => !subtree.has(id)) };
+        return { expanded: [...expanded.ids, ...subtree] };
+      }),
+      expandSiblings: unfiltered((model, { expanded, activeId, zoomId }) => {
+        if (activeId === null) return null;
+        // The displayed root has no siblings on the page: on it, its children expand.
+        const ids = activeId === zoomId ? childrenOf(model, zoomId) : siblingsOf(model, activeId);
+        return { expanded: [...expanded.ids, ...ids.map((n) => n.id)] };
+      }),
+      prevSibling: (model, state) => stepSibling(model, state, -1),
+      nextSibling: (model, state) => stepSibling(model, state, 1),
+      extendUp: unfiltered((model, state) => extend(model, state, -1)),
+      extendDown: unfiltered((model, state) => extend(model, state, 1)),
+      extendFirst: unfiltered((model, state) => extendToEnd(model, state, -1)),
+      extendLast: unfiltered((model, state) => extendToEnd(model, state, 1)),
+      // The filter clears first, then a range collapses, then the selection goes idle.
+      escape: (model, state) => (state.filter !== null ? { query: "" } : isRange(state) ? {} : { mode: "idle" }),
+      /** Enter while filtering: keep the selected item, shown in place, and clear the filter. */
+      accept: (model, state) =>
+        state.filter === null || state.activeId === null ? null : { ...reveal(model, state, state.activeId), query: "" },
+      /** Dynalist's "expand to level": below the active item, items fewer than n levels down are
+       *  expanded and deeper ones collapsed; outside its subtree nothing changes. The displayed
+       *  root is always open, so only its descendants change. */
+      expandLevel: unfiltered((model, state, n) => {
+        const { expanded, activeId } = state;
+        if (activeId === null || !hasChildren(model, activeId) || !(n >= 1 && n <= 9)) return null;
+        const below = new Set(descendantIds(model, activeId));
+        const open = activeId === state.zoomId ? [] : [activeId];
+        const walk = (nodes, depth) => {
+          if (depth >= n) return;
+          for (const node of nodes) {
+            if (node.children.length === 0) continue;
+            open.push(node.id);
+            walk(node.children, depth + 1);
+          }
+        };
+        walk(childrenOf(model, activeId), 1);
+        return { expanded: [...expanded.ids.filter((id) => !below.has(id)), ...open] };
+      }),
+    };
+
+    // ── keymap ───────────────────────────────────────────
+    // userAgentData.platform is "macOS" (lowercase m), navigator.platform is "MacIntel": match case-insensitively.
+    const IS_APPLE = /mac|iphone|ipad/i.test(navigator.userAgentData?.platform ?? navigator.platform);
+
+    /** The single source of truth for key bindings and the help dialog.
+     *  chord fields: key (KeyboardEvent.key) or code (KeyboardEvent.code);
+     *  mod/alt/shift: true | false (default false) | "any"; arg: passed to the command.
+     *  label: shown in help as one key instead of every chord. */
+    const MULTI = "Touch selects one item at a time: a range needs a keyboard (Shift) or a mouse (Shift+click)";
+    /** The single source of truth for key bindings, touch gestures, the ⋯ menu and the help dialog.
+     *  chord fields: key (KeyboardEvent.key) or code (KeyboardEvent.code);
+     *  mod/alt/shift: true | false (default false) | "any"; arg: passed to the command.
+     *  label: shown in help as one key instead of every chord.
+     *  touch: the gesture that does it on a touch screen, or false with a `reason` (multi-select
+     *  only); touchHelp: its help text when it differs from `help`.
+     *  menu: its item in the ⋯ menu (the name in help); menuLabel: (state, target) => the item's
+     *  text for the menu's target, when it depends on it. */
+    const KEYMAP = [
+      { command: "prev",           chords: [{ key: "ArrowUp" }],                 help: "Previous item",
+        touch: "Tap an item", touchHelp: "Select it" },
+      { command: "next",           chords: [{ key: "ArrowDown" }],               help: "Next item", touch: "Tap an item" },
+      { command: "right",          chords: [{ key: "ArrowRight" }],              help: "Expand, or go to first child",
+        touch: "Tap a bullet", touchHelp: "Select its item and expand or collapse it" },
+      { command: "left",           chords: [{ key: "ArrowLeft" }],               help: "Collapse, or go to parent", touch: "Tap a bullet" },
+      { command: "first",          chords: [{ key: "Home" }],                    help: "First item: the title",
+        touch: "Tap the title", touchHelp: "Select the title: ⋯ then acts on the whole page" },
+      { command: "last",           chords: [{ key: "End" }],                     help: "Last item", touch: "Tap an item" },
+      { command: "expandSiblings", chords: [{ key: "*", shift: "any" }],         help: "Expand all siblings; on the title, the top level",
+        menu: "Expand siblings" },
+      { command: "toggle",         chords: [{ code: "Period", mod: true }],      help: "Expand/collapse; on the title, the top level",
+        touch: "Tap a bullet", menu: "Expand/Collapse",
+        menuLabel: (s, t) => (t === s.zoomId ? (topLevelOpen(model, s) ? "Collapse top level" : "Expand top level") : isOpen(s, t) ? "Collapse" : "Expand") },
+      { command: "toggleSubtree",  chords: [{ code: "Period", mod: true, shift: true }], help: "Expand/collapse all descendants; on the title, the whole outline",
+        menu: "Expand all/Collapse all",
+        menuLabel: (s, t) => ((t === s.zoomId ? topLevelOpen(model, s) : s.expanded.has(t)) ? "Collapse all" : "Expand all") },
+      { command: "prevSibling",    chords: [{ key: "ArrowUp", mod: true, alt: true }],   help: "Previous sibling", touch: "Tap an item" },
+      { command: "nextSibling",    chords: [{ key: "ArrowDown", mod: true, alt: true }], help: "Next sibling", touch: "Tap an item" },
+      { command: "extendUp",       chords: [{ key: "ArrowUp", shift: true }],    help: "Select the previous item too; past the first, its parent", extends: true,
+        touch: false, reason: MULTI },
+      { command: "extendDown",     chords: [{ key: "ArrowDown", shift: true }],  help: "Select the next item too; past the last, its parent", extends: true,
+        touch: false, reason: MULTI },
+      { command: "extendFirst",    chords: [{ key: "Home", shift: true }],       help: "Select to the first sibling", extends: true,
+        touch: false, reason: MULTI },
+      { command: "extendLast",     chords: [{ key: "End", shift: true }],        help: "Select to the last sibling", extends: true,
+        touch: false, reason: MULTI },
+      { command: "selectTo",       chords: [{ key: "Click", shift: true }],      help: "Select from the selected item to here", passive: true,
+        touch: false, reason: MULTI },
+      { command: "copy",           chords: [{ key: "c", mod: true }],            help: "Copy the selected items as a markdown list; the title copies the whole document", passive: true,
+        menu: "Copy as markdown" },
+      { command: "escape",         chords: [{ key: "Escape" }],                  help: "Clear the filter, then the selection; any arrow key selects again",
+        menu: "Clear find/Clear selection", menuLabel: (s) => (s.filter !== null ? "Clear find" : "Clear selection") },
+      // ⇧⌘3–5 are macOS screenshots and ⌘1–9 switch tabs; ⌥ changes e.key on macOS (⌥1 is ¡), so match e.code.
+      { command: "expandLevel",
+        chords: [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => ({ code: `Digit${n}`, mod: true, alt: true, arg: n })),
+        label: IS_APPLE ? "⌥⌘1–9" : "Ctrl+Alt+1–9",
+        help: "Expand to that many levels below the selected item; on the title, the whole outline",
+        menu: "Expand to level", touchHelp: "− and + expand one level less or more below the selected item" },
+      // Effect entries run EFFECTS[command] instead of a pure command. ⇧⌘C also opens the
+      // DevTools element picker; the page's preventDefault wins where tree keys are routed.
+      { command: "copyLink",
+        chords: [{ key: "c", mod: true, shift: true }, { key: "C", mod: true, shift: true }],
+        label: IS_APPLE ? "⇧⌘C" : "Ctrl+Shift+C",
+        help: "Copy a link to the selected item; the title links to the whole document", effect: true, menu: "Copy link" },
+      // Touch only: the system share sheet, where the browser has one.
+      { command: "share",          chords: [],                                   help: "Share a link to the selected item", menu: "Share…" },
+      // ⌘[ and ⌘] are Back/Forward in macOS browsers but not reserved: bound only where tree keys are.
+      { command: "zoomIn",         chords: [{ code: "BracketRight", mod: true }], help: "Zoom in: show the selected item as the page", effect: true,
+        menu: "Zoom in" },
+      { command: "zoomOut",        chords: [{ code: "BracketLeft", mod: true }],  help: "Zoom out one level", effect: true,
+        touch: "Up, a crumb, Back, or ⋯ › Zoom out", menu: "Zoom out" },
+      { command: "zoomClick",      chords: [{ key: "Click", mod: true }],        help: "On a bullet: zoom in", passive: true,
+        touch: "⋯ › Zoom in", touchHelp: "Zoom in: show the selected item as the page" },
+      { command: "linkClick",      chords: [{ key: "Click" }],                   help: "On a link to an item: zoom into it", passive: true,
+        touch: "Tap a link to an item", touchHelp: "Zoom into it" },
+      // global: handled by bindFind wherever it applies, never as a tree key. In the box itself
+      // the browser's own find opens.
+      { command: "find",           chords: [{ key: "f", mod: true }, { key: "F", mod: true }], label: IS_APPLE ? "⌘F" : "Ctrl+F",
+        help: "Find: filter the outline; in the box, press again for the browser's find", global: true,
+        touch: "Tap Find", touchHelp: "Filter the outline; ⋯ › Clear find shows it all again" },
+      // treeOnly: the document router skips it, so Enter on a header button stays the button's.
+      { command: "accept",         chords: [{ key: "Enter" }],                   help: "While finding: keep the selected item and clear the filter", treeOnly: true,
+        menu: "Show in outline" },
+      { command: "help",           chords: [{ key: "?", shift: "any" }],         help: "Show this help", menu: "Help", touch: "Tap Help" },
+    ];
+    /** The gesture a KEYMAP entry lists in the touch help, or null. */
+    const touchGesture = (e) => (typeof e.touch === "string" ? e.touch : e.menu !== undefined ? `⋯ › ${e.menu}` : null);
+
+    function chordMatches(chord, e) {
+      if (chord.key !== undefined && chord.key !== e.key) return false;
+      if (chord.code !== undefined && chord.code !== e.code) return false;
+      const mod = IS_APPLE ? e.metaKey : e.ctrlKey;
+      const other = IS_APPLE ? e.ctrlKey : e.metaKey;
+      if (other) return false;
+      // Off Apple, Ctrl+Alt is AltGr on many layouts: a character, not a chord. On macOS, Option
+      // itself can report AltGraph, so the guard would disable every ⌥ chord there.
+      if (chord.alt === true && !IS_APPLE && e.getModifierState?.("AltGraph")) return false;
+      const want = { mod, alt: e.altKey, shift: e.shiftKey };
+      return Object.entries(want).every(([k, v]) => (chord[k] ?? false) === "any" || (chord[k] ?? false) === v);
+    }
+
+    /** The KEYMAP entry an event matches and the matching chord, or undefined. */
+    function matchFor(e) {
+      for (const entry of KEYMAP) {
+        const chord = entry.chords.find((c) => chordMatches(c, e));
+        if (chord !== undefined) return { entry, chord };
+      }
+      return undefined;
+    }
+    const entryFor = (e) => matchFor(e)?.entry;
+
+    const DIGIT_NAMES = Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => [`Digit${n}`, String(n)]));
+    const KEY_NAMES = {
+      ArrowUp: "↑", ArrowDown: "↓", ArrowLeft: "←", ArrowRight: "→", Period: ".", Escape: "Esc", Click: "click", c: "C",
+      BracketRight: "]", BracketLeft: "[",
+      ...DIGIT_NAMES,
+    };
+
+    function chordLabel(chord) {
+      const key = KEY_NAMES[chord.key ?? chord.code] ?? chord.key ?? chord.code;
+      if (IS_APPLE) {
+        // macOS order: Option, Shift, Command.
+        return (chord.alt === true ? "⌥" : "") + (chord.shift === true ? "⇧" : "") + (chord.mod === true ? "⌘" : "") + key;
+      }
+      const parts = [];
+      if (chord.mod === true) parts.push("Ctrl");
+      if (chord.alt === true) parts.push("Alt");
+      if (chord.shift === true) parts.push("Shift");
+      return [...parts, key].join("+");
+    }
+
+    function renderHelp() {
+      const dl = document.querySelector("#help .keys");
+      dl.replaceChildren();
+      for (const { chords, label, help } of KEYMAP) {
+        if (chords.length === 0) continue;
+        const dt = h("dt");
+        if (label !== undefined) dt.append(h("kbd", "", label));
+        else chords.forEach((c, i) => {
+          if (i > 0) dt.append(" or ");
+          dt.append(h("kbd", "", chordLabel(c)));
+        });
+        dl.append(dt, h("dd", "", help));
+      }
+      const touch = document.querySelector("#help .touch");
+      touch.replaceChildren();
+      const seen = new Set();
+      for (const e of KEYMAP) {
+        const gesture = touchGesture(e);
+        if (gesture === null || seen.has(gesture) || (e.command === "share" && !canShare())) continue;
+        seen.add(gesture);
+        touch.append(h("dt", "", gesture), h("dd", "", e.touchHelp ?? e.help));
+      }
+    }
+
+    function showHelp() {
+      const dialog = document.getElementById("help");
+      if (!dialog.open) dialog.showModal();
+    }
+
+    const isEditable = (el) =>
+      el instanceof Element && (el.isContentEditable || el.closest("input, textarea, select") !== null);
+
+    /** The tree command an event names, as matchFor's { entry, chord }, or undefined: help,
+     *  passive and global entries are not. */
+    function treeMatchFor(e) {
+      const match = matchFor(e);
+      return match === undefined || match.entry.command === "help" || match.entry.passive || match.entry.global ? undefined : match;
+    }
+
+    function runTreeKey(e, { entry, chord }) {
+      e.preventDefault();
+      if (state.mode === "idle") {
+        // The first key after Escape re-selects the remembered item, without moving.
+        if (entry.command !== "escape") dispatch({ mode: "selected" }, { focus: true });
+        return;
+      }
+      if (entry.effect) {
+        EFFECTS[entry.command]();
+        dispatch(isRange(state) ? {} : null, { focus: true });   // a range collapses, as for any non-extending key
+        return;
+      }
+      const proposal = COMMANDS[entry.command](model, state, chord.arg);
+      // Any key but an extending one collapses a range, even when its command does nothing.
+      dispatch(proposal ?? (isRange(state) && !entry.extends ? {} : null), { focus: true });
+    }
+
+    function bindKeys(outline) {
+      outline.addEventListener("keydown", (e) => {
+        const match = treeMatchFor(e);
+        if (match !== undefined) runTreeKey(e, match);
+      });
+      // A tree key pressed while focus is on <body> (a stray blur, a text drag outside the
+      // tree) or on a header button (where a closed dialog returns focus) goes to the tree.
+      // Tree-only keys (Enter) are not routed, and no other tree key is Enter, Space or Tab, so
+      // the buttons keep their own keys. Focus in a dialog, the Spacing panel or a form control
+      // (the find box) is on neither, so their keys are untouched.
+      document.addEventListener("keydown", (e) => {
+        const routed = isPageRoot(e.target) || (e.target instanceof Element && e.target.matches(".page-tools button"));
+        if (!routed || state.activeId === null) return;
+        const match = treeMatchFor(e);
+        if (match === undefined || match.entry.treeOnly) return;
+        focusActive();
+        runTreeKey(e, match);
+      });
+    }
+
+    /** The subtrees of `ids` as a markdown list that parseOutline reads back: labels, notes and
+     *  inline source as written, nested relative to `ids`, collapsed children included. The root
+     *  (only ever selected alone) is the whole document: title heading, intro, then the list. */
+    function outlineMarkdown(model, ids) {
+      if (ids.includes(ROOT)) {
+        const { title, intro, items } = model.doc;
+        const head = [...(title === null ? [] : [`# ${title}`]), ...intro].join("\n\n");
+        const list = items.length === 0 ? "" : outlineMarkdown(model, items.map((n) => n.id));
+        return head === "" ? list : list === "" ? `${head}\n` : `${head}\n\n${list}`;
+      }
+      const lines = [];
+      const write = (node, depth) => {
+        const pad = "  ".repeat(depth);
+        const [first = "", ...notes] = node.text === "" ? [] : node.text.split("\n\n");
+        const lead = node.label !== null ? `${node.label} ` : /^\d/.test(first) ? "\\" : "";
+        lines.push(`${pad}- ${lead}${first}`.trimEnd());
+        for (const note of notes) lines.push("", `${pad}  ${note}`);
+        for (const child of node.children) write(child, depth + 1);
+      };
+      for (const id of ids) write(model.byId.get(id).node, 0);
+      return lines.join("\n") + "\n";
+    }
+
+    /** Copy with no text selected copies the selected items; a mouse text selection copies as usual. */
+    function bindCopy(outline) {
+      document.addEventListener("copy", (e) => {
+        if (pendingCopy !== null) {                // copyLink's execCommand fallback
+          e.clipboardData.setData("text/plain", pendingCopy);
+          e.preventDefault();
+          return;
+        }
+        if (state.mode !== "selected" || state.activeId === null) return;
+        const text = document.getSelection();
+        if (text !== null && !text.isCollapsed) return;
+        const ae = document.activeElement;
+        if (!(isPageRoot(ae) || outline.contains(ae) || ae.matches(".page-tools button"))) return;
+        e.clipboardData.setData("text/plain", outlineMarkdown(model, selectionRoots(model, state)));
+        e.preventDefault();
+      });
+    }
+
+    function bindHelp() {
+      const dialog = document.getElementById("help");
+      document.getElementById("help-button").addEventListener("click", showHelp);
+      // A click on the backdrop (the dialog element itself, outside its box) closes it.
+      dialog.addEventListener("click", (e) => {
+        if (e.target !== dialog) return;
+        const r = dialog.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialog.close();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (entryFor(e)?.command !== "help") return;
+        if (dialog.contains(e.target) || isEditable(e.target)) return;
+        if (e.target instanceof Element && e.target.closest("#spacing")) return;   // the panel keeps its keys
+        e.preventDefault();
+        showHelp();
+      });
+    }
+
+    /** The find box: typing filters the current zoom live (law Q). ⌘F (Ctrl+F) from the tree,
+     *  the page, a header button or a crumb focuses it; in the box it is the browser's own find.
+     *  The box is outside the tree (law D). */
+    function bindFind() {
+      const input = document.getElementById("find-input");
+      // Typing filters without selecting: an idle page stays idle (as Dynalist's search does).
+      input.addEventListener("input", () => dispatch({ query: input.value, mode: state.mode }, { focus: false }));
+      input.addEventListener("keydown", (e) => {
+        // Confirming an IME composition (Korean, Japanese) sends Enter or Esc as part of it.
+        if (e.isComposing || e.keyCode === 229) return;
+        if (e.key === "Enter" || e.key === "ArrowDown") {
+          if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+          const first = state.filter?.matches.values().next().value;
+          if (first === undefined) return;
+          e.preventDefault();
+          dispatch({ activeId: first }, { focus: true, block: "nearest" });
+        } else if (e.key === "Escape") {
+          e.preventDefault();                 // replaces the search field's own clear
+          dispatch({ query: "" }, { focus: true });
+        }
+      });
+      const outline = document.getElementById("outline");
+      document.addEventListener("keydown", (e) => {
+        if (entryFor(e)?.command !== "find") return;
+        const el = e.target;
+        const here = isPageRoot(el) || (el instanceof Element &&
+          (outline.contains(el) || el.matches(".page-tools button, #crumbs a")));
+        if (!here || document.querySelector("dialog:modal") !== null) return;
+        e.preventDefault();
+        input.focus();
+        input.select();
+      }, true);
+    }
+
+    // ── links ────────────────────────────────────────────
+    // Law F: the fragment is input, except zoom. Only setZoom writes history: pushState for a
+    // reader's zoom (key, ⌘-click, crumb or in-content link), replaceState for a zoom restored
+    // from storage. Selection, expansion, find and copy never touch `location` or `history`.
+
+    /** @typedef {{kind:"none"} | {kind:"id", id:string} | {kind:"zoom", id:string} | {kind:"malformed", raw:string}} Fragment */
+    function readFragment(hash = location.hash) {
+      const raw = hash.replace(/^#/, "");
+      if (raw === "") return { kind: "none" };
+      try {
+        return raw.startsWith("z=") ? { kind: "zoom", id: decodeURIComponent(raw.slice(2)) } : { kind: "id", id: decodeURIComponent(raw) };
+      } catch {
+        return { kind: "malformed", raw };
+      }
+    }
+
+    /** Proposal: expand every ancestor of id and make it active. Pure; removes no expansion. */
+    function reveal(model, state, id) {
+      return { expanded: [...state.expanded.ids, ...ancestorsOf(model, id)], activeId: id };
+    }
+
+    /** @typedef {{kind:"item", id:string} | {kind:"external", url:URL}} LinkTarget */
+    const EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
+
+    /** Law H: a vetted target or null. Judged on the parsed URL, as the browser would open it. */
+    function linkTarget(dest, byId) {             // -> LinkTarget | null
+      if (dest.startsWith("#")) {
+        let id;
+        try { id = decodeURIComponent(dest.slice(1)); } catch { return null; }
+        return byId.has(id) ? { kind: "item", id } : null;
+      }
+      let url;
+      try { url = new URL(dest); } catch { return null; }  // no base: relative and "//host" fail
+      return EXTERNAL_PROTOCOLS.has(url.protocol) ? { kind: "external", url } : null;
+    }
+
+    function hrefOf(target) {                     // the only source of an href value
+      return target.kind === "item" ? "#" + encodeURIComponent(target.id) : target.url.href;
+    }
+
+    /** The shareable URL of an item: the page without its fragment, plus the item's fragment. */
+    function linkFor(id) {
+      const base = location.href.split("#")[0];
+      if (id === state.zoomId && id !== ROOT) return `${base}#z=${encodeURIComponent(id)}`;   // the zoomed page
+      return base + hrefOf({ kind: "item", id });
+    }
+
+    let pendingCopy = null;       // set only while copyLink's fallback runs execCommand
+    let copyRequest = 0;          // the latest copyLink; older results are dropped
+    let toastTextTimer = 0;
+    let toastHideTimer = 0;
+
+    /** Unhide the (empty) live region first and set its text a moment later, so a repeated
+     *  message is announced again; hide it 2 s after the last show. */
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      clearTimeout(toastTextTimer);
+      clearTimeout(toastHideTimer);
+      toast.textContent = "";
+      toast.hidden = false;
+      toastTextTimer = setTimeout(() => { toast.textContent = text; }, 50);
+      toastHideTimer = setTimeout(() => { toast.hidden = true; toast.textContent = ""; }, 2000);
+    }
+
+    /** Puts `text` on the clipboard and reports `done` or `failed` in the toast. */
+    function copyText(text, done, failed) {
+      const request = ++copyRequest;
+      const report = (t) => { if (request === copyRequest) showToast(t); };
+      const fallback = () => {
+        if (request !== copyRequest) return;
+        pendingCopy = text;
+        let ok = false;
+        try { ok = document.execCommand("copy"); } catch { ok = false; } finally { pendingCopy = null; }
+        report(ok ? done : failed);
+      };
+      // Called synchronously in the keydown or click, so its transient activation holds.
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(() => report(done), fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    /** Copies linkFor(target), the active item by default. The URL bar is untouched (law F). */
+    function copyLink(target = state.activeId) {
+      if (target === null) return;
+      copyText(linkFor(target), "Link copied", "Could not copy the link");
+    }
+
+    /** Copies the subtrees of `ids` as markdown (the ⋯ menu; ⌘C is bindCopy's). */
+    function copyMarkdown(ids) {
+      copyText(outlineMarkdown(model, ids), "Copied as markdown", "Could not copy");
+    }
+
+    const canShare = () => typeof navigator.share === "function";
+    /** The system share sheet with a link to `target`; dismissing it is not an error. */
+    function share(target) {
+      if (!canShare()) return;
+      navigator.share({ title: document.title, url: linkFor(target) }).catch(() => {});
+    }
+
+    // ── zoom ─────────────────────────────────────────────
+    /** Pure: where ⌘] goes, or null on the displayed root. */
+    const zoomInTarget = (model, state) =>
+      state.activeId === null || state.activeId === state.zoomId ? null : { zoomId: state.activeId, activeId: state.activeId };
+    /** Pure: where ⌘[ goes, or null at the document root. The item zoomed out of stays selected. */
+    const zoomOutTarget = (model, state) =>
+      state.zoomId === ROOT ? null : { zoomId: parentOf(model, state.zoomId), activeId: state.zoomId };
+
+    const zoomIn = () => {
+      const t = zoomInTarget(model, state);
+      if (t !== null) setZoom(t.zoomId, { history: "push", activeId: t.activeId, focus: true });
+    };
+    const zoomOut = () => {
+      const t = zoomOutTarget(model, state);
+      if (t !== null) setZoom(t.zoomId, { history: "push", activeId: t.activeId, focus: true });
+    };
+
+    /** Effect entries of KEYMAP: commands that act outside the state. */
+    const EFFECTS = { copyLink: () => copyLink(), zoomIn, zoomOut };
+
+    /** The URL applyLocation last acted on (or setZoom wrote); popstate and hashchange both fire
+     *  for one traversal, and the second call is a no-op. */
+    let lastApplied = null;
+
+    /** The only writer of state.zoomId (law Z) and the only caller of `history` (law F). */
+    function setZoom(z, { history: mode = "none", activeId = state.activeId, focus = true, select = "selected" } = {}) {
+      // Find is scoped to the zoom, so a zoom change clears the query (and the box and count).
+      const zoomId = model.byId.has(z) ? z : ROOT;
+      const query = zoomId === state.zoomId ? state.query : "";
+      const next = makeState(model, { expanded: state.expanded.ids, activeId, zoomId, mode: select, query });
+      if (next.zoomId !== state.zoomId) {
+        renderHead(model, next.zoomId);
+        renderTree(model, next.zoomId);
+        state = next;
+        window.scrollTo(0, 0);                  // a new page starts at its top
+        project(blankFor(next.zoomId), next, { focus, block: "nearest", force: true });
+        renderCrumbs(next.zoomId);
+        requestTypeset(document.getElementById("main"));
+        deriveMathState();
+      } else {
+        dispatch({ activeId: next.activeId, mode: select }, { focus });
+      }
+      const base = location.href.split("#")[0];
+      const want = next.zoomId === ROOT ? base : `${base}#z=${encodeURIComponent(next.zoomId)}`;
+      if (mode === "push" && location.href !== want) history.pushState(null, "", want);
+      if (mode === "replace" && location.href !== want) history.replaceState(null, "", want);
+      lastApplied = location.href;
+      scheduleSave();
+    }
+
+    /** Plain text of an item's row, for a crumb: the label, then the first paragraph. */
+    function crumbText(model, id) {
+      const { node } = model.byId.get(id);
+      const first = node.text === "" ? "" : node.text.split("\n\n")[0];
+      return [node.label, plainText(parseInline(first))].filter((t) => t !== null && t !== "").join(" ");
+    }
+
+    /** The zoom's ancestors, the document first, as plain-text links (h and textContent only; law H
+     *  is untouched). The zoomed item is the title, not a crumb. */
+    function renderCrumbs(zoomId) {
+      const nav = document.getElementById("crumbs");
+      const ids = zoomId === ROOT ? [] : ancestorsOf(model, zoomId).reverse();
+      nav.querySelector("ol").replaceChildren(...ids.map((id) => {
+        const a = h("a", "", id === ROOT ? DOC_TITLE : crumbText(model, id));
+        a.setAttribute("href", `#z=${encodeURIComponent(id)}`);
+        a.dataset.id = id;
+        const li = h("li");
+        li.append(a);
+        return li;
+      }));
+      nav.hidden = zoomId === ROOT;
+      const ol = nav.querySelector("ol");
+      ol.scrollLeft = ol.scrollWidth;           // the nearest ancestor is in view
+    }
+
+    /** A plain click (or Enter) on a crumb zooms out to it; modified clicks open a new page. */
+    function bindCrumbs() {
+      document.getElementById("up-button").addEventListener("click", zoomOut);
+      document.getElementById("crumbs").addEventListener("click", (e) => {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        const a = e.target.closest?.("a[data-id]");
+        if (!a || !model.byId.has(a.dataset.id)) return;
+        e.preventDefault();
+        setZoom(a.dataset.id, { history: "push", activeId: state.zoomId, focus: true });
+      });
+    }
+
+    /** In-content #id links zoom (Dynalist). A #id URL still reveals, through applyLocation. */
+    function bindContentLinks() {
+      document.getElementById("outline").addEventListener("click", (e) => {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        const a = e.target.closest?.('a[href^="#"]');
+        if (!a) return;
+        const f = readFragment(a.hash);
+        const id = f.kind === "id" || f.kind === "zoom" ? f.id : null;
+        if (id === null || !model.byId.has(id)) return;
+        e.preventDefault();
+        e.stopPropagation();                    // the row's click handling does not also run
+        document.getElementById("status").textContent = "";
+        setZoom(id, { history: "push", activeId: id, focus: true });
+      }, { capture: true });
+    }
+
+    /** All fragment input from the URL: on load, and on every popstate and hashchange.
+     *  `stored`: the view record restored on load, or null. */
+    function applyLocation({ initial, stored = null }) {
+      if (!initial && location.href === lastApplied) return;
+      const status = document.getElementById("status");
+      const f = readFragment();
+      const known = (f.kind === "id" || f.kind === "zoom") && model.byId.has(f.id);
+      // On load the stored view's active item is the proposal; later, the current one.
+      const wanted = initial ? stored?.activeId ?? state.activeId : state.activeId;
+      const storedZoom = initial && stored !== null && stored.zoomId !== ROOT && model.byId.has(stored.zoomId) ? stored.zoomId : null;
+      if (f.kind === "id" && known) {
+        // A #id URL reveals the item in the whole document, whatever the zoom.
+        status.textContent = "";
+        if (state.zoomId !== ROOT) setZoom(ROOT, { history: "none", focus: false });
+        dispatch({ ...reveal(model, state, f.id), query: "" }, { focus: true, block: "center" });   // never hidden by a filter
+      } else if (f.kind === "zoom" && known) {
+        status.textContent = "";
+        // Back to an outer zoom keeps the item zoomed out of selected.
+        const prev = state.zoomId;
+        const inside = !initial && (prev === f.id || ancestorsOf(model, prev).includes(f.id));
+        setZoom(f.id, { history: "none", activeId: inside ? prev : wanted, focus: true, select: initial ? START_MODE : "selected" });
+      } else if (f.kind === "none") {
+        status.textContent = "";
+        if (initial && storedZoom !== null) {
+          setZoom(storedZoom, { history: "replace", activeId: wanted, focus: true, select: START_MODE });
+        } else if (initial) {
+          // Focus the active item so arrow keys work at once: without scrolling on a fresh view,
+          // and scrolled into view when a stored view was restored.
+          dispatch({ mode: START_MODE }, { focus: true, block: stored !== null ? "nearest" : null });
+        } else if (state.zoomId !== ROOT) {
+          setZoom(ROOT, { history: "none", activeId: state.zoomId, focus: true });
+        }
+        // Later, a fragment-less URL at the root leaves the reader where they are.
+      } else {
+        status.textContent = `No item “${f.id ?? f.raw}” in this outline.`;
+        // An unknown #id keeps the stored zoom (the URL keeps the fragment opened); an unknown
+        // #z= asked for a zoom that does not exist, so the stored one is ignored.
+        const askedZoom = f.kind === "zoom" || (f.kind === "malformed" && f.raw.startsWith("z="));
+        if (initial && storedZoom !== null && !askedZoom) setZoom(storedZoom, { history: "none", activeId: wanted, focus: true, select: START_MODE });
+        else if (initial) dispatch({ mode: START_MODE }, { focus: true, block: stored !== null ? "nearest" : null });
+      }
+      lastApplied = location.href;
+    }
+
+    // ── math ─────────────────────────────────────────────
+    const MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js";   // also in the CSP meta
+    const MATHJAX_INTEGRITY = "sha384-AHAnt9ZhGeHIrydA1Kp1L7FN+2UosbF7RQg6C+9Is/a7kDpQ1684C2iH2VWil6r4";
+
+    /** Law T, first layer. In base and ams TeX, author text reaches MathML attributes that the
+     *  page would see only through \mmlToken (href, class, id, style; fontfamily, fontweight and
+     *  fontstyle, which CHTML copies unchecked into a style attribute; an mglyph's src, which
+     *  becomes an <img>), \ref and \eqref (href, class) and equation tags (id). These macros
+     *  shadow the first three: the config macro map is consulted before base's, and \let or \def
+     *  reach \mmlToken only by name, so they find the same undefined command. The base and ams
+     *  macros built on \mmlToken are restated without it. */
+    const TEX_MACROS = {
+      mmlToken: "\\mmlTokenDisabled",
+      ref: "\\refDisabled",
+      eqref: "\\eqrefDisabled",
+      bmod: "\\mkern5mu\\mathrm{mod}\\mkern5mu",
+      pmod: ["\\pod{\\mathop{\\rm mod}\\kern 6mu #1}", 1],
+      mod: ["\\mathchoice{\\kern18mu}{\\kern12mu}{\\kern12mu}{\\kern12mu}\\mathop{\\rm mod}\\,\\,#1", 1],
+      varliminf: "\\mathop{\\underline{\\mathrm{lim}}}",
+      varlimsup: "\\mathop{\\overline{\\mathrm{lim}}}",
+      varinjlim: "\\mathop{\\underrightarrow{\\mathrm{lim}}}",
+      varprojlim: "\\mathop{\\underleftarrow{\\mathrm{lim}}}",
+    };
+
+    /** Law T, second layer: MathML attributes that reach the page as a link, class, id, style
+     *  or image, and mglyph, whatever produced them; a span that has one fails. */
+    const MARKUP_ATTRIBUTES = ["href", "class", "id", "style", "fontfamily", "fontweight", "fontstyle", "src", "alt"];
+    function rejectMarkupAttributes({ data }) {
+      data.root.walkTree((node) => {
+        if (node.kind === "mglyph") throw new Error("math: mglyph is not allowed");
+        const attrs = node.attributes;
+        const found = attrs && MARKUP_ATTRIBUTES.find((name) => attrs.getExplicit(name) !== undefined);
+        if (found) throw new Error(`math: the "${found}" attribute is not allowed`);
+      });
+    }
+
+    const MATHJAX_CONFIG = {
+      startup: {
+        typeset: false,
+        ready() {
+          MathJax.startup.defaultReady();
+          MathJax.startup.input[0].postFilters.add(rejectMarkupAttributes, 100);
+        },
+      },
+      options: { enableMenu: false, enableAssistiveMml: true },
+      tex: { packages: { "[-]": ["require", "autoload", "noundefined"] }, macros: TEX_MACROS },   // law T
+    };
+    const NEXT = { source: ["pending"], pending: ["typeset", "failed"], typeset: [], failed: [] };
+
+    function makeMathSpan(tex) {
+      const span = document.createElement("span");
+      span.className = "math";
+      span.dataset.tex = tex;
+      span.dataset.math = "source";
+      span.textContent = tex;
+      return span;
+    }
+
+    function setSpanState(span, next) {   // the only writer of data-math after creation (law M)
+      const prev = span.dataset.math;
+      if (!NEXT[prev]?.includes(next)) throw new Error(`math span: ${prev} -> ${next}`);
+      span.dataset.math = next;
+    }
+
+    function deriveMathState() {          // mathState is derived, never assigned elsewhere
+      const states = [...document.querySelectorAll(".math")].map((s) => s.dataset.math);
+      const has = (x) => states.includes(x);
+      document.documentElement.dataset.mathState =
+        states.length === 0 ? "none"
+        : has("source") || has("pending") ? "loading"
+        : !has("failed") ? "ready"
+        : !has("typeset") ? "unavailable"
+        : "partial";
+    }
+
+    let mathJaxLoad = null;               // Promise<boolean>; the first resolve wins
+    function loadMathJax() {
+      mathJaxLoad ??= new Promise((resolve) => {
+        window.MathJax = MATHJAX_CONFIG;
+        const script = Object.assign(document.createElement("script"), {
+          src: MATHJAX_URL, integrity: MATHJAX_INTEGRITY, crossOrigin: "anonymous", async: true,
+        });
+        script.onload = () => {
+          const ready = window.MathJax?.startup?.promise;
+          if (typeof ready?.then !== "function") return resolve(false);
+          ready.then(() => resolve(true), () => resolve(false));
+        };
+        script.onerror = () => resolve(false);
+        document.head.append(script);
+        setTimeout(() => resolve(false), Number(document.documentElement.dataset.mathTimeout));
+      });
+      return mathJaxLoad;
+    }
+
+    let mathQueue = Promise.resolve();    // one serial conversion queue
+    function requestTypeset(root) {
+      const spans = [...root.querySelectorAll('.math[data-math="source"]')];
+      if (spans.length === 0) return mathQueue;
+      for (const span of spans) setSpanState(span, "pending");   // synchronous: claimed exactly once
+      deriveMathState();
+      mathQueue = mathQueue.then(() => typesetSpans(spans));
+      return mathQueue;
+    }
+
+    async function typesetSpans(spans) {
+      let metrics = null;
+      if (await loadMathJax()) {
+        // #main is visible; spans in collapsed groups are display:none and would measure zero.
+        try { metrics = MathJax.getMetricsFor(document.getElementById("main"), false); } catch { metrics = null; }
+      }
+      for (const span of spans) {
+        if (!span.isConnected) continue;       // a zoom replaced it while the queue waited
+        let out = null;
+        if (metrics !== null) {
+          try { out = await MathJax.tex2chtmlPromise(span.dataset.tex, { ...metrics, display: false }); }
+          catch { out = null; }
+        }
+        if (out === null || out.querySelector("mjx-merror")) {
+          setSpanState(span, "failed");        // keeps its TeX source text
+        } else {
+          span.replaceChildren(out);
+          setSpanState(span, "typeset");
+        }
+      }
+      if (metrics !== null) {
+        try {
+          document.getElementById("MJX-CHTML-styles")?.remove();
+          document.head.append(MathJax.chtmlStylesheet());
+        } catch { /* spans keep their state; styling degrades */ }
+      }
+      deriveMathState();
+      layoutMath();
+    }
+
+    // ── sheets and the ⋯ menu ────────────────────────────
+    // Two non-modal sheets: the Spacing panel and the ⋯ menu. One is open at a time; Escape
+    // closes it and returns focus to its button; a press outside closes the menu, and the Spacing
+    // panel when it is a bottom sheet (with a mouse it stays open beside the live outline).
+    const SHEET_MQ = matchMedia("(max-width: 40rem), (any-pointer: coarse)");
+    const COARSE_MQ = matchMedia("(any-pointer: coarse)");
+    const sheetClosers = [];
+
+    function bindSheet(panel, trigger, { prepare = () => {}, first, outside }) {
+      const close = ({ focus = true } = {}) => {
+        if (!panel.open) return;
+        panel.close();                               // the close event is a task: write the button now
+        trigger.setAttribute("aria-expanded", "false");
+        if (focus) trigger.focus({ preventScroll: true });   // the header may be scrolled away
+      };
+      const open = () => {
+        for (const other of sheetClosers) if (other !== close) other({ focus: false });
+        prepare();
+        panel.show();
+        trigger.setAttribute("aria-expanded", "true");
+        panel.scrollTop = 0;
+        // A touch reader starts at the top of the sheet (no keyboard, so nothing to focus into);
+        // a keyboard reader starts on its first control.
+        if (COARSE_MQ.matches) panel.focus({ preventScroll: true });
+        else first()?.focus({ preventScroll: true });
+      };
+      sheetClosers.push(close);
+      trigger.addEventListener("click", () => (panel.open ? close() : open()));
+      // A non-modal dialog gets no close request from Escape (closedby="auto" is "none").
+      panel.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        e.preventDefault();
+        close();
+      });
+      document.addEventListener("pointerdown", (e) => {
+        if (!panel.open || !(e.target instanceof Node)) return;
+        if (panel.contains(e.target) || trigger.contains(e.target)) return;
+        if (e.target instanceof Element && e.target.closest("dialog:modal")) return;
+        if (outside()) close({ focus: false });
+      }, true);
+      return { open, close };
+    }
+
+    /** The menu's target: the selected item, or with nothing selected the page (the displayed root). */
+    const menuTarget = (s = state) => (s.mode === "selected" && s.activeId !== null ? s.activeId : s.zoomId);
+    /** `s` with the target as its single selected item: the state a menu command reads. */
+    const asTarget = (s, t) => Object.freeze({ ...s, activeId: t, anchorId: t });
+
+    /** How many levels below `id` are open now (the displayed root is always open). */
+    function openDepth(s, id) {
+      if (!hasChildren(model, id) || !(id === s.zoomId || isOpen(s, id))) return 0;
+      return 1 + Math.max(0, ...childrenOf(model, id).map((n) => openDepth(s, n.id)));
+    }
+
+    const MENU = ["zoomIn", "zoomOut", "toggle", "toggleSubtree", "expandSiblings", "expandLevel",
+      "copyLink", "share", "copy", "escape", "accept", "help"];
+    const MENU_BREAKS = new Set(["toggle", "copyLink", "escape"]);   // a rule before these
+
+    /** Whether the menu offers `command` for target `t`: true, false (disabled) or null (hidden). */
+    function menuOffers(command, s0, t) {
+      const s = asTarget(s0, t);
+      switch (command) {
+        case "zoomIn": return zoomInTarget(model, s) !== null;
+        case "zoomOut": return zoomOutTarget(model, s) !== null;
+        case "expandSiblings": return t !== s.zoomId && COMMANDS.expandSiblings(model, s) !== null;
+        case "expandLevel": return COMMANDS.expandLevel(model, s, 1) !== null;
+        case "share": return canShare() ? true : null;
+        case "escape": return s0.filter !== null || s0.mode === "selected";
+        case "accept": return s0.filter === null ? null : s0.mode === "selected" && s0.activeId !== null;
+        case "copyLink": case "copy": case "help": return true;
+        default: return COMMANDS[command](model, s) !== null;
+      }
+    }
+
+    /** Runs a menu item on target `t`; `stay`: the menu stays open (the level stepper). */
+    function runMenu(command, arg) {
+      const s0 = state;
+      const t = menuTarget(s0);
+      const s = asTarget(s0, t);
+      switch (command) {
+        case "zoomIn": return setZoom(t, { history: "push", activeId: t, focus: true });
+        case "zoomOut": return zoomOut();
+        case "copyLink": copyLink(t); return focusActive();
+        case "share": share(t); return focusActive();
+        case "copy":
+          copyMarkdown(s0.mode === "selected" && s0.activeId !== null ? selectionRoots(model, s0) : [s0.zoomId]);
+          return focusActive();
+        case "help": return showHelp();
+        case "expandLevel": {
+          const p = COMMANDS.expandLevel(model, s, arg);
+          if (p !== null) dispatch({ ...p, mode: s0.mode }, { focus: false });
+          return;
+        }
+        default: {
+          const p = COMMANDS[command](model, s, arg);
+          if (p === null) return focusActive();
+          // A menu action keeps the mode: from an idle page it acts on the page and stays idle.
+          dispatch({ ...p, mode: p.mode ?? s0.mode }, { focus: true });
+        }
+      }
+    }
+
+    function bindActions() {
+      const panel = document.getElementById("actions");
+      const trigger = document.getElementById("actions-button");
+      const list = panel.querySelector(".menu");
+      const entry = (c) => KEYMAP.find((e) => e.command === c);
+      let level = 1;
+
+      const render = () => {
+        const s0 = state;
+        const t = menuTarget(s0);
+        document.getElementById("actions-target").textContent = t === ROOT ? DOC_TITLE : crumbText(model, t);
+        const items = [];
+        for (const command of MENU) {
+          const offered = menuOffers(command, s0, t);
+          if (offered === null) continue;
+          if (MENU_BREAKS.has(command) && items.length > 0) items.push(h("hr"));
+          const e = entry(command);
+          if (command === "expandLevel") {
+            const row = h("div", "level");
+            row.setAttribute("role", "group");
+            row.setAttribute("aria-label", e.menu);
+            const out = h("output", "", String(level));
+            out.setAttribute("aria-live", "polite");
+            const stepBy = (by, text, name) => {
+              const b = h("button", "", text);
+              b.type = "button";
+              b.dataset.command = command;
+              b.dataset.step = String(by);
+              b.setAttribute("aria-label", name);
+              b.disabled = !offered || level + by < 1 || level + by > 9;
+              return b;
+            };
+            row.append(h("span", "", e.menu), stepBy(-1, "−", "One level less"), out, stepBy(1, "+", "One level more"));
+            items.push(row);
+            continue;
+          }
+          const b = h("button", "", e.menuLabel?.(asTarget(s0, t), t) ?? e.menu);
+          b.type = "button";
+          b.dataset.command = command;
+          b.disabled = !offered;
+          items.push(b);
+        }
+        list.replaceChildren(...items);
+      };
+      const sheet = bindSheet(panel, trigger, {
+        prepare: () => {
+          level = Math.min(9, Math.max(1, openDepth(state, menuTarget())));
+          render();
+          if (!SHEET_MQ.matches) {
+            // With a mouse, the menu drops from its button.
+            const r = trigger.getBoundingClientRect();
+            panel.style.setProperty("--menu-top", `${Math.round(r.bottom + 4)}px`);
+            panel.style.setProperty("--menu-right", `${Math.max(8, Math.round(document.documentElement.clientWidth - r.right))}px`);
+          }
+        },
+        first: () => list.querySelector("button:not(:disabled)"),
+        outside: () => true,
+      });
+      list.addEventListener("click", (e) => {
+        const b = e.target.closest?.("button[data-command]");
+        if (!b || b.disabled) return;
+        if (b.dataset.step !== undefined) {
+          level += Number(b.dataset.step);
+          runMenu("expandLevel", level);
+          render();
+          list.querySelector(`button[data-step="${b.dataset.step}"]`)?.focus({ preventScroll: true });
+          return;
+        }
+        // Help opens over the page: the menu hands focus back to its button first, so closing
+        // Help returns there. Anything else acts on the outline, and focus goes to the tree.
+        sheet.close({ focus: b.dataset.command === "help" });
+        runMenu(b.dataset.command);
+      });
+      return sheet;
+    }
+
+    // ── page layout ──────────────────────────────────────
+    /** Typeset math wider than its line becomes its own sideways scroller (law M1). Runs when the
+     *  outline's size changes (a resize, an expand, a zoom) and after typesetting. */
+    function layoutMath() {
+      for (const span of document.querySelectorAll('.math[data-math="typeset"]')) {
+        const host = span.closest(".text, .intro, #doc-title");
+        const math = span.querySelector("mjx-math");
+        if (host === null || math === null) continue;
+        const wide = math.getBoundingClientRect().width > host.clientWidth + 0.5;
+        if (span.classList.contains("wide") === wide) continue;
+        span.classList.toggle("wide", wide);
+        if (wide) span.tabIndex = -1;   // a scroller Chromium would make a Tab stop: none inside the tree (law D)
+        else span.removeAttribute("tabindex");
+      }
+    }
+
+    /** --head-block: the sticky header's height (0 while it scrolls away), so scrolling an item
+     *  into view never leaves it under the header. */
+    function bindHead() {
+      const head = document.querySelector(".page-head");
+      const write = () => {
+        const sticky = getComputedStyle(head).position === "sticky";
+        root.style.setProperty("--head-block", sticky ? `${Math.ceil(head.getBoundingClientRect().height)}px` : "0px");
+      };
+      new ResizeObserver(write).observe(head);
+      addEventListener("resize", write);
+      write();
+    }
+
+    // ── spacing ──────────────────────────────────────────
+    // Reader-set spacing: the panel writes only the knobs' custom properties on :root, and the
+    // tokens layer derives every metric from them. The proximity ladder cannot invert: every
+    // item gap is > 0 (the minimum is 2px), and the note gap is derived in CSS as
+    // min(3px, --item-gap / 2). So rows sit farther apart than the lines inside a row (row pitch
+    // = --line + --item-gap), and a note sits closer to its own item than to the next row.
+    const SPACING = [
+      { key: "fontSize", prop: "--font-size", label: "Text size",    min: 16,  max: 24,   step: 1,    value: 20,  unit: "px" },
+      { key: "lh",       prop: "--lh",        label: "Line height",  min: 1.2, max: 1.9,  step: 0.05, value: 1.5, unit: "" },
+      // A coarse pointer's default leaves a 44px row pitch at the default line height.
+      { key: "itemGap",  prop: "--item-gap",  label: "Item spacing", min: 2,   max: 28,   step: 1,    value: COARSE_MQ.matches ? 14 : 10, unit: "px" },
+      { key: "indent",   prop: "--indent",    label: "Indent",       min: 18,  max: 56,   step: 1,    value: 30,  unit: "px" },
+      { key: "column",   prop: "--column",    label: "Column width", min: 560, max: 1200, step: 20,   value: 820, unit: "px" },
+    ];
+    const SPACING_KEY = "my-tractatus:spacing";
+    const spacingDefaults = () => Object.fromEntries(SPACING.map((k) => [k.key, k.value]));
+
+    /** Nearest step inside the knob's range; rounded to kill float noise (1.2 + 7 * 0.05). */
+    function snapSpacing(k, v) {
+      const n = Math.round((Math.min(k.max, Math.max(k.min, v)) - k.min) / k.step);
+      return Number((k.min + n * k.step).toFixed(2));
+    }
+    const spacingText = (k, v) => (k.unit === "" ? `${v.toFixed(2)}×` : `${v} ${k.unit}`);
+    const spacingValueText = (k, v) => (k.unit === "" ? `${v.toFixed(2)} times the text size` : `${v} pixels`);
+
+    /** localStorage, or null when absent or refused; shared by spacing and view state. file://
+     *  storage is per file, per directory or one shared origin depending on the browser, and the
+     *  getter itself throws a SecurityError when the reader blocks site data, so every access
+     *  is guarded. */
+    function openStorage() {
+      try {
+        const s = window.localStorage;
+        const probe = "my-tractatus:probe";
+        s.setItem(probe, "1");
+        s.removeItem(probe);
+        return s;
+      } catch {
+        return null;
+      }
+    }
+
+    /** Total: stored values are clamped to their ranges; anything unreadable is ignored. */
+    function readSpacing(storage) {
+      const values = spacingDefaults();
+      let raw = null;
+      try { raw = JSON.parse(storage?.getItem(SPACING_KEY) ?? "null"); } catch { raw = null; }
+      if (raw === null || typeof raw !== "object") return values;
+      for (const k of SPACING) {
+        const v = raw[k.key];
+        if (typeof v === "number" && Number.isFinite(v)) values[k.key] = snapSpacing(k, v);
+      }
+      return values;
+    }
+
+    /** True when the values are stored (defaults are stored as no entry at all). */
+    function saveSpacing(storage, values) {
+      if (storage === null) return false;
+      try {
+        if (SPACING.every((k) => values[k.key] === k.value)) storage.removeItem(SPACING_KEY);
+        else storage.setItem(SPACING_KEY, JSON.stringify(values));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function applySpacing(values) {
+      for (const k of SPACING) {
+        const v = values[k.key];
+        if (v === k.value) root.style.removeProperty(k.prop);
+        else root.style.setProperty(k.prop, `${v}${k.unit}`);
+      }
+    }
+
+    function bindSpacing(storage, values) {
+      const panel = document.getElementById("spacing");
+      const trigger = document.getElementById("spacing-button");
+      const note = document.getElementById("spacing-storage");
+      const status = document.getElementById("spacing-status");
+      const inputs = new Map();
+      let announce = 0;
+      const setNote = (saved) => {
+        note.textContent = saved ? "Saved in this browser" : "Not saved (storage unavailable)";
+      };
+      const show = (k) => {
+        const { input, output } = inputs.get(k.key);
+        const v = values[k.key];
+        input.value = String(v);
+        input.setAttribute("aria-valuetext", spacingValueText(k, v));
+        output.textContent = spacingText(k, v);
+      };
+
+      panel.querySelector(".knobs").replaceChildren(...SPACING.map((k) => {
+        const id = `spacing-${k.key}`;
+        const knob = h("div", "knob");
+        const label = h("label", "", k.label);
+        label.htmlFor = id;
+        const output = h("output");
+        output.htmlFor = id;
+        output.setAttribute("aria-live", "off");   // the slider's valuetext speaks; no second announcement
+        const input = Object.assign(h("input"), { type: "range", id, min: k.min, max: k.max, step: k.step });
+        const set = (v) => {
+          values[k.key] = snapSpacing(k, v);
+          show(k);
+          applySpacing(values);
+          setNote(saveSpacing(storage, values));
+          clearTimeout(announce);
+          status.textContent = "";
+        };
+        input.addEventListener("input", () => set(Number(input.value)));
+        // − and +: one step, shown in a sheet (a thumb is hard to move by one step).
+        const stepButton = (by, text, name) => {
+          const b = Object.assign(h("button", "panel-button step", text), { type: "button" });
+          b.setAttribute("aria-label", `${name} ${k.label.toLowerCase()}`);
+          b.addEventListener("click", () => set(values[k.key] + by * k.step));
+          return b;
+        };
+        knob.classList.add(`knob-${k.key}`);
+        inputs.set(k.key, { input, output });
+        knob.append(label, output, stepButton(-1, "−", "Less"), input, stepButton(1, "+", "More"));
+        return knob;
+      }));
+      SPACING.forEach(show);
+      setNote(storage !== null);
+
+      // Non-modal: the outline stays live behind it, and with a mouse it stays open while the
+      // reader works there; a bottom sheet covers the outline, so a press outside closes it.
+      const { close } = bindSheet(panel, trigger, {
+        first: () => inputs.get(SPACING[0].key).input,
+        outside: () => SHEET_MQ.matches,
+      });
+      document.getElementById("spacing-close").addEventListener("click", () => close());
+      document.getElementById("spacing-reset").addEventListener("click", () => {
+        Object.assign(values, spacingDefaults());
+        SPACING.forEach(show);
+        applySpacing(values);
+        setNote(saveSpacing(storage, values));
+        // Clear first, so a second reset is announced again.
+        clearTimeout(announce);
+        status.textContent = "";
+        announce = setTimeout(() => { status.textContent = "Spacing reset to defaults"; }, 100);
+      });
+    }
+
+    // ── view state ───────────────────────────────────────
+    // Per-document view (expanded, active, zoom) in localStorage. file:// pages share one origin
+    // in Chromium, so the key names the document. Records are proposals: makeState makes them
+    // lawful, so stale ids simply vanish. Mode and range are not stored.
+    const VIEW_PREFIX = "my-tractatus:view:";
+    const VIEW_INDEX = "my-tractatus:view-index";
+    const VIEW_LIMIT = 50;
+    const SAVE_DELAY = 300;
+
+    /** FNV-1a 32-bit over the UTF-8 bytes, as 8 lower-case hex digits. */
+    function fnv1a32hex(text) {
+      let h = 0x811c9dc5;
+      for (const byte of new TextEncoder().encode(text)) h = Math.imul(h ^ byte, 0x01000193) >>> 0;
+      return h.toString(16).padStart(8, "0");
+    }
+
+    /** -> { expanded: string[], activeId: string|null, zoomId: string } | null. Total. */
+    function readView(storage, key) {
+      if (storage === null) return null;
+      let v;
+      try { v = JSON.parse(storage.getItem(key)); } catch { return null; }
+      if (v === null || typeof v !== "object" || Array.isArray(v) || v.v !== 1 || !Array.isArray(v.expanded)) return null;
+      return {
+        expanded: v.expanded.filter((id) => typeof id === "string"),
+        activeId: typeof v.activeId === "string" ? v.activeId : null,
+        zoomId: typeof v.zoomId === "string" ? v.zoomId : ROOT,
+      };
+    }
+
+    /** The index reconciled with the stored keys: deduplicated, no missing records, orphans oldest. */
+    function readIndex(storage) {
+      let raw;
+      try { raw = JSON.parse(storage.getItem(VIEW_INDEX)); } catch { raw = null; }
+      if (!Array.isArray(raw)) raw = [];
+      const present = new Set();
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i);
+        if (key !== null && key.startsWith(VIEW_PREFIX)) present.add(key.slice(VIEW_PREFIX.length));
+      }
+      const listed = [];
+      for (let i = raw.length - 1; i >= 0; i--) {         // keep the last occurrence of each hash
+        const h = raw[i];
+        if (typeof h === "string" && present.has(h) && !listed.includes(h)) listed.unshift(h);
+      }
+      const orphans = [...present].filter((h) => !listed.includes(h));
+      return [...orphans, ...listed];
+    }
+
+    /** Best effort: a quota error or revoked permission leaves the page working, unsaved. */
+    function writeView(storage, hash, record, isDefault) {
+      if (storage === null) return;
+      try {
+        const index = readIndex(storage).filter((x) => x !== hash);
+        if (isDefault) {
+          storage.removeItem(VIEW_PREFIX + hash);
+        } else {
+          storage.setItem(VIEW_PREFIX + hash, JSON.stringify({ v: 1, ...record }));
+          index.push(hash);
+          while (index.length > VIEW_LIMIT) storage.removeItem(VIEW_PREFIX + index.shift());
+        }
+        storage.setItem(VIEW_INDEX, JSON.stringify(index));
+      } catch { /* quota or a revoked permission: persistence is best effort */ }
+    }
+
+    /** Set in main: the storage (or null), this document's hash, and the startup active item. */
+    let viewStorage = null;
+    let viewHash = "";
+    let defaultActive = null;
+    /** The serialised record storage holds for this document: read on load, or last written. */
+    let lastSaved = "";
+    let saveTimer = null;
+
+    const currentZoom = (s = state) => s.zoomId;
+    const viewRecord = (s = state) => ({ expanded: [...s.expanded.ids], activeId: s.activeId, zoomId: currentZoom(s) });
+    const isDefaultView = (r) => r.expanded.length === 0 && r.activeId === defaultActive && r.zoomId === ROOT;
+
+    function saveView() {
+      const r = viewRecord();
+      const text = JSON.stringify(r);
+      if (text === lastSaved) return;
+      writeView(viewStorage, viewHash, r, isDefaultView(r));
+      lastSaved = text;
+    }
+
+    /** Debounced: one pending save, restarted by each state change. */
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => { saveTimer = null; saveView(); }, SAVE_DELAY);
+    }
+
+    /** Writes a pending save now (the page is going away); nothing when none is pending. */
+    function flushSave() {
+      if (saveTimer === null) return;
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      saveView();
+    }
+
+    // ── main ─────────────────────────────────────────────
+    // Spacing first: the outline is drawn below, so it never paints at the default spacing.
+    const root = document.documentElement;
+    /** Without hover (a touch screen) a page opens idle: no selection ring until the reader taps. */
+    const START_MODE = matchMedia("(hover: none)").matches ? "idle" : "selected";
+    const spacingStorage = openStorage();
+    const spacing = readSpacing(spacingStorage);
+    applySpacing(spacing);
+
+    function decodeSource() {   // total: -> { ok: true, markdown } | { ok: false, reason }
+      const el = document.getElementById("outline-source");
+      if (el === null) return { ok: false, reason: "the content block is missing" };
+      let value;
+      try {
+        value = JSON.parse(el.textContent);
+      } catch (e) {
+        return { ok: false, reason: `the content block is not valid JSON (${e.message})` };
+      }
+      if (typeof value !== "string") return { ok: false, reason: "the content block is not a JSON string" };
+      return { ok: true, markdown: value };
+    }
+
+    const source = decodeSource();
+    window.tractatus = Object.freeze({
+      parseOutline,
+      source: source.ok ? source.markdown : null,
+      state: () => ({ expanded: [...state.expanded.ids].sort(), activeId: state.activeId }),
+      zoom: () => state.zoomId,
+      find: () => ({
+        query: state.query,
+        matches: state.filter === null ? [] : [...state.filter.matches],
+        shown: state.filter === null ? [] : [...state.filter.shown],
+      }),
+      selection: () => ({
+        mode: state.mode,
+        anchorId: state.anchorId,
+        activeId: state.activeId,
+        selected: model === null ? [] : [...selectedIds(model, state)],
+      }),
+      parseInline,
+      escapeInline,
+      linkHref: (dest) => {
+        if (model === null) return null;
+        const t = linkTarget(dest, model.byId);
+        return t && hrefOf(t);
+      },
+      typeset: () => requestTypeset(document.body),
+      commands: () => KEYMAP.map((e) => ({
+        command: e.command,
+        keys: e.chords.length > 0,
+        touch: e.touch ?? null,
+        reason: e.reason ?? null,
+        menu: e.menu ?? null,
+        gesture: touchGesture(e),
+      })),
+    });
+    const status = document.getElementById("status");
+    renderHelp();
+    bindHelp();
+    bindSpacing(spacingStorage, spacing);
+    bindHead();
+
+    if (!source.ok) {
+      status.textContent = `Cannot read this page's outline: ${source.reason}. Rebuild the page with embed.py.`;
+      document.getElementById("outline").hidden = true;
+      document.querySelector(".intro").hidden = true;
+      root.dataset.outlineReady = "error";
+    } else {
+      try {
+        const doc = parseOutline(source.markdown);
+        model = createModel(doc);
+        renderDocument(model);
+        // Restore this document's stored view (a proposal, made lawful by makeState) at the
+        // root; applyLocation then applies the URL (a valid #id or #z= wins over the stored
+        // active item and zoom) or the stored zoom.
+        viewStorage = spacingStorage;                     // the same openStorage() result
+        viewHash = fnv1a32hex(location.pathname + "\n" + DOC_TITLE);
+        const stored = readView(viewStorage, VIEW_PREFIX + viewHash);
+        defaultActive = makeState(model).activeId;
+        state = makeState(model, stored === null ? {} : { expanded: stored.expanded, activeId: stored.activeId });
+        // What storage already holds, in lawful form (zoom included).
+        lastSaved = JSON.stringify(viewRecord(makeState(model, stored ?? {})));
+        sync(BLANK, state);
+        bindCrumbs();
+        // Scroll is the viewer's: Back to a fragment-less URL at the root keeps the reader's place,
+        // a zoom starts at its top, and a #id is revealed. Browser restoration would undo these.
+        history.scrollRestoration = "manual";
+        applyLocation({ initial: true, stored });
+        addEventListener("pagehide", flushSave);
+        document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushSave(); });
+        addEventListener("popstate", () => applyLocation({ initial: false }));
+        addEventListener("hashchange", () => applyLocation({ initial: false }));
+        const outline = document.getElementById("outline");
+        bindKeys(outline);
+        bindMouse(outline);
+        bindFocusKeeping();
+        bindCopy(outline);
+        bindContentLinks();
+        bindFind();
+        bindActions();
+        // In the next frame, not inside the observer: marking math wide resizes the outline again.
+        let mathFrame = 0;
+        new ResizeObserver(() => {
+          cancelAnimationFrame(mathFrame);
+          mathFrame = requestAnimationFrame(layoutMath);
+        }).observe(outline);
+        deriveMathState();                  // "none" when there is no math
+        requestTypeset(document.body);      // not awaited: rendering never waits on math
+        for (const w of doc.warnings) console.warn(w);
+        root.dataset.outlineReady = "true";
+      } catch (e) {
+        status.textContent = `Cannot render this outline: ${e}`;
+        root.dataset.outlineReady = "error";
+        throw e;
+      }
+    }
+  </script>
+</body>
+</html>
