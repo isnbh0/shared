@@ -6,14 +6,14 @@
 
 ### Implementation Checklist
 
-- [ ] Create `plugins/doctype/.claude-plugin/plugin.json` with name `doctype`, version `1.0.0`, author `isnbh0`, and a description covering both document formats.
-- [ ] Copy `plugins/zoomdoc/skills/zoomdoc/` to `plugins/doctype/skills/zoomdoc/` without changing renderer or validator semantics. Keep its `config.example.yaml`.
-- [ ] Copy `reference/tractatus/template.html`, `embed.py`, and `examples/tractatus.md` to `plugins/doctype/skills/tractatus/`. Port `reference/tractatus/SKILL.md` with frontmatter name `tractatus`, portable names, config-driven output, and accurate example paths. Add `config.example.yaml` documenting `output_dir`.
-- [ ] Copy `reference/tractatus/tests/` into `tests/doctype/tractatus/` and put `pytest.ini` at the appropriate test root. Change paths and personal-install assertions needed by the new layout; replace the symlink and installer checks in `test_skill_package.py` with package, config, and example checks. Keep viewer behavioral coverage.
-- [ ] Update the zoomdoc template attribution link from `plugins/zoomdoc` to `plugins/doctype/skills/zoomdoc` in the copied template.
-- [ ] Add or update tests described below.
-- [ ] Run the verification commands below.
-- [ ] Commit: `feat(doctype): package zoomdoc and tractatus skills with tests`
+- [x] Create `plugins/doctype/.claude-plugin/plugin.json` with name `doctype`, version `1.0.0`, author `isnbh0`, and a description covering both document formats.
+- [x] Copy `plugins/zoomdoc/skills/zoomdoc/` to `plugins/doctype/skills/zoomdoc/` without changing renderer or validator semantics. Keep its `config.example.yaml`.
+- [x] Copy `reference/tractatus/template.html`, `embed.py`, and `examples/tractatus.md` to `plugins/doctype/skills/tractatus/`. Port `reference/tractatus/SKILL.md` with frontmatter name `tractatus`, portable names, config-driven output, and accurate example paths. Add `config.example.yaml` documenting `output_dir`.
+- [x] Copy `reference/tractatus/tests/` into `tests/doctype/tractatus/` and put `pytest.ini` at the appropriate test root. Change paths and personal-install assertions needed by the new layout; replace the symlink and installer checks in `test_skill_package.py` with package, config, and example checks. Keep viewer behavioral coverage.
+- [x] Update the zoomdoc template attribution link from `plugins/zoomdoc` to `plugins/doctype/skills/zoomdoc` in the copied template.
+- [x] Add or update tests described below.
+- [x] Run the verification commands below.
+- [x] Commit: `feat(doctype): package zoomdoc and tractatus skills with tests`
 
 ### Code
 

@@ -56,7 +56,7 @@ The synthetic test fixture is named `fake-tractatus.txt` in the snapshot because
 
 | Phase | Commit | Status |
 |-------|--------|--------|
-| 1 | — | Pending |
+| 1 | `6ac2fb3` | Completed |
 | 2 | — | Pending |
 
 ## Viewer Network Behavior
