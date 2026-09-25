@@ -6,14 +6,14 @@
 
 ### Implementation Checklist
 
-- [ ] Replace the `zoomdoc` entry with `doctype` in `.claude-plugin/marketplace.json`, pointing to `./plugins/doctype`.
-- [ ] Remove `plugins/zoomdoc/` after verifying the copied zoomdoc skill in `plugins/doctype/skills/zoomdoc/` remains equivalent except for the attribution URL.
-- [ ] Update `README.md`, `README.ko.md`, and `llms.txt`: marketplace and direct-install blocks, plugin list/count, published skills, source paths, file tree, workspace config note, and guidance to use the `doctype` package. Describe the old `zoomdoc` install identifier as deprecated in migration guidance; describe `zoomdoc` as a continuing skill.
-- [ ] In the README entries disclose that tractatus pages containing math request MathJax 3.2.2 and fonts from `cdn.jsdelivr.net` when online, with visible TeX source offline.
-- [ ] Update any other tracked references discovered by `rg -n 'plugins/zoomdoc|zoomdoc@|zoomdoc-latest'` so they point to the current package, except explicit migration notes.
-- [ ] Add or update tests described below.
-- [ ] Run the verification commands below.
-- [ ] Commit: `feat(doctype): publish document skills and retire zoomdoc plugin`
+- [x] Replace the `zoomdoc` entry with `doctype` in `.claude-plugin/marketplace.json`, pointing to `./plugins/doctype`.
+- [x] Remove `plugins/zoomdoc/` after verifying the copied zoomdoc skill in `plugins/doctype/skills/zoomdoc/` remains equivalent except for the attribution URL.
+- [x] Update `README.md`, `README.ko.md`, and `llms.txt`: marketplace and direct-install blocks, plugin list/count, published skills, source paths, file tree, workspace config note, and guidance to use the `doctype` package. Describe the old `zoomdoc` install identifier as deprecated in migration guidance; describe `zoomdoc` as a continuing skill.
+- [x] In the README entries disclose that tractatus pages containing math request MathJax 3.2.2 and fonts from `cdn.jsdelivr.net` when online, with visible TeX source offline.
+- [x] Update any other tracked references discovered by `rg -n 'plugins/zoomdoc|zoomdoc@|zoomdoc-latest'` so they point to the current package, except explicit migration notes.
+- [x] Add or update tests described below.
+- [x] Run the verification commands below.
+- [x] Commit: `feat(doctype): publish document skills and retire zoomdoc plugin`
 
 ### Code
 

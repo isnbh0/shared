@@ -3,8 +3,12 @@
 **Date:** 2026-09-25 11:06:01
 **Issue:** `zoomdoc` is published alone while the mature tractatus viewer exists only as a personal dotfiles skill; users need one plugin offering both document formats.
 **Priority:** Medium
-**Status:** In Progress
+**Status:** Completed
 **Started:** 2026-09-25
+**Completed:** 2026-09-25
+**Implementation:**
+- Commit: `6ac2fb3` - package both skills and tests
+- Commit: `a20793a` - publish doctype and retire standalone zoomdoc
 
 ## Problem Statement
 
@@ -57,7 +61,7 @@ The synthetic test fixture is named `fake-tractatus.txt` in the snapshot because
 | Phase | Commit | Status |
 |-------|--------|--------|
 | 1 | `6ac2fb3` | Completed |
-| 2 | — | Pending |
+| 2 | `a20793a` | Completed |
 
 ## Viewer Network Behavior
 
