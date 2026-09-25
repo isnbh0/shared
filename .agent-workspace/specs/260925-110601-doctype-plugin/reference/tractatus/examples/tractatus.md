@@ -1,6 +1,6 @@
 # Tractatus Logico-Philosophicus
 
-Ludwig Wittgenstein. Translated by C. K. Ogden, 1922. Public domain.
+Ludwig Wittgenstein. Translated by C. K. Ogden, 1922.
 
 - 1 The world is everything that is the case.
 

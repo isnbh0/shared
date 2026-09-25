@@ -9,7 +9,7 @@
 
 The marketplace lists `zoomdoc` at `plugins/zoomdoc/`, with one skill and its renderer and validator. The tractatus skill, template, embedding script, example, and tests are absent from this repository. Its personal instructions also assume an `inbox/` output directory. Publishing the original tractatus proposal as a separate plugin would leave two related document skills under separate installs. The target is a `doctype` marketplace plugin with independent `zoomdoc` and `tractatus` resident skills. The old standalone `zoomdoc` marketplace entry is deprecated and removed after the replacement package is verified. Existing zoomdoc document markup and behavior remain valid.
 
-This spec includes a tracked snapshot in `reference/tractatus/`, copied from the personal skill at specification time. The original proposal was local and untracked; all implementation inputs needed from it are recorded here. The snapshot contains the tractatus skill, template, embed script, source example, tests, and the example generator needed by those tests. The generated example HTML is absent. The generator belongs in repository test tooling, outside the published skill.
+This spec includes a tracked snapshot in `reference/tractatus/`, copied from the personal skill at specification time. The original proposal was local and untracked; all implementation inputs needed from it are recorded here. The snapshot contains the tractatus skill, template, embed script, example Markdown, and viewer tests. The generated example HTML and its converter are absent; the Markdown is the example data.
 
 The synthetic test fixture is named `fake-tractatus.txt` in the snapshot because it deliberately contains a blocked `javascript:` link that the repository Markdown-link checker would otherwise treat as a broken local link. Its content is unchanged, and the snapshot test harness reads the new name.
 
@@ -58,8 +58,8 @@ The synthetic test fixture is named `fake-tractatus.txt` in the snapshot because
 | 1 | — | Pending |
 | 2 | — | Pending |
 
-## Source and Distribution Notes
+## Viewer Network Behavior
 
-The tractatus example is the Ogden translation of *Tractatus Logico-Philosophicus*, converted from Project Gutenberg edition #5740. It is public domain; the source Markdown has no Gutenberg header or trademark text. Keep that provenance in repository documentation without adding a Gutenberg trademark header to the example. The viewer's CSP permits MathJax from `cdn.jsdelivr.net` and its font directory. Pages without math do not need MathJax; pages with math request it when online and show TeX source offline.
+The viewer's CSP permits MathJax from `cdn.jsdelivr.net` and its font directory. Pages without math do not need MathJax; pages with math request it when online and show TeX source offline.
 
 The configured spec workspace is ignored by `.gitignore`; this specification directory must be staged explicitly with `git add -f`. The implementation paths under `plugins/doctype/` and `tests/doctype/` are not ignored.
