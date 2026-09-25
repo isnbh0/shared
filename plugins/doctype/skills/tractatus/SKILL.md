@@ -5,11 +5,12 @@ description: Write or adapt content as a nested outline of points with optional 
 
 # Tractatus
 
-The name comes from Wittgenstein's book. The format works for any subject whose points can form a
-parent-child tree: findings, decisions, instructions, explanations, and other structured content.
+Use this format for any content whose points form a parent-child tree, such as findings, decisions,
+instructions, or explanations.
 
 Produce one HTML file: `embed.py` (next to this file) writes the outline markdown into a copy of
-`template.html`. The page works offline from `file://`.
+`template.html`. The page works offline from `file://`; math shows its TeX source until MathJax
+loads online.
 
 ## Procedure
 
@@ -25,7 +26,7 @@ Produce one HTML file: `embed.py` (next to this file) writes the outline markdow
    ```sh
    uv run "<this skill's directory>/embed.py" - -o "<output_dir>/my-outline.html" <<'EOF'
    # Title
-   - 1 The service has two access paths.
+   - A point.
    EOF
    ```
    Or pass a markdown file instead of `-`. If uv is unavailable, use `python3` with Python 3.13
@@ -43,14 +44,13 @@ and build again.
 
 Optional intro paragraph.
 
-- 1 The service has two access paths.
-  - 1.1 The web page works on phones.
-    - 1.11 Its layout adapts to narrow screens.
-  - 1.2 The kiosk works without an account.
-- 2 Support is available by phone.
+- The service has two access paths.
+  - The web page works on phones.
+  - The kiosk works without an account.
+- Support is available by phone.
 ```
 
-- Any markdown list marker works; nesting follows indentation.
+- Use `-`, `*`, `+`, `1.`, or `1)` list markers; nesting follows indentation.
 - Number labels are optional. A unique leading number such as `1.1` or `2.0121` is shown as the
   item's label and becomes its link target (`page.html#1.1`). Duplicate labels receive positional
   link targets and produce a warning. Write `\2024` to start text with a number that is not a label.
@@ -63,24 +63,14 @@ Optional intro paragraph.
 
 ## Writing the outline
 
-- Give each item one clear point. Use children for details, examples, qualifications, steps, or
-  related points.
+- Write items as points. Nest related points where the parent-child relationship helps the reader.
 - Keep the top level short enough to show the document's structure at a glance.
-- Choose labels to suit the content, or omit them. The viewer uses indentation for hierarchy and
-  displays labels as written; it does not require their numbers to match the hierarchy.
-  Wittgenstein's `1.1`, `1.11` scheme is one option: remarks `2.01`, `2.02` can sit under a
-  label-only `2.0` item.
-- Put each item's main point first. Collapsed views show whole items, so shorter items are easier
-  to scan.
-- Cross-reference with fragment links (`[1.2](#1.2)`) rather than "see above".
+- Keep item text easy to scan. Collapsing an item hides its children but keeps its own text visible.
+- Use fragment links such as `[1.2](#1.2)` when a precise cross-reference helps.
 
 ## Reading the page
 
 The page's Help dialog (`?`) lists the keys and gestures.
 Useful links to share: `page.html#2.1` opens at item 2.1, and `page.html#z=2.1` opens zoomed into it.
 
-`examples/tractatus.md` is a complete historical example using Wittgenstein's text. Build HTML
-from it with `embed.py` and an explicit output path.
-
-The template loads MathJax 3.2.2 from jsDelivr for math and its fonts when online. Offline
-pages keep TeX source visible.
+For a full sample, see `examples/tractatus.md`.
