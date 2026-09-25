@@ -108,6 +108,10 @@ def test_package_archive(tmp_path):
     manifest = json.loads((SKILL_DIR.parents[1] / ".claude-plugin/plugin.json").read_text())
     assert manifest["name"] == "doctype"
     assert manifest["version"] == "1.0.0"
+    marketplace = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
+    assert {"name": "doctype", "source": "./plugins/doctype"} in marketplace["plugins"]
+    assert not (REPO / "plugins/zoomdoc").exists()
+    assert not any(plugin["name"] == "zoomdoc" for plugin in marketplace["plugins"])
     subprocess.run(["bash", "scripts/pack-plugin.sh", "doctype", str(tmp_path)], cwd=REPO, check=True, capture_output=True)
     with zipfile.ZipFile(tmp_path / "doctype.zip") as archive:
         names = set(archive.namelist())

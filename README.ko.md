@@ -42,7 +42,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install study@isnbh0
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
-/plugin install zoomdoc@isnbh0
+/plugin install doctype@isnbh0
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
@@ -162,20 +162,37 @@ URL 또는 로컬 파일을 기반으로 한 소크라테스식 학습 세션 �
 - 소스 파일을 직접 수정하지 않고 자체 실행 워크스페이스에 최적화 산출물을 기록
 - baseline 출력, candidate ledger, optimizer state, decision record를 유지
 
-#### zoomdoc
+#### doctype
 
-일반적인 시맨틱 구조를 보존하는 접근 가능한 단일 파일 semantic-zoom HTML 문서를 작성합니다.
-
-**Claude Code에서 설치 없이 바로 사용:**
+독립적인 두 문서 스킬 **zoomdoc**과 **tractatus**를 하나의 플러그인으로 제공합니다. 둘 다 설치하려면 `doctype`을 설치하고, 하나만 직접 설치하려면 해당 스킬 디렉터리를 복사하세요:
 
 ```bash
-claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-latest/zoomdoc.zip
+cp -R ~/shared/plugins/doctype/skills/zoomdoc <skill-root>/
+cp -R ~/shared/plugins/doctype/skills/tractatus <skill-root>/
 ```
+
+이전 `zoomdoc@isnbh0` 플러그인 식별자는 폐기되었습니다. `doctype@isnbh0`을 사용하세요. 기존 zoomdoc HTML 문서는 계속 사용할 수 있습니다.
+
+**Claude Code에서 두 스킬을 설치 없이 바로 사용:**
+
+```bash
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/doctype-latest/doctype.zip
+```
+
+**zoomdoc**
+
+일반적인 시맨틱 구조를 보존하는 접근 가능한 단일 파일 semantic-zoom HTML 문서를 작성합니다.
 
 - 고정된 글 문서 온톨로지 대신 문서별 순서형 상세도 레벨과 선택적 편집 프로필 사용
 - 중첩 섹션, 그림, 정의 목록, 표, 코드, 미디어, 각주 등 임의의 시맨틱 HTML 지원
 - 네이티브 라디오·디스클로저 컨트롤과 명시적 `hidden` 상태를 사용하며, JavaScript 없이도 최상세 레벨로 온전히 읽힘
 - 접근 가능한 렌더러와 검증기를 포함하고, 소스 전사 모드에서는 선택적으로 엄격한 커버리지 검사 수행
+
+**tractatus**
+
+번호가 붙은 중첩 Markdown 개요를 작성하고 접기, 펼치기, 딥 링크, 키보드 탐색을 지원하는 독립형 읽기 전용 HTML 페이지로 렌더링합니다. 사용자가 지정한 출력 경로를 우선하며, 지정하지 않으면 `.agents/skill-configs/tractatus/` 설정을 읽고 설정이 없을 때 출력 디렉터리를 한 번 묻습니다.
+
+수식이 있는 페이지는 온라인에서 `cdn.jsdelivr.net`의 MathJax 3.2.2와 글꼴을 요청합니다. 오프라인에서는 TeX 원문이 보입니다.
 
 #### labs
 
@@ -254,7 +271,7 @@ Phaser 작업 시 의미 기반으로 활성화되는 패시브 지식 베이스
 
 ## 워크스페이스 설정
 
-파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
+파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
 
 1. **명시적 오버라이드** — 이번 실행에 사용할 워크스페이스 디렉터리를 요청
 2. **로컬 설정** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignore 대상, 개인 오버라이드

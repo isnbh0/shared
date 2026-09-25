@@ -42,7 +42,7 @@ Then install individual skills:
 /plugin install study@isnbh0
 /plugin install gimme@isnbh0
 /plugin install promptopt@isnbh0
-/plugin install zoomdoc@isnbh0
+/plugin install doctype@isnbh0
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
@@ -162,20 +162,37 @@ Artifact-backed prompt optimization workflow for application prompts, prompt bui
 - Writes all optimization artifacts to its own run workspace instead of editing source files
 - Maintains baseline outputs, candidate ledger, optimizer state, and a decision record
 
-#### zoomdoc
+#### doctype
 
-Authors accessible, self-contained semantic-zoom HTML documents while preserving ordinary semantic structure.
-
-**Try it without installing in Claude Code:**
+One plugin with two independent document skills: **zoomdoc** and **tractatus**. Install `doctype` to receive both, or copy either skill directory directly:
 
 ```bash
-claude --plugin-url https://github.com/isnbh0/shared/releases/download/zoomdoc-latest/zoomdoc.zip
+cp -R ~/shared/plugins/doctype/skills/zoomdoc <skill-root>/
+cp -R ~/shared/plugins/doctype/skills/tractatus <skill-root>/
 ```
+
+The former `zoomdoc@isnbh0` plugin identifier is retired; use `doctype@isnbh0`. Existing zoomdoc HTML documents remain usable.
+
+**Try both skills without installing in Claude Code:**
+
+```bash
+claude --plugin-url https://github.com/isnbh0/shared/releases/download/doctype-latest/doctype.zip
+```
+
+**zoomdoc**
+
+Authors accessible, self-contained semantic-zoom HTML documents while preserving ordinary semantic structure.
 
 - Uses document-defined ordered detail levels and optional editorial profiles instead of a fixed article ontology
 - Supports arbitrary semantic HTML, including nested sections, figures, definition lists, tables, code, media, and footnotes
 - Uses native radio and disclosure controls, explicit `hidden` state, and a complete finest-level JavaScript-disabled fallback
 - Ships an accessible renderer and validator with optional strict coverage for source transcriptions
+
+**tractatus**
+
+Writes a numbered nested Markdown outline and renders it as a self-contained, read-only HTML page with collapse, expand, deep links, and keyboard navigation. A user-provided output path takes precedence; otherwise the skill reads `.agents/skill-configs/tractatus/` configuration and asks once for an output directory when unconfigured.
+
+Pages containing math request MathJax 3.2.2 and fonts from `cdn.jsdelivr.net` when online; TeX source remains visible offline.
 
 #### labs
 
@@ -256,7 +273,7 @@ Tools for creating effective `SKILL.md` agent skills.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus) support configurable workspace directories with layered precedence (first match wins):
 
 1. **Explicit override** — ask to use a specific workspace directory for this run
 2. **Local config** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
