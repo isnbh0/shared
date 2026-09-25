@@ -3,7 +3,8 @@
 **Date:** 2026-09-25 11:06:01
 **Issue:** `zoomdoc` is published alone while the mature tractatus viewer exists only as a personal dotfiles skill; users need one plugin offering both document formats.
 **Priority:** Medium
-**Status:** Requires Implementation
+**Status:** In Progress
+**Started:** 2026-09-25
 
 ## Problem Statement
 
