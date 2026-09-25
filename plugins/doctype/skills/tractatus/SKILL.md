@@ -1,9 +1,12 @@
 ---
 name: tractatus
-description: Write content as a numbered nested outline ("tractatus format") and render it as one self-contained, read-only outline viewer HTML page with collapse, expand, deep links, and keyboard navigation. Use when the user asks for tractatus format, a navigable outline page, or to render an existing nested-list markdown outline.
+description: Write or adapt content as a nested outline of points with optional number labels, then render it as a self-contained, read-only HTML page with collapse, expand, deep links, and keyboard navigation. Use for tractatus format, a navigable outline page, or an existing nested-list markdown outline.
 ---
 
 # Tractatus
+
+The name comes from Wittgenstein's book. The format works for any subject whose points can form a
+parent-child tree: findings, decisions, instructions, explanations, and other structured content.
 
 Produce one HTML file: `embed.py` (next to this file) writes the outline markdown into a copy of
 `template.html`. The page works offline from `file://`.
@@ -22,7 +25,7 @@ Produce one HTML file: `embed.py` (next to this file) writes the outline markdow
    ```sh
    uv run "<this skill's directory>/embed.py" - -o "<output_dir>/my-outline.html" <<'EOF'
    # Title
-   - 1 First proposition.
+   - 1 The service has two access paths.
    EOF
    ```
    Or pass a markdown file instead of `-`. If uv is unavailable, use `python3` with Python 3.13
@@ -40,16 +43,17 @@ and build again.
 
 Optional intro paragraph.
 
-- 1 First proposition.
-  - 1.1 A comment on 1.
-    - 1.11 A comment on 1.1.
-  - 1.2 Another comment on 1.
-- 2 Second proposition.
+- 1 The service has two access paths.
+  - 1.1 The web page works on phones.
+    - 1.11 Its layout adapts to narrow screens.
+  - 1.2 The kiosk works without an account.
+- 2 Support is available by phone.
 ```
 
 - Any markdown list marker works; nesting follows indentation.
-- A leading number such as `1.1` or `2.0121` is shown as the item's label and becomes its
-  link target (`page.html#1.1`). Write `\2024` to start text with a number that is not a label.
+- Number labels are optional. A unique leading number such as `1.1` or `2.0121` is shown as the
+  item's label and becomes its link target (`page.html#1.1`). Duplicate labels receive positional
+  link targets and produce a warning. Write `\2024` to start text with a number that is not a label.
 - A line with no marker continues the item above it. To start a second paragraph, leave a
   blank line and indent the text under the item.
 - Inline: `*em*`, `**strong**`, `` `code` ``, `[text](https://…)`, `[see 2.1](#2.1)` (clicking
@@ -57,15 +61,17 @@ Optional intro paragraph.
   - Backslash-escape markdown characters to keep them literal, especially `\$`.
   - There is no display math, and no tables, code blocks or images inside items.
 
-## Authoring in tractatus format
+## Writing the outline
 
-- Give each item a main claim, with children that develop it.
-- Keep the top level short enough to convey the argument at a glance.
-- Labelling is your call: `1`, `1.1`, `1.1.1`, Wittgenstein's `1.1`, `1.11`, or none. The viewer
-  shows labels as written and never checks them. Adapt Wittgenstein's scheme as it suits you;
-  for example, remarks `2.01`, `2.02` can sit under a label-only `2.0` item.
-- Put the most important statement in each item's first sentence. Collapsed views show
-  whole items, so shorter items are easier to scan.
+- Give each item one clear point. Use children for details, examples, qualifications, steps, or
+  related points.
+- Keep the top level short enough to show the document's structure at a glance.
+- Choose labels to suit the content, or omit them. The viewer uses indentation for hierarchy and
+  displays labels as written; it does not require their numbers to match the hierarchy.
+  Wittgenstein's `1.1`, `1.11` scheme is one option: remarks `2.01`, `2.02` can sit under a
+  label-only `2.0` item.
+- Put each item's main point first. Collapsed views show whole items, so shorter items are easier
+  to scan.
 - Cross-reference with fragment links (`[1.2](#1.2)`) rather than "see above".
 
 ## Reading the page
@@ -73,8 +79,8 @@ Optional intro paragraph.
 The page's Help dialog (`?`) lists the keys and gestures.
 Useful links to share: `page.html#2.1` opens at item 2.1, and `page.html#z=2.1` opens zoomed into it.
 
-`examples/tractatus.md` is a complete example. Build HTML from it with `embed.py` and an
-explicit output path.
+`examples/tractatus.md` is a complete historical example using Wittgenstein's text. Build HTML
+from it with `embed.py` and an explicit output path.
 
 The template loads MathJax 3.2.2 from jsDelivr for math and its fonts when online. Offline
 pages keep TeX source visible.
