@@ -10,7 +10,8 @@ Produce one HTML file: `embed.py` (next to this file) writes the outline markdow
 
 ## Procedure
 
-1. Write the outline (format below). If the user supplied markdown, use it as is.
+1. Write the outline (format below). If the user supplied markdown, start from it; preserve its
+   content unless the requested result or format requires changes.
 2. Choose the output path. Use a path the user provided. Otherwise read
    `.agents/skill-configs/tractatus/config.local.yaml`, then `config.yaml`, relative to the
    working project. Use `output_dir` from the first existing file. If neither file exists, ask
@@ -58,9 +59,8 @@ Optional intro paragraph.
 
 ## Authoring in tractatus format
 
-- One claim per item. Its children explain, support or qualify that claim, and nothing else.
-- Keep the top level short (3–9 items). Someone who reads only the top level should get the
-  whole argument.
+- Give each item a main claim, with children that develop it.
+- Keep the top level short enough to convey the argument at a glance.
 - Labelling is your call: `1`, `1.1`, `1.1.1`, Wittgenstein's `1.1`, `1.11`, or none. The viewer
   shows labels as written and never checks them. Adapt Wittgenstein's scheme as it suits you;
   for example, remarks `2.01`, `2.02` can sit under a label-only `2.0` item.
@@ -70,14 +70,11 @@ Optional intro paragraph.
 
 ## Reading the page
 
-The page's Help dialog (`?`) lists the keys and gestures; no need to explain them to the reader.
+The page's Help dialog (`?`) lists the keys and gestures.
 Useful links to share: `page.html#2.1` opens at item 2.1, and `page.html#z=2.1` opens zoomed into it.
 
 `examples/tractatus.md` is a complete example. Build HTML from it with `embed.py` and an
 explicit output path.
 
-## Changing the template
-
-Tests for `template.html` live in the repository's `tests/doctype/tractatus/` directory.
 The template loads MathJax 3.2.2 from jsDelivr for math and its fonts when online. Offline
 pages keep TeX source visible.

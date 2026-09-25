@@ -73,7 +73,7 @@ An optional locally zoomable unit uses `data-zoomdoc-unit`, a stable `id`, and o
 
 ## Content freedom
 
-Allow any safe semantic flow content. Do not reduce valid HTML to what a Markdown exporter can represent. Figures, images, nested sections, definition lists, tables, code, math, media, footnotes, callouts, and domain-specific classes may appear in any level.
+Allow any safe semantic flow content. Figures, images, nested sections, definition lists, tables, code, math, media, footnotes, callouts, and domain-specific classes may appear in any level.
 
 Add document-specific presentation in `<style data-zoomdoc-theme>` after the shipped style. Prefer the renderer's CSS custom properties and scope selectors beneath `[data-zoomdoc]`. Do not override `hidden` or change the runtime script unless the user explicitly requests custom renderer behavior.
 
@@ -106,7 +106,5 @@ At coarser levels, preserve factual support from finer levels while allowing con
 3. Add persistent structure and coarser projections. Use prose, lists, tables, diagrams, signatures, timelines, or other forms suited to each unit.
 4. Add `data-zoomdoc-at`, initial `hidden` states, and optional zoom-unit markers. Keep renderer metadata separate from content meaning.
 5. If transcribing, embed the canonical plain source and resolve every coverage failure against the source.
-6. Run the validator until it prints `OK`.
-7. Open the file and test every global level and local detail control with keyboard navigation. Check heading order, visible focus, reflow, reduced motion, print behavior, localized control labels, and the JavaScript-disabled finest fallback.
-
-Preserve the bundled renderer as reusable infrastructure, but adapt the semantic document freely.
+6. Run the validator and resolve its errors.
+7. Open the file and test its level and detail controls with keyboard navigation. Check heading order, visible focus, reflow, reduced motion, print behavior, and the JavaScript-disabled finest fallback. Check localized labels when used.

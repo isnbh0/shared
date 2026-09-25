@@ -107,7 +107,7 @@ def test_configuration_and_example():
 def test_package_archive(tmp_path):
     manifest = json.loads((SKILL_DIR.parents[1] / ".claude-plugin/plugin.json").read_text())
     assert manifest["name"] == "doctype"
-    assert manifest["version"] == "1.0.0"
+    assert manifest["version"] == "1.0.1"
     marketplace = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert {"name": "doctype", "source": "./plugins/doctype"} in marketplace["plugins"]
     assert not (REPO / "plugins/zoomdoc").exists()
