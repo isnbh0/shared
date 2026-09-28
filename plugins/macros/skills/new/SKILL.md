@@ -88,13 +88,18 @@ frontmatter — it is the one thing that makes the macro quasi-native:
 ```markdown
 ---
 name: <name>
-description: Explicit-request macro. Activate only when the user directly requests this macro; never infer activation from task characteristics. Skill — <one-line purpose>
+description: >-
+  Explicit-request macro. Activate only when the user directly requests this macro;
+  never infer activation from task characteristics. Skill — <one-line purpose>
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
 
 <body>
 ```
+
+Keep the purpose on one indented line within the `description` block. The block
+is a YAML string even when the purpose contains a colon, quotes, or `#`.
 
 If the macro produces files or has configurable behavior, follow the layered
 config convention (`.agents/skill-configs/<name>/` for project scope,
@@ -105,10 +110,12 @@ actually reads config.
 
 ## 5. Confirm
 
-Validate the frontmatter and confirm every selected host path resolves to the
-same readable `SKILL.md`. When a managed installer owns those links, run its
-normal check. If the skill already existed at one source, edit that source if
-the user requested changes and preserve its links.
+Parse the frontmatter as YAML and confirm `name` matches the directory and
+`description` is a nonempty string containing the full purpose. Confirm every
+selected host path resolves to the same readable `SKILL.md`. When a managed
+installer owns those links, run its normal check. If the skill already existed
+at one source, edit that source if the user requested changes and preserve its
+links.
 
 Tell the user:
 
