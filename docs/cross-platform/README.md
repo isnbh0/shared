@@ -19,6 +19,7 @@ This table is the only place in this repository that should list third-party ins
 
 - **SKILL.md content** - Instructions, methodology, templates, and supporting files are portable.
 - **YAML frontmatter** - `name` and `description` are the key fields agents use for discovery.
+- **Description strings** - Quote them or use a YAML block string when wording contains `: `; parse the finished frontmatter before installing a skill.
 - **Workspace output** - The `.agent-workspace/` convention is a filesystem convention, not tied to one agent.
 
 ## Skill Names and Host Selectors

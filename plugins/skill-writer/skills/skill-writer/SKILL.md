@@ -12,7 +12,8 @@ Every skill needs a `SKILL.md` file with YAML frontmatter and markdown body:
 ```markdown
 ---
 name: task-name
-description: What it does and when to use it (third person, specific)
+description: >-
+  What it does and when to use it (third person, specific)
 ---
 
 # Task Name (display heading may use title case)
@@ -52,8 +53,14 @@ Write description in third person, including:
 - What the skill does
 - When to use it (key terms and triggers)
 
+Use a YAML block string for the description so natural wording containing `: `,
+quotes, or `#` stays a string. Parse the finished frontmatter as YAML and
+verify that `name` and `description` are nonempty strings.
+
 ```yaml
-description: Extract text from PDFs, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.
+description: >-
+  Extract text from PDFs, fill forms, merge documents. Use when working with
+  PDF files or when the user mentions PDFs, forms, or document extraction.
 ```
 
 **Step 4: Test with target agent(s) and model(s)**
