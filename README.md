@@ -263,14 +263,6 @@ Evidence-based debugging protocol using the scientific method.
 - Enforces hypothesis → experiment → conclusion cycles
 - Prevents assumption-driven debugging with structured evidence gathering
 
-#### skill-writer
-
-Tools for creating effective `SKILL.md` agent skills.
-
-- Step-by-step workflow from pattern identification to polished SKILL.md
-- Covers frontmatter, instruction structure, and best practices
-- Helps extract reusable patterns into shareable skills
-
 ## Workspace Configuration
 
 File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus) support configurable workspace directories with layered precedence (first match wins):
