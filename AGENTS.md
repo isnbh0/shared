@@ -45,6 +45,7 @@ When publishing a plugin to the Claude Code marketplace, update all of the follo
 - [ ] `plugins/<name>/skills/<skill-name>/config.example.yaml` — if the skill uses config
 - [ ] `plugins/<name>/.claude-plugin/plugin.json` — plugin metadata (bump version if updating)
 - [ ] `.claude-plugin/marketplace.json` — add entry to `plugins` array
+- [ ] `.github/release-plugins.txt` — add the plugin only if it should have GitHub Release zips
 - [ ] `llms.txt` — update these sections (skip any that don't apply):
   - Direct-install and Claude Code marketplace install blocks
   - The "published to the marketplace" note (keep plugin list and skill enumeration current)
