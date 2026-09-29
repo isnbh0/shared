@@ -6,6 +6,7 @@ on:
     paths:
       - ".claude-plugin/marketplace.json"
       - "plugins/*/.claude-plugin/plugin.json"
+      - ".github/release-plugins.txt"
   workflow_dispatch:
 
 permissions:
@@ -23,9 +24,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           while IFS= read -r name; do
-            if [ "$name" = "my" ]; then
-              echo "::notice::my is distributed through the marketplace source without a GitHub Release"
-              continue
+            if ! jq -e --arg name "$name" '.plugins[] | select(.name == $name)' .claude-plugin/marketplace.json >/dev/null; then
+              echo "::error::release plugin ${name} is not in the marketplace"
+              exit 1
             fi
 
             file="plugins/${name}/.claude-plugin/plugin.json"
@@ -54,4 +55,4 @@ jobs:
               -f plugin_name="$name" \
               -f version="$version"
             echo "::notice::dispatched release-plugin.yml for ${tag}"
-          done < <(jq -r '.plugins[].name' .claude-plugin/marketplace.json)
+          done < .github/release-plugins.txt

@@ -47,6 +47,7 @@ jobs:
           NAME: ${{ steps.parse.outputs.name }}
           VERSION: ${{ steps.parse.outputs.version }}
         run: |
+          grep -Fxq -- "$NAME" .github/release-plugins.txt || { echo "::error::plugin ${NAME} is not enabled for GitHub Releases"; exit 1; }
           test -d "plugins/${NAME}" || { echo "::error::no plugin: plugins/${NAME}"; exit 1; }
           actual=$(jq -r .version "plugins/${NAME}/.claude-plugin/plugin.json")
           [ "$actual" = "$VERSION" ] || { echo "::error::tag version ${VERSION} != plugin.json version ${actual}"; exit 1; }
