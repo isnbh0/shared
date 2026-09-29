@@ -23,6 +23,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           while IFS= read -r name; do
+            if [ "$name" = "my" ]; then
+              echo "::notice::my is distributed through the marketplace source without a GitHub Release"
+              continue
+            fi
+
             file="plugins/${name}/.claude-plugin/plugin.json"
             [ -f "$file" ] || { echo "::warning::missing $file, skipping ${name}"; continue; }
 
