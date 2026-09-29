@@ -42,7 +42,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install my@isnbh0
 ```
 
-Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin is an incubator containing thirteen repeatedly used skills and macros, including its own `tractatus` renderer and a `spex` skill that requires the separate spex plugin. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
+Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains thirteen skills and macros, including its own `tractatus` renderer. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
 
 The former `zoomdoc@isnbh0` plugin identifier is retired. Install `doctype@isnbh0` for both document skills; existing zoomdoc HTML documents remain usable. For a direct install, copy `plugins/doctype/skills/zoomdoc/` or `plugins/doctype/skills/tractatus/`.
 
@@ -136,7 +136,7 @@ Contains two independent document skills:
 - `tractatus` writes numbered nested Markdown outlines and renders self-contained, read-only HTML pages with collapse, expand, deep links, and keyboard navigation. Pages containing math request MathJax 3.2.2 and fonts from `cdn.jsdelivr.net` when online; TeX source remains visible offline. Source: `plugins/doctype/skills/tractatus/`.
 
 ### my
-An incubator for skills and macros that proved useful in repeated work and may be revised as they mature. Most are explicit-request skills. The `spex` skill requires the separate spex plugin; the `tractatus` skill bundles its own renderer and configures output under `.agents/skill-configs/my-tractatus/`.
+An incubator for skills and macros used repeatedly. Most are explicit-request skills. The `tractatus` skill bundles its own renderer and configures output under `.agents/skill-configs/my-tractatus/`.
 
 Bundled skills (all under `plugins/my/skills/`):
 - `spex` - implement an existing spex specification with coordinated work and rigorous verification
@@ -346,7 +346,7 @@ Use `.agents/skill-configs/` for new configuration. This is a provider-neutral c
 ## Notes for LLMs
 
 - Ask or infer the target agent before installing. Do not assume Claude Code.
-- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, doctype, labs, merbook, system1-machine, my). The zoomdoc and tractatus skills are included in `doctype`; the old standalone zoomdoc plugin identifier is retired. Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`. The merbook archetype and pattern skills are included in `merbook`. The spex skill in `my` requires the separate spex plugin.
+- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, doctype, labs, merbook, system1-machine, my). The zoomdoc and tractatus skills are included in `doctype`; the old standalone zoomdoc plugin identifier is retired. Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`. The merbook archetype and pattern skills are included in `merbook`.
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.

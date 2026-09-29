@@ -8,17 +8,17 @@ Grounding is a direction rather than a procedure. It applies wherever a system's
 
 ## Laws, not rules
 
-Systems accrete. Handled one "this should happen" at a time, behavior becomes a pile of local decisions that each made sense alone and collectively contradict each other. The alternative is to stop adding cases and instead work out the small set of laws the system actually resolves by — obvious, deterministic, total, stated before the cases rather than induced from them. Every input lands somewhere those laws already describe. Everything else is built against them.
+Derive a small set of deterministic, total laws before adding cases. Every input must have a defined outcome under those laws.
 
-The word is physics and it is meant literally. These are not rules the system is supposed to follow, and enforcement is the wrong frame entirely — no validator, no lint, no review checklist, no comment saying don't do that. A law holds when the contradicting state cannot be constructed: the type does not admit it, the schema has no slot for it, the protocol offers no message that expresses it, the only constructor establishes the invariant. If someone *could* write the violating state and something *catches* them, that is legislation and policing, and the law is not yet a law. Treat that gap as the finding, and close it by changing what is representable.
+A law holds when a contradictory state cannot be constructed: the type does not admit it, the schema has no slot for it, the protocol offers no message that expresses it, or the only constructor establishes the invariant. A validator, lint rule, or review that catches a violation does not make it unrepresentable. Close that gap by changing what the system can express.
 
-Laws are worth stating even where they are dull. Dullness is the goal — a law that needs explaining is usually still a rule in disguise.
+State the laws plainly, including the obvious ones.
 
 ## Maximal valid change
 
-The antithesis of minimum viable change. Ask what the most ideal and proper shape of this is, and go there within the user's authorized scope, accepting whatever churn that implies: refactor, reclass, re-architect, migrate the data, rewrite the call sites, throw away work. Size of the diff is not evidence against a change. The question worth asking out loud: what would an engineer look at and say *well, in an ideal world this would have happened first, but alas* — and then do that thing first, now, instead of routing around it again.
+Identify the ideal change within the user's authorized scope, even if it requires a refactor, migration, or rewritten call sites. Do not use diff size alone to reject it.
 
-Code that merely happens to comply with a law is not the same as code that cannot violate it, and the delta-patch that leaves the first standing is the expensive option. Name the maximal valid change explicitly even when it will not be taken; scoping it down is the user's call, and they cannot make it without seeing what was scoped away.
+Name the maximal valid change even when it will not be taken, so the user can decide whether to narrow the scope.
 
 ## Grounding the laws
 

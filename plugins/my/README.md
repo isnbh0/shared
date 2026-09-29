@@ -1,6 +1,6 @@
 # my
 
-An incubator and sandbox for skills and macros I keep returning to in real work. The plugin shares useful working patterns while leaving room to revise, combine, or retire them as they mature.
+An incubator and sandbox for skills and macros I keep returning to in real work.
 
 The skills are portable and can be installed individually. Most activate only when requested by name; `tractatus` can also be selected for a matching document task. `spex` requires the separate spex plugin for its implementation workflow. Its recovery guidance explains how to continue if that dependency is missing. If doctype is installed too, select the `tractatus` skill from the intended plugin.
 

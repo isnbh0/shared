@@ -147,7 +147,7 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 
 #### my
 
-An incubator for skills and macros that have been useful often enough to share. These are working patterns, kept open to revision as they mature. See the [plugin overview](plugins/my/README.md) for the full list.
+An incubator for skills and macros I keep using. See the [plugin overview](plugins/my/README.md) for the full list.
 
 The plugin includes grounding, space-race, tightloop, editorial-ko, editorial-standards, hemingway, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, and spex. Most are activated only by explicit request. The spex skill requires the separate spex plugin; tractatus bundles its own renderer and uses `.agents/skill-configs/my-tractatus/` for its output directory when the user does not give a path.
 

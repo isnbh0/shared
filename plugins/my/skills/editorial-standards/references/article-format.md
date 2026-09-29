@@ -15,13 +15,11 @@ Optional structure for a publication project. Use it only when the user requests
 
 Each entry shows the title, a brief description, and a link to the full article. This is the index page, not part of any article.
 
-## Precedence against the prose rules
+## Prose rules in this format
 
-Two places where this format and `editorial-standards.md` pull against each other, resolved:
+The lead paragraph states the thesis. Each analysis section leads with evidence.
 
-**Lead paragraph vs. 4.4 (Lead with Evidence, Not Verdict).** No conflict once the level is right. The article opens with its thesis; evidence-first applies inside each analysis section, where the reasoning is what the reader is being walked through.
-
-**Numbered takeaways vs. 4.3 (Earn Your Emphasis).** The lead sentence of each takeaway carries emphasis by position — it comes first and the evidence follows it. Bolding it as well doubles the device, which 4.3 rules out. Leave it unbolded unless the numbered list runs long enough that scanning genuinely needs the visual anchor.
+Leave the lead sentence of each numbered takeaway unbolded unless a long list needs a visual anchor for scanning.
 
 ## Terms this file does not define
 

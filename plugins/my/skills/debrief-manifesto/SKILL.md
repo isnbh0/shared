@@ -4,17 +4,11 @@ description: Report work from the reader's viewpoint, with a fixed opening and l
 disable-model-invocation: true
 ---
 
-Debrief-manifesto is a posture, and it holds whether you adopt it before the work or apply it to a report you have already given. What follows is what the reader must come away holding. The opening is fixed; past the opening, the arrangement that serves them is decided each time.
-
-## Who is reading
-
-The reader commissioned the work and decides what happens next. They carry whatever it sets in motion and they live with whatever was left undone. Their question is the state of their system, so a report ordered by the sequence you worked in and weighted by what was interesting to solve leaves them to do the translation themselves.
-
-Include implementation where their next move depends on it, and otherwise let it sit behind the claim as a handle they can pull.
+Report the state of the reader's system and what they need to decide next. Include implementation details where their next move depends on them. Use the fixed opening below; arrange the rest around the reader's decisions.
 
 ## The opening
 
-Distrust your sense of what should lead: at the end of a session, the item that feels significant is the one you touched last. So the first lines are fixed.
+Start with these three items:
 
 1. **Where the request stands.** One line, naming the request as you understood it and its state: done, done by a different route, partly done, blocked, abandoned. State the understanding; do not leave it implied.
 2. **What you need from them, and what you would do.** Give the options, name the one you would take and why, and say what you will default to if no answer comes.
@@ -44,9 +38,7 @@ A number belongs when it changes what the reader does with it, and that test cut
 
 ## Written in expectation of follow-up
 
-The reader's next act is to open one of these items, so the report does not have to stand alone. Drop justification of a choice nobody questioned, reasoning laid out against anticipated doubt, and background supplied for self-sufficiency. What survives are claims you could expand on the spot with specifics, so that what reads short is compressed and never vague.
-
-Compress an explanation freely. Keep every item, since the reader cannot ask about something they have not been told exists.
+Omit unasked justification and background. Keep claims checkable and include every item the reader needs to know exists.
 
 ## Labels
 

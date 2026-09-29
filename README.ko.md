@@ -147,7 +147,7 @@ URL 또는 로컬 파일을 기반으로 한 소크라테스식 학습 세션 �
 
 #### my
 
-실제 작업에서 반복해서 쓰게 된 스킬과 매크로를 공유하는 인큐베이터입니다. 사용하면서 다듬고, 합치고, 정리할 수 있는 작업 중인 패턴을 모았습니다. 전체 목록은 [플러그인 개요](plugins/my/README.md)에 있습니다.
+실제 작업에서 반복해서 쓰는 스킬과 매크로를 모은 인큐베이터입니다. 전체 목록은 [플러그인 개요](plugins/my/README.md)에 있습니다.
 
 grounding, space-race, tightloop, editorial-ko, editorial-standards, hemingway, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, spex를 포함합니다. 대부분은 명시적으로 요청했을 때만 활성화됩니다. spex 스킬에는 별도의 spex 플러그인이 필요합니다. tractatus는 자체 렌더러를 포함하며, 사용자가 출력 경로를 지정하지 않으면 `.agents/skill-configs/my-tractatus/` 설정을 사용합니다.
 
