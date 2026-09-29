@@ -1,0 +1,7 @@
+interface:
+  display_name: "Deputy"
+  short_description: "Own work through verified completion"
+  default_prompt: "Use $my:deputy to own this task through a verified final result."
+
+policy:
+  allow_implicit_invocation: false

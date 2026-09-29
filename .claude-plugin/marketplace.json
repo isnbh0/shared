@@ -13,6 +13,7 @@
     { "name": "doctype", "source": "./plugins/doctype" },
     { "name": "labs", "source": "./plugins/labs" },
     { "name": "merbook", "source": "./plugins/merbook" },
-    { "name": "system1-machine", "source": "./plugins/system1-machine" }
+    { "name": "system1-machine", "source": "./plugins/system1-machine" },
+    { "name": "my", "source": "./plugins/my" }
   ]
 }

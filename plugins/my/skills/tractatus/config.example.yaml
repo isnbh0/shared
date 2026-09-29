@@ -1,0 +1,2 @@
+# Directory for generated tractatus HTML when the user gives no output path.
+output_dir: docs/tractatus

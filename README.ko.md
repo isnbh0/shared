@@ -46,6 +46,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
+/plugin install my@isnbh0
 ```
 
 ## 스킬
@@ -143,6 +144,12 @@ URL 또는 로컬 파일을 기반으로 한 소크라테스식 학습 세션 �
 - **dredge** — 이전 코딩 에이전트 대화 기록에서 문맥을 검색하고, 전체 검색에서는 사용 가능한 프롬프트 기록도 확인해 대화 기록이 사라진 요청을 구분. 기본은 현재 프로젝트이며 쿼리의 힌트에 따라 범위를 넓히고, AgentsView가 없으면 Claude Code 기록을 grep으로 검색
 - **timestamp** — 단축 명령: `date +%y%m%d-%H%M%S`로 사용자가 지칭한 타임스탬프 값을 결정
 - **new** — 커스텀 매크로 스캐폴딩: 프로젝트 또는 사용자 스코프와 대상 에이전트 도구를 선택해 단일 원본에서 스킬을 생성; 사용자 스코프 매크로는 기본적으로 `my-` 이름 접두어 사용
+
+#### my
+
+실제 작업에서 반복해서 쓰게 된 스킬과 매크로를 공유하는 인큐베이터입니다. 사용하면서 다듬고, 합치고, 정리할 수 있는 작업 중인 패턴을 모았습니다. 전체 목록은 [플러그인 개요](plugins/my/README.md)에 있습니다.
+
+grounding, space-race, tightloop, editorial-ko, editorial-standards, hemingway, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, spex를 포함합니다. 대부분은 명시적으로 요청했을 때만 활성화됩니다. spex 스킬에는 별도의 spex 플러그인이 필요합니다. tractatus는 자체 렌더러를 포함하며, 사용자가 출력 경로를 지정하지 않으면 `.agents/skill-configs/my-tractatus/` 설정을 사용합니다.
 
 #### gimme
 
@@ -263,7 +270,7 @@ Phaser 작업 시 의미 기반으로 활성화되는 패시브 지식 베이스
 
 ## 워크스페이스 설정
 
-파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
+파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus 및 my 플러그인의 tractatus)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
 
 1. **명시적 오버라이드** — 이번 실행에 사용할 워크스페이스 디렉터리를 요청
 2. **로컬 설정** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignore 대상, 개인 오버라이드

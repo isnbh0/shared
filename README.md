@@ -46,6 +46,7 @@ Then install individual skills:
 /plugin install labs@isnbh0
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
+/plugin install my@isnbh0
 ```
 
 ## Skills
@@ -143,6 +144,12 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 - **dredge** — Searches prior coding-agent transcripts for context; checks available prompt histories for exhaustive searches and distinguishes requests whose transcripts are missing. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code grep fallback)
 - **timestamp** — Shorthand: resolve the timestamp value referred to by the user with `date +%y%m%d-%H%M%S`
 - **new** — Scaffold a custom macro for a project or user and selected agent hosts from one source directory; user-scope macros default to a `my-` name prefix
+
+#### my
+
+An incubator for skills and macros that have been useful often enough to share. These are working patterns, kept open to revision as they mature. See the [plugin overview](plugins/my/README.md) for the full list.
+
+The plugin includes grounding, space-race, tightloop, editorial-ko, editorial-standards, hemingway, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, and spex. Most are activated only by explicit request. The spex skill requires the separate spex plugin; tractatus bundles its own renderer and uses `.agents/skill-configs/my-tractatus/` for its output directory when the user does not give a path.
 
 #### gimme
 
@@ -265,7 +272,7 @@ Evidence-based debugging protocol using the scientific method.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, and the tractatus skill in my) support configurable workspace directories with layered precedence (first match wins):
 
 1. **Explicit override** — ask to use a specific workspace directory for this run
 2. **Local config** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
