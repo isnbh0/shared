@@ -1,0 +1,924 @@
+# The package glossary: every defined term, defined once.
+#
+# Each [terms."Name"] table is one entry. The table key is the canonical name, so a
+# second definition of the same term is a TOML parse error. Fields:
+#   definition    plain English, one or two sentences
+#   see           optional links, as { text, href } with href relative to video-knowhow-code/
+#   retired       variant strings termcheck reports in shipped prose. A plain string matches
+#                 case-insensitively as a whole phrase; a string starting "re:" is a regular
+#                 expression, matched case-sensitively unless it sets its own flags.
+#   retired_code  inline-code spans (exact content) that count as retired too
+#   quoted_ok     true lets the retired variants stand inside double quotes (spelling rules)
+#   forms         optional usage forms for termcheck's "used outside the glossary" check
+#                 (default: the name without any parenthetical, singular or plural)
+#
+# [plain."word"] tables retire variants whose replacement is ordinary English rather than a
+# defined term. They are checked by termcheck and not rendered.
+#
+# [allow] quoted lists the exact double-quoted strings termcheck exempts outside
+# sources/excerpts/ (where all quoted source text is exempt).
+#
+# Rendered by video-knowhow-craft/tools/glossary.py into Glossary.md and pulled by
+# video-knowhow-craft/roundup/render_static.py into the roundup's glossary tables.
+
+# ---------------------------------------------------------------- the package and its people
+
+[terms."SLASH_MY"]
+definition = "SLASH_MY, the skills hype film, is the one production John endorses and the quality bar for both shelves. Its title lockup is a slash followed by the word \"my\", and the package spells the name SLASH_MY so that no one mistakes it for a slash command or a skill."
+see = [
+  { text = "the SLASH_MY case", href = "../video-knowhow-craft/cases/SLASH_MY.md" },
+  { text = "soundtrack code", href = "cases/Soundtrack%20code.md" },
+]
+retired = [
+  "re:(?<![\\w./-])/my(?![\\w/-])",
+  "re:(?<!SLASH_MY, )[Tt]he skills hype film",
+  "re:\\bMy film\\b",
+  "viewer-endorsed",
+  "the endorsed production",
+  "endorsed picture snapshot",
+]
+retired_code = ["/my"]
+
+[terms."John"]
+definition = "The person whose practice notes make up the package: John wrote it and endorses SLASH_MY. John's workspace is the repository the package is built from; it holds the production sources, the comparison lab, and the reference shelves, none of which ship."
+retired = [
+  "the author's workspace",
+  "author's workspace",
+  "re:\\b[Aa] viewer has endorsed",
+  "the viewer's endorsement",
+  "re:\\bthe author\\b",
+  "re:\\bThe author\\b",
+  "re:\\bviewer (?:heard|preferred|supplied|judged)\\b",
+  "supplied by the viewer",
+  "viewer's preference",
+  "viewer's judgment",
+  "re:\\b[Tt]he user['’]s (?:cursor|caret|complaints?|report|feedback|verdict)\\b",
+  "re:\\bstands for the user\\b",
+  "re:\\b[Tt]he caret is the user\\b",
+  "re:\\b[Tt]he user (?:asked|asks|reported|reports|said|called|watched|wanted|complained|preferred|liked)\\b",
+  "re:\\b[Cc]aret as user\\b",
+  "re:\\bUser (?:asks|reports|suggests|request)",
+]
+
+[terms."Code shelf"]
+definition = "The engineering half of the package, in the folder video-knowhow-code. It covers how code specifies, renders, captures, and checks picture and sound."
+see = [{ text = "code shelf home", href = "Home.md" }]
+retired = [
+  "engineering shelf",
+  "code video collection",
+  "code-video collection",
+  "re:\\bcode video\\b(?! label)",
+  "Code-authored video know-how",
+]
+
+[terms."Craft shelf"]
+definition = "The craft half of the package, in the folder video-knowhow-craft: direction, motion, typography, sound, and review judgment, as learned from a production whose craft was directed through its briefs and reviews. Its generalizations have yet to guide a production of their own."
+see = [{ text = "craft shelf home", href = "../video-knowhow-craft/Home.md" }]
+retired = [
+  "production compendium shelf",
+  "Motion production knowhow",
+  "Motion production know-how",
+]
+
+[terms."Package"]
+definition = "The two shelves plus one front door (a root README and AGENTS file), shipped as one zip. Its links point only to its own pages or to the web."
+retired = [
+  "re:\\bcompendi(um|a)\\b",
+  "re:\\b[Cc]ompendium's\\b",
+  "two-shelf video-knowhow set",
+  "re:\\bKBs?\\b",
+  "knowledge bases",
+  "knowledgebase",
+  "re:(?<![\\w/-])[Kk]nowhow(?![\\w-])",
+  "this collection",
+  "both collections",
+  "the two collections",
+  "this integration",
+  "this synthesis",
+  "the synthesis",
+  "editorial synthesis",
+]
+
+[terms."Shelf"]
+definition = "One of the package's two folders of pages, the code shelf or the craft shelf. The reference shelves are the collections in John's workspace that both shelves draw on; they do not ship."
+
+[terms."Workbench"]
+definition = "The craft shelf's procedures and tools for producing and reviewing a piece: clocks, capture, inspection, and delivery checks."
+see = [{ text = "production workbench", href = "../video-knowhow-craft/knowledge/Production%20workbench.md" }]
+
+# ---------------------------------------------------------------- productions and records
+
+[terms."Stage intro"]
+definition = "A 24-second stage intro video built in the chatlog conversation, whose on-screen title reads \"AX DAY\". The original MP4 is unavailable, and its source survives only in the chatlog."
+see = [{ text = "the Stage intro case", href = "cases/Stage%20intro.md" }]
+retired = [
+  "AX Day intro",
+  "re:\\bAX DAY intro\\b",
+]
+
+[terms."AX DAY reconstruction"]
+definition = "A local rerender of Stage intro, rebuilt from the source recorded in the chatlog and kept as a specimen at snapshot e5ae340d. It is the score and picture that pages compare with SLASH_MY."
+see = [{ text = "the Stage intro case", href = "cases/Stage%20intro.md" }]
+retired = [
+  "AX DAY stage reconstruction",
+  "re:(?<![\"“])\\bAX DAY\\b(?! reconstruction)(?![\"”])",
+  "re:\\bAX Day\\b",
+]
+
+[terms."Chatlog"]
+definition = "The logged conversation between John and the assistant behind Stage intro, FOXTALE, and the boundary tests. It holds the requests, code, tool output, and the assistant's claims, and a chatlog citation vouches only for what the conversation contains."
+see = [{ text = "chatlog index", href = "sources/Chatlog%20index.md" }]
+retired = [
+  "chatlog trace",
+  "prior-production chatlog trace",
+  "prior-production trace",
+  "source trace",
+  "recorded conversation",
+  "chatlog cases",
+]
+
+[terms."The assistant"]
+definition = "The AI coding assistant whose work the chatlog records."
+forms = ["the assistant", "assistant"]
+retired = ["earlier assistant", "chosen by the maker", "re:\\b[Tt]he maker (?:chose|exported|ran)\\b"]
+
+[terms."Comparison run"]
+definition = "One of the runs in the comparison lab in John's workspace: runs A through C2 and D-001 through D-008. SLASH_MY superseded the series, and each run is kept as a specimen and as negative evidence."
+see = [{ text = "comparison runs", href = "../video-knowhow-craft/cases/Comparison%20runs.md" }]
+retired = [
+  "comparison experiments",
+  "re:\\b[Tt]he experiment lab\\b",
+  "re:\\bexperiment lab\\b",
+  "developing production comparisons",
+]
+
+[terms."Specimen"]
+definition = "A kept artifact that records what an attempt produced: a comparison run's run notes and stills, or the AX DAY reconstruction's rerender. A specimen is a record of the attempt."
+
+[terms."Case"]
+definition = "An account of one production, a pair of productions, or a series of runs or tests: what it set out to do, what it produced, what was observed, and the limits of the account. Each case says how it is known, whether from a recorded source version, the chatlog, or run notes."
+see = [{ text = "craft cases", href = "../video-knowhow-craft/maps/Cases.md" }]
+
+[terms."Ledger"]
+definition = "One of the four source-record pages: audio sources, chatlog index, content lineage, and production lineage. A ledger records where claims come from and how well they are supported."
+see = [{ text = "audio source ledger", href = "sources/Audio%20sources.md" }, { text = "content lineage", href = "sources/Content%20lineage.md" }]
+retired = ["soundtrack code record"]
+
+[terms."Lineage"]
+definition = "Where a page's content comes from: what was learned from SLASH_MY, external documented practice, the chatlog, or the comparison runs. Lineage records where a claim came from; an evidence label records how far it has been checked."
+see = [{ text = "content lineage", href = "sources/Content%20lineage.md" }]
+
+[terms."Snapshot"]
+definition = "A recorded version of a source, named by its commit hash; SLASH_MY's audio snapshot is fd543f2a. A page's values hold for the snapshot it names."
+see = [{ text = "snapshots in soundtrack code", href = "cases/Soundtrack%20code.md#snapshots-and-reading-the-code" }]
+retired = [
+  "re:\\b(?:audio|flash-check|two|the|its|this|a|picture) pins?\\b(?! puppeteer)",
+  "re:\\bpin lines\\b",
+  "re:\\bpinned (?:at|upstream|source|snapshots?|revision|\\[|cases)",
+  "re:\\b[Tt]he pinned\\b",
+  "re:\\b[Pp]ins and reading\\b",
+  "re:\\(pin `",
+  "re:\\bat the pin\\b",
+  "re:\\bpins its\\b",
+  "re:\\bor pins\\b",
+  "re:\\bpinned upstream\\b",
+]
+
+# ---------------------------------------------------------------- evidence
+
+[terms."Checked"]
+definition = "Evidence label: an identified implementation, specification, or direct inspection supports the claim, and the page links to that support."
+see = [{ text = "reading a claim", href = "Editorial%20notes.md#reading-a-claim" }]
+retired = ["Checked mechanism"]
+
+[terms."Reported"]
+definition = "Evidence label: a production record (the chatlog, a commit message, or the run notes) states that the thing was built, tested, or measured, and the package has not re-run it."
+see = [{ text = "reading a claim", href = "Editorial%20notes.md#reading-a-claim" }]
+retired = ["Reported experiment", "Reported experiments"]
+
+[terms."Interpretation"]
+definition = "Evidence label: a proposed explanation or design judgment, stated with the condition under which it helps and the observation that could challenge it."
+see = [{ text = "reading a claim", href = "Editorial%20notes.md#reading-a-claim" }]
+
+[terms."Untested idea"]
+definition = "Evidence label: a proposed extension worth trying, which no one has tested yet."
+see = [{ text = "untested ideas", href = "maps/Untested%20ideas.md" }]
+retired = ["Open possibility", "Open possibilities"]
+
+[terms."Source inspection"]
+definition = "Craft-shelf evidence label: code or documents implement or prescribe the behavior. This is evidence about the instructions, which is separate from watching or hearing what they produce."
+see = [{ text = "evidence distinctions", href = "../video-knowhow-craft/Editorial%20notes.md#evidence-distinctions" }]
+
+[terms."Rendered-frame inspection"]
+definition = "Craft-shelf evidence label: a rendered frame or contact sheet shows geometry and appearance at the sampled moment, for example where a title sits in the frame."
+see = [{ text = "evidence distinctions", href = "../video-knowhow-craft/Editorial%20notes.md#evidence-distinctions" }]
+retired = ["re:\\bFrame inspection\\b"]
+
+[terms."Continuous playback"]
+definition = "Craft-shelf evidence label: watching the piece in motion. It supports judgments about duration, pacing, movement, and reading time."
+see = [{ text = "evidence distinctions", href = "../video-knowhow-craft/Editorial%20notes.md#evidence-distinctions" }]
+
+[terms."Listening"]
+definition = "Craft-shelf evidence label: judging by ear how sounds relate, including musicality, timbre, masking, and the mixed result."
+see = [{ text = "evidence distinctions", href = "../video-knowhow-craft/Editorial%20notes.md#evidence-distinctions" }]
+
+[terms."Human feedback"]
+definition = "Craft-shelf evidence label: an attributed judgment under the recorded viewing conditions, kept together with its tentative and negative responses."
+see = [{ text = "evidence distinctions", href = "../video-knowhow-craft/Editorial%20notes.md#evidence-distinctions" }]
+
+[terms."Interpretation or recommendation"]
+definition = "Craft-shelf evidence label: a proposed explanation or adaptation, labeled next to the claim. On the code shelf it maps to Interpretation, or to Untested idea when it proposes an extension no one has tried."
+see = [{ text = "evidence distinctions", href = "../video-knowhow-craft/Editorial%20notes.md#evidence-distinctions" }]
+
+[terms."Source status"]
+definition = "How well the external sources in the audio source ledger back a claim: supported, partly, practice, or open. A page cites it as a bold lead-in, such as \"Source status: supported:\", before the claim."
+see = [{ text = "audio source ledger", href = "sources/Audio%20sources.md" }]
+retired = [
+  "re:\\bledger: (?:supported|partly|practice|open)",
+  "re:External support \\((?:supported|partly|practice|open)",
+]
+
+# ---------------------------------------------------------------- units of know-how
+
+[terms."Operation"]
+definition = "A small action with a clear input and output that can be combined with others, such as drawing text, changing opacity over time, or capturing a frame."
+see = [{ text = "operations", href = "Operations.md" }]
+retired = [
+  "re:\\b[Aa]tomic patterns?\\b",
+  "re:\\b[Aa]toms?\\b",
+  "re:\\batom's\\b",
+  "re:\\batomic\\b",
+]
+
+[terms."Technique"]
+definition = "A way of producing an effect in a particular representation. A mask reveal and stepped motion are techniques."
+see = [{ text = "motion character", href = "../video-knowhow-craft/knowledge/Motion%20character.md" }]
+
+[terms."Pattern"]
+definition = "A reusable approach to a problem that recurs in scenes, sequences, or direction. Defect to repair is one: show a defect, then the action that repairs it, then the fixed result."
+see = [{ text = "meaningful reveal", href = "../video-knowhow-craft/patterns/Meaningful%20reveal.md" }]
+
+[terms."Recipe"]
+definition = "One concrete, timed arrangement of several operations to adapt, paired with an example you can inspect. Its numbers fit its own content."
+see = [{ text = "recipes", href = "recipes/README.md" }]
+retired = [
+  "re:\\b[Cc]omposed presets?\\b",
+  "preset shelf",
+  "re:\\bpresets?\\b",
+  # Awesome AI Motion's own items keep their names, quoted (see [allow] quoted)
+  "timed recipes",
+  "recipe map",
+  "generated recipes",
+  "recipe arrangements",
+  "re:\\b11 recipes\\b",
+]
+
+[terms."Parameter"]
+definition = "A named value a maker can change: title text, duration, palette, layout spacing, or layer order. A parameter is useful when changing it has a clear effect on the finished piece."
+see = [{ text = "iteration and parameterization", href = "knowledge/Iteration%20and%20parameterization.md" }]
+
+[terms."Scope"]
+definition = "How much of the piece a choice governs, from one component up to the whole direction. Scope is a separate attribute from difficulty and from duration."
+see = [{ text = "scopes", href = "../video-knowhow-craft/maps/Scopes.md" }]
+retired = ["decision scope", "decision scopes", "decision stack"]
+
+[terms."Round"]
+definition = "One review of the whole piece plus the fixes it sends out, ending in a named snapshot that the next round reviews. SLASH_MY went through eleven rounds, and a frozen item reopened only when evidence demonstrated a defect."
+see = [{ text = "convergence", href = "../video-knowhow-craft/knowledge/Convergence.md" }]
+
+[terms."Convergence"]
+definition = "The state in which review rounds stop finding new defects and repairs stop creating them."
+see = [{ text = "convergence", href = "../video-knowhow-craft/knowledge/Convergence.md" }]
+
+[terms."Oscillating taste"]
+definition = "A judgment that flips back and forth between rounds with no new evidence. In SLASH_MY the top end of the reveal and the level of the writing whoosh were two; once named, they were frozen."
+see = [{ text = "convergence", href = "../video-knowhow-craft/knowledge/Convergence.md" }]
+
+[terms."Finish"]
+definition = "How well what is seen and heard is executed and fits together, judged both within one component and across the whole piece. No single effect or compliance score defines it."
+see = [{ text = "typographic events", href = "../video-knowhow-craft/knowledge/Typographic%20events.md" }, { text = "direction", href = "../video-knowhow-craft/knowledge/Direction%20and%20critique.md" }]
+
+[terms."Post pass"]
+definition = "A processing pass over frames after they are rendered. SLASH_MY's WebGL2 pass in finish.js adds sheen, glint, and grain."
+retired = ["finish pass"]
+
+[terms."Contact sheet"]
+definition = "A single image that tiles frames sampled across a stretch of video, so timing and geometry can be compared at a glance."
+
+# ---------------------------------------------------------------- the piece and its parts
+
+[terms."Piece"]
+definition = "The complete film, animation, or interactive presentation being made."
+
+[terms."Scene"]
+definition = "A stretch of the piece that presents one situation or change, with its own visual and sound purpose. In SLASH_MY's visual-grounding scene, a layout reflows wrong and is then repaired; a scene can have a clear boundary even when some elements continue across it."
+see = [{ text = "time and motion", href = "knowledge/Time%20and%20motion.md" }]
+
+[terms."Sequence"]
+definition = "A run of connected scenes."
+
+[terms."Section"]
+definition = "A stretch of a score or film between two structural points. SLASH_MY's sections include intro, brand, exec, design, writing, nav, build, reveal, and outro."
+see = [{ text = "soundtrack code", href = "cases/Soundtrack%20code.md" }]
+
+[terms."Seam"]
+definition = "The boundary between two scenes or sections, where picture and sound pass from one to the next."
+see = [{ text = "continuity carriers", href = "../video-knowhow-craft/patterns/Continuity%20carriers.md" }]
+
+[terms."Viewer"]
+definition = "A member of the audience: the person who has to read, understand, or feel the result."
+
+[terms."Composition"]
+definition = "The arrangement of what is seen and heard over time: order, placement, emphasis, and how the elements interact. The program that produces it is the scene code."
+see = [{ text = "visual hierarchy and composition", href = "knowledge/Visual%20hierarchy%20and%20composition.md" }]
+
+[terms."Scene code"]
+definition = "The program that draws and schedules a production's picture and sound when it runs. The composition is what it produces."
+
+[terms."Premise"]
+definition = "The subject the piece presents and the consequence it shows."
+
+[terms."Direction"]
+definition = "The choices that govern a piece's audience, premise, visual style, and how its emotion progresses from start to end."
+see = [{ text = "direction and critique", href = "../video-knowhow-craft/knowledge/Direction%20and%20critique.md" }]
+
+[terms."Setup"]
+definition = "Information that creates an expectation. A build that points toward a title that has not appeared yet is a setup."
+
+[terms."Payoff"]
+definition = "A result that answers or changes the expectation a setup created, as when the awaited title finally arrives."
+
+[terms."Scene job"]
+definition = "The new information or emotional change a scene adds to the piece."
+forms = ["scene job", "job"]
+
+[terms."Variation"]
+definition = "Change across scenes in framing, scale, material, mechanism, or rhythm."
+
+[terms."Consistency"]
+definition = "The relationships that stay dependable while other things vary, for example one palette and one type family across every scene."
+
+[terms."Motif"]
+definition = "A recognizable element that recurs and whose role can develop. SLASH_MY's strike and its hook are motifs."
+see = [{ text = "motif development", href = "../video-knowhow-craft/patterns/Motif%20development.md" }]
+
+[terms."Visual hierarchy"]
+definition = "The likely order in which a viewer notices and reads the elements in a frame. Size, contrast, position, isolation, and movement can change that order."
+see = [{ text = "attention and hierarchy", href = "theory/Attention%20and%20hierarchy.md" }]
+
+[terms."Story beat"]
+definition = "A moment that changes what the viewer understands or expects: an explanatory or dramatic moment that matters to the story."
+see = [{ text = "foundations", href = "../video-knowhow-craft/knowledge/Foundations.md" }]
+retired = ["semantic beat", "semantic beats"]
+
+[terms."Settling"]
+definition = "Becoming stable enough for its task after any leftover motion. A title that overshoots and wobbles has settled once it is still enough to read."
+see = [{ text = "motion character", href = "../video-knowhow-craft/knowledge/Motion%20character.md" }]
+
+[terms."Reading time"]
+definition = "The interval when the complete text is stable and readable, before the next competing event. It can be much shorter than the time the text is on screen: a line whose last word arrives just before the cut gets little reading time."
+see = [{ text = "moving-text legibility", href = "theory/Moving-text%20legibility.md" }, { text = "typographic events", href = "../video-knowhow-craft/knowledge/Typographic%20events.md" }]
+retired = ["readable interval", "reading hold", "reading holds", "reading window", "reading opportunities"]
+
+[terms."Primary change"]
+definition = "The action the viewer should follow first in a story beat."
+
+[terms."Supporting movement"]
+definition = "Movement that helps the primary change without giving the viewer another thing to track, like an underline that reinforces the word it marks."
+
+[terms."Grouping"]
+definition = "The visual relationships that make elements read as belonging together: nearness, shared color, or common motion."
+see = [{ text = "grouping and continuity", href = "theory/Grouping%20and%20continuity.md" }]
+
+[terms."Entrance"]
+definition = "Movement that brings content into view, like a word sliding or fading in."
+
+[terms."Stagger"]
+definition = "An offset between the start times of repeated animations, so each letter of a word, say, starts its entrance a little after the one before."
+
+[terms."Complete state"]
+definition = "The point when every element a task needs is in place. For a line of text, that is when its last word has arrived and stopped moving."
+
+[terms."Observed value"]
+definition = "A value that was actually recorded or measured. An interpolated value is filled in between observed ones."
+forms = ["observed value", "observation"]
+
+[terms."Interpolation"]
+definition = "A value computed between two known values. When a chart's bar grows from one recorded figure to the next, its heights in between are interpolated."
+
+[terms."Reference baseline"]
+definition = "The reference from which a quantity is shown, like the line a chart's bars rise from."
+
+[terms."Simulation"]
+definition = "Behavior built to illustrate a process: particles driven by simulated physics, or a staged product demo."
+
+[terms."Component"]
+definition = "A text group, object, or other part of a scene: a title, a button, a chart."
+
+[terms."Path"]
+definition = "The route an object follows through the frame."
+
+[terms."Motion spacing"]
+definition = "An object's positions at equal time intervals along its path: positions bunched together read as slow movement, positions spread apart as fast."
+
+[terms."Form"]
+definition = "The silhouette, proportions, and contours of an object."
+see = [{ text = "form, material, and depth", href = "../video-knowhow-craft/knowledge/Form%20material%20and%20depth.md" }]
+
+[terms."Material"]
+definition = "The surface appearance of a form: matte paper, glossy plastic, brushed metal."
+
+[terms."Depth"]
+definition = "The visual relationships that make space and recession visible. One object hiding another, or an inner wall showing through an opening, both show depth."
+
+[terms."Easing"]
+definition = "How progress changes over time along a movement. Ease-in starts slowly and speeds up; ease-out slows into a stop."
+
+[terms."Recoil"]
+definition = "A response after contact or arrival, like a small bounce back when an object lands."
+
+[terms."Follow-through"]
+definition = "Movement that continues after the main body stops, like a ribbon that keeps swinging."
+
+[terms."Stepped time"]
+definition = "Time held at discrete intervals for one layer, so that layer moves in visible steps. A 12 fps clock inside 60 fps output is stepped time."
+forms = ["stepped time", "stepped motion", "stepped clock"]
+
+[terms."Glyph"]
+definition = "A single drawn letter or symbol, as a font renders it."
+
+[terms."Target geometry"]
+definition = "The positions and shapes an entrance resolves into. In the AX DAY reconstruction, particles gather into the letterforms of the title."
+
+[terms."Compositing"]
+definition = "Combining separately drawn layers into one image, using each layer's alpha to decide what shows through."
+see = [{ text = "Porter and Duff excerpt", href = "sources/excerpts/porter-duff-compositing.md" }]
+
+[terms."Headroom"]
+definition = "The margin left before a signal reaches its ceiling: for audio, how far the level sits below full scale; for a lit surface, how much brightness is left before display white."
+
+[terms."Occlusion"]
+definition = "One surface hiding another that sits behind it."
+
+[terms."Aperture"]
+definition = "An opening through which an inner surface shows. An opening in a ring can expose the ring's inner wall."
+
+[terms."Grain"]
+definition = "Fine variation applied to a surface or image, like film-like noise."
+
+[terms."Matched stills"]
+definition = "Still frames compared under the same stated conditions: the same moment, size, and lighting."
+
+[terms."Reveal"]
+definition = "The exposure of a result that changes what the viewer understands or expects. In SLASH_MY, the reveal is also the closing section, beats 112 to 128 (56 to 64 seconds), where the identity is completed."
+see = [{ text = "meaningful reveal", href = "../video-knowhow-craft/patterns/Meaningful%20reveal.md" }]
+
+[terms."Comparison"]
+definition = "Showing a difference that matters under stated conditions. Two versions of a chart side by side on the same scale make a comparison."
+see = [{ text = "focused comparison", href = "../video-knowhow-craft/patterns/Focused%20comparison.md" }]
+
+[terms."Defect"]
+definition = "A failed relationship the viewer can recognize. Labels that have come loose from their anchors are a defect."
+
+[terms."Repair"]
+definition = "An action that corrects a defect, as when labels snap back to their anchors."
+see = [{ text = "defect to repair", href = "../video-knowhow-craft/patterns/Defect%20to%20repair.md" }]
+
+[terms."Result"]
+definition = "The state left to inspect after the action, for example the realigned layout held still."
+
+[terms."Sync landmark"]
+definition = "The moment within an event that picture and sound both align to: the result's visible arrival, its contact, or an audible attack. It is recorded with its units and shared by both sides."
+retired = ["arrival landmark", "event landmark"]
+
+[terms."Continuity carrier"]
+definition = "An object, relation, movement, or sound kept on purpose across a boundary. In SLASH_MY a written page becomes a graph node in the next scene."
+see = [{ text = "continuity carriers", href = "../video-knowhow-craft/patterns/Continuity%20carriers.md" }]
+
+[terms."Continuity"]
+definition = "What a viewer perceives as the same object, structure, or idea across frames or scenes."
+see = [{ text = "grouping and continuity", href = "theory/Grouping%20and%20continuity.md" }]
+
+[terms."Endpoint"]
+definition = "One of the states being compared, for example the before and the after of a repair."
+
+[terms."Reference condition"]
+definition = "A property held stable so that a difference can be interpreted. When comparing two mixes, matched loudness is one."
+
+[terms."Confound"]
+definition = "Another changed property that could explain the result. If one mix plays louder than the other, loudness is a confound."
+
+[terms."Mechanism"]
+definition = "The process by which an action changes an object: what acts on what. In a repair scene, realigning, reconnecting, and updating a prop are different mechanisms."
+
+[terms."Payoff wording"]
+definition = "The text that names the benefit once the repair is done."
+
+[terms."Density"]
+definition = "How fast information and events arrive and how many happen at once. Cut count is one part of it."
+see = [{ text = "density and rest", href = "../video-knowhow-craft/patterns/Density%20and%20rest.md" }]
+
+[terms."Rest"]
+definition = "Time that supports reading, anticipation, confidence, or recovery, for example a held frame where little new happens."
+
+[terms."Handoff"]
+definition = "The transfer of an object, state, or sound across a seam, as when a page in one scene becomes a node in the next."
+
+[terms."Draw ownership"]
+definition = "Which part of the implementation draws an element at a given time. At a handoff, ownership passes from the outgoing scene's code to the incoming scene's."
+
+[terms."Invariant"]
+definition = "The property kept fixed so an element stays recognizable while other things about it change. A motif's shape can stay fixed while its color and size change."
+
+[terms."Development"]
+definition = "A change in role, arrangement, or consequence across a motif's appearances. SLASH_MY's hook is first heard as typing rhythm and later as the reveal's lead."
+
+[terms."Concurrency"]
+definition = "Events that happen at the same time, like a title entrance and a cue."
+forms = ["concurrency", "concurrent", "concurrently"]
+
+[terms."Foreground"]
+definition = "The visual or audible element that matters most in a passage, like the narration over a music bed."
+
+[terms."Temporal visual rhythm"]
+definition = "The pattern of when visual events occur, how long they last, and which ones receive emphasis."
+see = [{ text = "temporal visual rhythm", href = "theory/Temporal%20visual%20rhythm.md" }]
+
+[terms."Visual identity"]
+definition = "The recurring relationships among palette, type, shape, texture, motion, and sound across a video that make it recognizable as itself."
+see = [{ text = "visual identity and style", href = "theory/Visual%20identity%20and%20style.md" }]
+
+[terms."Stylization"]
+definition = "A set of chosen limits on shape, color, detail, texture, and motion; pixel art, for one, fixes the pixel scale and keeps a small palette. Such limits can make some ideas easier to specify, but style still needs composition and judgment."
+see = [{ text = "pixel art and stylization", href = "knowledge/Pixel%20art%20and%20stylization.md" }]
+
+# ---------------------------------------------------------------- timing
+
+[terms."Event"]
+definition = "Any timed action on the shared timeline, with a trigger time and possibly a later moment when it is seen or heard. A visual event that directs the viewer toward a target needs enough time for the target to be recognized."
+see = [{ text = "audiovisual synchronization", href = "knowledge/Audiovisual%20synchronization.md" }, { text = "attention and hierarchy", href = "theory/Attention%20and%20hierarchy.md" }]
+retired = ["attention event", "attention events"]
+
+[terms."Beat"]
+definition = "A unit of the score's pulse, the count you would tap along to. Case beat numbers use that case's tempo: at 120 BPM a beat is 500 ms, so beat 112 is 56 seconds in."
+see = [{ text = "musical development", href = "../video-knowhow-craft/knowledge/Musical%20development.md" }]
+retired = ["musical beat", "musical beats"]
+
+[terms."Cue"]
+definition = "A sound placed at an action or moment, in the film-scoring sense. A whoosh as a page flies in is a cue."
+
+[terms."Hit"]
+definition = "A single drum or percussion sound: one kick, one snare."
+retired = ["drum note", "drum notes", "drum onset", "drum onsets"]
+
+[terms."Sync point"]
+definition = "A moment on the timeline where picture and sound coincide, like a title appearing on a kick. Each side meets it at its own sync landmark."
+retired = ["picture hits", "picture's hits", "visual hit", "visual hits", "re:(?<![\\w-])beat hits\\b", "hit sync", "pre-hit frame", "hit agreement"]
+
+[terms."Onset"]
+definition = "The start time of a sound, where its attack begins. SLASH_MY's clip floor measures each onset over its first 50 ms."
+
+[terms."Strike"]
+definition = "SLASH_MY's motif for a fix: a stroke that crosses out a complaint, together with the sound that marks it. It keeps its gesture and sound while answering different complaints."
+see = [{ text = "motif development", href = "../video-knowhow-craft/patterns/Motif%20development.md" }]
+
+[terms."Strike carve"]
+definition = "A short band cut in SLASH_MY's mix that opens at each strike so the strike's sound comes through; the code calls it STRIKE_ROOM."
+see = [{ text = "dynamic band carves", href = "knowledge/Dynamics%20and%20spectral%20carving.md#dynamic-band-carves" }]
+retired = ["strike room", "strike rooms"]
+
+[terms."Drop"]
+definition = "The point where the full groove and bass come in after a build. SLASH_MY's drop is at beat 112 (56 seconds), after the film's one silence, with a second drop at beat 120 (60 seconds)."
+see = [{ text = "soundtrack code", href = "cases/Soundtrack%20code.md" }]
+
+[terms."Wall"]
+definition = "SLASH_MY's name for the dense stretch of the reveal that starts at beat 116 (58 seconds)."
+see = [{ text = "soundtrack code", href = "cases/Soundtrack%20code.md" }]
+
+[terms."Breath"]
+definition = "SLASH_MY's name for the short pull-back at beat 119 (59.5 seconds), just before the second drop."
+see = [{ text = "soundtrack code", href = "cases/Soundtrack%20code.md" }]
+
+[terms."Hook"]
+definition = "SLASH_MY's recurring musical motif, a 3-3-2-3-3-2 figure. It is first heard as typing rhythm in the intro, changes through every section, and returns as the reveal's lead."
+see = [{ text = "musical development", href = "../video-knowhow-craft/knowledge/Musical%20development.md" }]
+
+[terms."Timeline"]
+definition = "The representation of when events and states occur. It can be a list of events, a mapping from time to state, or another model you can inspect and revise."
+see = [{ text = "time and motion", href = "knowledge/Time%20and%20motion.md" }]
+
+[terms."Clock"]
+definition = "The time source that drives a composition. Wall-clock time, audio playback position, and requested frame time behave differently when playback pauses or seeks, or when capture runs slowly."
+see = [{ text = "audiovisual synchronization", href = "knowledge/Audiovisual%20synchronization.md" }]
+retired = ["source of time"]
+
+[terms."Requested time"]
+definition = "The time for which a frame is computed. A frame requested at 2.5 seconds shows the piece at 2.5 seconds, whatever the real clock says."
+
+[terms."Seed"]
+definition = "An input that makes random variation repeatable: the same seed gives the same jitter on every render."
+
+[terms."Audiovisual synchronization"]
+definition = "A defined timing relationship between sound events and visual events. A shared beat is one possible basis; others use a common clock or explicit event times."
+see = [{ text = "audiovisual synchronization", href = "knowledge/Audiovisual%20synchronization.md" }]
+
+[terms."Swing"]
+definition = "Delaying the off-beat subdivisions of a pulse so that pairs of notes become long and short instead of even, as in a shuffle."
+see = [{ text = "groove and feel", href = "knowledge/Groove%20and%20feel.md#selective-swing" }]
+
+# ---------------------------------------------------------------- sound
+
+[terms."Score"]
+definition = "The music made for the piece."
+
+[terms."Musicality"]
+definition = "How phrase, melody, harmony, groove, and development work together in the music."
+see = [{ text = "musical development", href = "../video-knowhow-craft/knowledge/Musical%20development.md" }]
+
+[terms."Sound production"]
+definition = "Building cues, shaping their timbre, processing them, placing them in space, and setting the mix hierarchy."
+see = [{ text = "sound production", href = "../video-knowhow-craft/knowledge/Sound%20production.md" }]
+
+[terms."Phrase"]
+definition = "A musical passage with a beginning, a continuation, and an arrival, like a sentence in speech."
+
+[terms."Melody"]
+definition = "An organized line of pitches heard one after another, the part you could hum."
+
+[terms."Harmony"]
+definition = "The pitches sounding together and how they move from one chord to the next."
+
+[terms."Groove"]
+definition = "The pulse of the music and where the attacks of notes and drums sit against it."
+see = [{ text = "groove and feel", href = "knowledge/Groove%20and%20feel.md" }]
+
+[terms."Augmentation"]
+definition = "Lengthening a recognizable rhythmic figure, for example playing it so each note lasts twice as long."
+
+[terms."Envelope"]
+definition = "The change in a sound's level over its duration, through attack, body, and release: a plucked string starts sharply and fades slowly. Envelopes can also control a sound's pitch or timbre."
+see = [{ text = "audio synthesis", href = "knowledge/Audio%20synthesis.md" }]
+retired = ["audio envelope", "audio envelopes"]
+
+[terms."Timbre"]
+definition = "A sound's audible character, the quality that tells a piano from a guitar playing the same note."
+
+[terms."Masking"]
+definition = "One sound making another harder to hear, as when a bass line covers the low part of a narrator's voice."
+
+[terms."Narration"]
+definition = "Spoken voice-over. A sung voice part is a vocal, speech is the general word, and dialogue is speech between characters."
+see = [{ text = "music under voice-over", href = "knowledge/Music%20under%20voice-over.md" }]
+
+[terms."Vocal"]
+definition = "A sung voice part, such as SLASH_MY's synthesized sung \"my\"."
+
+[terms."Bed"]
+definition = "The sustained music underneath the foreground, such as chords and pads under a lead or a narrator."
+see = [{ text = "music under voice-over", href = "knowledge/Music%20under%20voice-over.md" }]
+
+[terms."Bus"]
+definition = "A mix channel that sums several sources so they can be processed and leveled together, such as a drum bus or an FX bus."
+
+[terms."Send and return"]
+definition = "A send copies part of a channel's signal to a shared effect such as reverb or delay; the return brings the processed (wet) signal back into the mix."
+see = [{ text = "space and delay", href = "knowledge/Space%20and%20delay.md" }]
+forms = ["send", "return"]
+
+[terms."Riser"]
+definition = "A sound that climbs in pitch, level, or brightness to build tension toward an arrival, like a rising noise sweep before a drop."
+
+[terms."Cue construction"]
+definition = "Building a cue from its source, envelope, and processing so it lands where the picture needs it."
+forms = ["cue construction"]
+
+[terms."Carve"]
+definition = "A cut in one band of the mix, often timed to an event, that clears space for a foreground sound. A timed carve moves only while its event sounds; a static cut holds for a passage."
+see = [{ text = "dynamics and spectral carving", href = "knowledge/Dynamics%20and%20spectral%20carving.md#dynamic-band-carves" }]
+
+[terms."Ducking"]
+definition = "Lowering one sound while another plays, keyed to the second, such as dipping the chords after each kick or lowering the music while a narrator speaks."
+see = [{ text = "kick-keyed ducking", href = "knowledge/Dynamics%20and%20spectral%20carving.md#kick-keyed-ducking" }, { text = "ducking under speech", href = "knowledge/Music%20under%20voice-over.md#ducking-under-speech" }]
+
+[terms."Sidechain"]
+definition = "The control input of a compressor or other dynamics processor. Feeding it a second sound makes the processor react to that sound, which is how ducking is usually done in a mixer; code that knows its event times can schedule the same dip without a detector."
+see = [{ text = "ducking under speech", href = "knowledge/Music%20under%20voice-over.md#ducking-under-speech" }]
+
+[terms."Delay throw"]
+definition = "A brief raise in one note's delay send, usually at a phrase's end, so its echoes fill the space that follows."
+see = [{ text = "space and delay", href = "knowledge/Space%20and%20delay.md#delay-throws-into-gaps" }]
+
+[terms."Anchor element"]
+definition = "The element the rest of a mix is balanced around, the one a viewer would follow when setting the volume. In most television it is dialogue, and ATSC A/85 measures long-form loudness on it."
+see = [{ text = "loudness anchored to dialogue", href = "knowledge/Music%20under%20voice-over.md#loudness-anchored-to-dialogue" }]
+
+[terms."Dialog gating"]
+definition = "The ATSC and Dolby term for measuring loudness only over the stretches that contain speech. The program's level then follows its voice, and the music and effects between lines do not count."
+see = [{ text = "loudness anchored to dialogue", href = "knowledge/Music%20under%20voice-over.md#loudness-anchored-to-dialogue" }]
+
+[terms."Level difference (LD)"]
+definition = "The voice's integrated loudness minus the music's, in LU. It sets how far below the narration a music bed sits."
+see = [{ text = "how far below the voice the music sits", href = "knowledge/Music%20under%20voice-over.md#how-far-below-the-voice-the-music-sits" }]
+forms = ["level difference", "LD"]
+
+[terms."Loudness (LUFS)"]
+definition = "Perceived level measured with a hearing-weighted filter and gated against silence, in loudness units relative to full scale; a difference between two measurements is in LU, and 1 LU is 1 dB. Integrated loudness covers the whole file, and each platform or broadcast specification sets its own target."
+see = [{ text = "loudness targets by destination", href = "knowledge/Mastering%20and%20delivery.md#loudness-targets-by-destination" }, { text = "music under voice-over", href = "knowledge/Music%20under%20voice-over.md" }]
+forms = ["loudness", "LUFS"]
+
+[terms."True peak"]
+definition = "The highest level of the continuous waveform that the samples represent, estimated by oversampling. It can exceed the highest sample, and lossy encoding can raise it further."
+see = [{ text = "mastering and delivery", href = "knowledge/Mastering%20and%20delivery.md#oversampled-soft-clip-before-a-true-peak-limiter" }]
+
+[terms."Dither"]
+definition = "Low-level noise added when audio is cut to a shorter word length, for example from 24-bit to 16-bit. It turns the rounding error into steady noise instead of distortion that follows the signal."
+see = [{ text = "mastering and delivery", href = "knowledge/Mastering%20and%20delivery.md#writing-the-wav-word-length-and-dither" }]
+
+[terms."Room tone"]
+definition = "A quiet background sound that fills what would otherwise be digital silence."
+see = [{ text = "mastering and delivery", href = "knowledge/Mastering%20and%20delivery.md#room-tone-instead-of-digital-silence" }]
+retired = ["room-noise"]
+
+[terms."Sample rate"]
+definition = "The number of audio samples per second; 48 kHz is 48,000. It sets the time grid of a rendered waveform and how audio events map to video time."
+see = [{ text = "audiovisual synchronization", href = "knowledge/Audiovisual%20synchronization.md" }]
+
+# ---------------------------------------------------------------- rendering and delivery
+
+[terms."Code-authored video"]
+definition = "A video whose images, timing, sound, or assembly are specified partly or wholly in code. It can include prepared images, recordings, models, fonts, and generated media."
+see = [{ text = "what code can specify", href = "maps/What%20can%20code%20specify.md" }]
+
+[terms."Representation"]
+definition = "The model used to draw the subject, such as a bitmap, vector, document layout, or 3D scene."
+see = [{ text = "representation models", href = "knowledge/Representation%20models.md" }]
+
+[terms."Asset"]
+definition = "An input to a production, such as an image, recording, font, model, or texture. An asset may itself have been produced by code or by a person."
+see = [{ text = "assets and provenance", href = "knowledge/Assets%20and%20provenance.md" }]
+
+[terms."Provenance"]
+definition = "The recorded origin and change history of an asset or output. It can explain where an ingredient came from; it does not by itself grant permission to use it."
+see = [{ text = "assets and provenance", href = "knowledge/Assets%20and%20provenance.md" }]
+
+[terms."Transform"]
+definition = "Change a source's placement or appearance through an operation such as cropping, scaling, recoloring, shading, or deformation. The source and the transformation both affect the output."
+see = [{ text = "assets and provenance", href = "knowledge/Assets%20and%20provenance.md" }]
+
+[terms."Renderer"]
+definition = "The code and runtime that turn a description of a scene into pixels, whether through the DOM, canvas, SVG, WebGL, or another medium."
+see = [{ text = "raster, vector, and DOM", href = "knowledge/Raster%20vector%20and%20DOM.md" }, { text = "shaders and 3D", href = "knowledge/Shaders%20and%203D.md" }]
+
+[terms."Shader"]
+definition = "A small program that runs on the GPU to calculate visual properties, often for many pixels or vertices at once."
+see = [{ text = "shaders and 3D", href = "knowledge/Shaders%20and%203D.md" }]
+
+[terms."Alpha"]
+definition = "The transparency information carried by a pixel or layer. A delivery format may preserve it, discard it, or require the image to be combined with a background."
+see = [{ text = "delivery and color", href = "knowledge/Delivery%20and%20color.md" }]
+
+[terms."Color description"]
+definition = "The information that tells a player how stored pixel values should become displayed colors. Primaries, transfer, matrix, and range are separate parts of it."
+see = [{ text = "delivery and color", href = "knowledge/Delivery%20and%20color.md" }]
+
+[terms."Frame"]
+definition = "An image sampled from a piece at a particular time. Frames are the material a video encoder records; interactive scene code may also redraw in response to events."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Frame function"]
+definition = "A rule that computes the image for a requested frame or time from named inputs. Computing frames directly this way supports seeking and repeatable comparison when all dependencies are controlled."
+see = [{ text = "iteration and parameterization", href = "knowledge/Iteration%20and%20parameterization.md" }]
+
+[terms."Frame rate"]
+definition = "The number of video frames meant for each second (60 fps, for example), or the rate at which frames are presented. Capture and playback can drift from the intended rate, so inspect the encoded result."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Render"]
+definition = "To compute frames or audio samples from the scene code. The output is the rendered file; rerendering repeats the computation."
+see = [{ text = "deterministic rendering", href = "knowledge/Deterministic%20rendering.md" }]
+
+[terms."Capture"]
+definition = "To record frames from a running browser page, or collect rendered frames, for an output file."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Encoding"]
+definition = "Compressing picture and sound with codecs into streams for a delivery file. Stage intro used H.264 video and AAC audio."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Mux"]
+definition = "To combine encoded video and audio streams, with their timestamps, into a container file like an MP4."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Export"]
+definition = "The full file-producing run: render, capture, encode, and mux, ending in the delivery file."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Codec"]
+definition = "A method for encoding and decoding video or audio; H.264 and AAC are codecs. A file's container and its codecs are separate choices."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Container"]
+definition = "A file structure that holds encoded video, audio, timestamps, and metadata. MP4 and WebM are containers."
+see = [{ text = "capture and encoding", href = "knowledge/Capture%20and%20encoding.md" }]
+
+[terms."Delivery"]
+definition = "The form of the piece the viewer actually receives, for example the encoded file a platform plays."
+see = [{ text = "mastering and delivery", href = "knowledge/Mastering%20and%20delivery.md" }]
+
+[terms."Decoded file"]
+definition = "The delivery file read back into picture and sound for inspection."
+
+[terms."Deterministic rendering"]
+definition = "Rendering in which the same specified inputs and time produce the same intended frame. It supports repeatable capture and precise inspection; external assets and runtime behavior still matter."
+see = [{ text = "deterministic rendering", href = "knowledge/Deterministic%20rendering.md" }]
+
+[terms."Reproducibility"]
+definition = "The ability to run a production again and obtain the intended result under specified inputs and conditions. Frame determinism is one part; asset versions, fonts, runtime, and export settings also matter."
+see = [{ text = "iteration and parameterization", href = "knowledge/Iteration%20and%20parameterization.md" }]
+
+[terms."Stateful simulation"]
+definition = "A process whose result at one time depends on earlier updates; particles whose positions come from every earlier step are one. Rendering a later frame may require running or retrieving those earlier states."
+see = [{ text = "iteration and parameterization", href = "knowledge/Iteration%20and%20parameterization.md" }]
+
+[terms."Bake"]
+definition = "Store the calculated results of a simulation or other process so they can be used later without recalculating the whole history."
+see = [{ text = "iteration and parameterization", href = "knowledge/Iteration%20and%20parameterization.md" }]
+
+[terms."Coordinate space"]
+definition = "The reference system that positions and transforms are measured in, like page pixels or a 3D scene's units."
+
+[terms."Overlap interval"]
+definition = "The time when the outgoing and incoming scenes are both present."
+
+[terms."Flash"]
+definition = "A pair of opposing changes in relative luminance, such as bright then dark. WCAG 2.3.1 counts general flashes and saturated-red flashes, and fails more than three in any one second when the flashing area is large enough."
+see = [{ text = "flash and motion sensitivity", href = "knowledge/Accessibility%20and%20perception.md#flash-and-motion-sensitivity" }]
+
+# ---------------------------------------------------------------- review
+
+[terms."Symptom"]
+definition = "The failure as observed, before its cause is known, for example text that shimmers during a pan."
+
+[terms."Candidate cause"]
+definition = "A possible explanation for a symptom, still to be tested."
+
+[terms."Ablation"]
+definition = "Removing or changing one limited part to compare against the original. The C2 one-kick ablation removed one extra kick and kept the rest of the score."
+
+[terms."Preference"]
+definition = "A recorded judgment of one result over another, under recorded conditions."
+
+[terms."Sidegrade"]
+definition = "A different result with no established improvement. Run D-005, which replaced the particle reveal with title exposures, was tentatively judged a sidegrade."
+
+[terms."Isolated cause"]
+definition = "A factor tested separately enough that an effect can be attributed to it."
+
+[terms."Catalog card"]
+definition = "A reference record for one technique in the upstream Awesome AI Motion catalog."
+forms = ["catalog card"]
+
+[terms."Canonical explanation"]
+definition = "The one maintained page for a subject; other scopes link to it instead of restating it."
+
+[terms."Adaptation"]
+definition = "Applying a relationship from one piece to different words, assets, viewers, or conditions. Where SLASH_MY showed a defect as jitter, a chart might show it as a wrong label."
+
+# ---------------------------------------------------------------- plain-English retirements
+
+[plain."relied-on"]
+retired = ["load-bearing"]
+
+[plain."starting point"]
+retired = ["Choose an entrance", "Home entrances", "five Home entrances"]
+
+[plain."decision"]
+retired = ["re:\\b[Rr]ulings?\\b"]
+
+[plain."what was learned from SLASH_MY"]
+retired = ["re:\\b[Dd]istillation\\b"]
+
+[plain."(cut)"]
+retired = ["re:\\bCVK\\b", "re:\\bspine\\b", "re:(?<!skills )(?<![\\w-])[Hh]ype(?![\\w-])(?! film)"]
+
+[plain."run notes"]
+retired = ["re:\\breadouts?\\b"]
+
+[plain."dialogue"]
+# American spelling for speech; the ATSC terms "dialog gating" and "dialog-gated" keep theirs,
+# and quoted sources keep their own spelling.
+quoted_ok = true
+retired = ["re:\\b[Dd]ialog\\b(?! gating)(?!-gated)"]
+
+# ---------------------------------------------------------------- quoted text allowed outside excerpts
+
+[allow]
+# Exact double-quoted strings termcheck leaves alone on any page. Quoted source text in
+# sources/excerpts/ is exempt wholesale; elsewhere only these strings are.
+quoted = [
+  # Awesome AI Motion's own item names
+  "timed recipes",
+  "recipe map",
+  "recipes",
+  "recipe",
+]

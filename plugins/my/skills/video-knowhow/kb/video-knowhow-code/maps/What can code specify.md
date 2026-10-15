@@ -1,0 +1,7 @@
+# What can code specify?
+
+A code-authored video may contain generated shapes, prepared images, text, shaders, sampled or synthesized sound, and recorded footage. Ask which parts should be written as rules and which need a prepared asset. [Representation models](../knowledge/Representation%20models.md) lays out those choices; [assets and provenance](../knowledge/Assets%20and%20provenance.md) shows what an input adds to the result; [authoring approaches](../knowledge/Authoring%20approaches.md) shows how the parts can be combined.
+
+If an image has to stay editable across many timestamps or variants, read [raster, vector, and DOM](../knowledge/Raster%20vector%20and%20DOM.md), [shaders and 3D](../knowledge/Shaders%20and%203D.md), and [deterministic rendering](../knowledge/Deterministic%20rendering.md). If a prepared image holds the essential character or texture, code can place, transform, and time it. [Iteration and parameterization](../knowledge/Iteration%20and%20parameterization.md) explains how those choices affect revision.
+
+The [Stage intro](../cases/Stage%20intro.md) and [FOXTALE](../cases/FOXTALE.md) cases show two combinations of rules, assets, sound, and timing. Their [source passages](../sources/Chatlog%20index.md) mark what the chatlog establishes. [Social examples](../sources/Social%20examples.md) adds public posts: a creator's description documents the method they claim, and inspected media documents what is visible in the output.

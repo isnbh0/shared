@@ -2,7 +2,7 @@
 
 An incubator and sandbox for skills and macros I keep returning to in real work.
 
-The skills are portable and can be installed individually. Most activate only when requested by name; `tractatus` can also be selected for a matching document task. `spex` requires the separate spex plugin for its implementation workflow. Its recovery guidance explains how to continue if that dependency is missing. If doctype is installed too, select the `tractatus` skill from the intended plugin.
+The skills are portable and can be installed individually. Most activate only when requested by name; `tractatus` can also be selected for a matching document task, and `video-knowhow` is selected when making or reviewing video made with code. `spex` requires the separate spex plugin for its implementation workflow. Its recovery guidance explains how to continue if that dependency is missing. If doctype is installed too, select the `tractatus` skill from the intended plugin.
 
 | Skill | Purpose |
 | --- | --- |
@@ -19,3 +19,4 @@ The skills are portable and can be installed individually. Most activate only wh
 | `visual-grounding` | Build visual systems from semantic structure and inspect the result. |
 | `tractatus` | Write and render a navigable outline page with the bundled renderer. |
 | `simple-now` | Make the useful simple change and leave a robust follow-up. |
+| `video-knowhow` | Consult bundled practice notes, a starter, and a showcase for video made with code. The `kb/` folder is generated from its source repository. |

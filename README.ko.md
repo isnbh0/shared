@@ -149,7 +149,7 @@ URL 또는 로컬 파일을 기반으로 한 소크라테스식 학습 세션 �
 
 실제 작업에서 반복해서 쓰는 스킬과 매크로를 모은 인큐베이터입니다. 전체 목록은 [플러그인 개요](plugins/my/README.md)에 있습니다.
 
-grounding, space-race, tightloop, editorial-ko, editorial-standards, hemingway, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, spex를 포함합니다. 대부분은 명시적으로 요청했을 때만 활성화됩니다. spex 스킬에는 별도의 spex 플러그인이 필요합니다. tractatus는 자체 렌더러를 포함하며, 사용자가 출력 경로를 지정하지 않으면 `.agents/skill-configs/my-tractatus/` 설정을 사용합니다.
+grounding, space-race, tightloop, editorial-ko, editorial-standards, hemingway, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, spex, video-knowhow를 포함합니다. 대부분은 명시적으로 요청했을 때만 활성화됩니다. video-knowhow에는 코드로 영상을 만드는 한 사람의 작업 노트와 스타터, 직접 실행해 볼 수 있는 쇼케이스가 들어 있어, 에이전트가 그런 영상을 만들거나 검토할 때 알아서 불러 씁니다. spex 스킬에는 별도의 spex 플러그인이 필요합니다. tractatus는 자체 렌더러를 포함하며, 사용자가 출력 경로를 지정하지 않으면 `.agents/skill-configs/my-tractatus/` 설정을 사용합니다.
 
 #### gimme
 

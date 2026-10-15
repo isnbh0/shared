@@ -1,0 +1,64 @@
+# Production bootstrap
+
+On the code shelf, a code-video production has three parts. One HTML page draws each frame of a canvas from the frame number. A Node script synthesizes the soundtrack from the same beat clock. A renderer captures the page frame by frame in headless Chrome and encodes an MP4 with picture and sound. Every frame is a pure function of its time, so a render is deterministic: the same source renders the same bytes again. The page is the film's source, and the MP4 is derived from it and can always be rendered again. [Deterministic rendering](Deterministic%20rendering.md) explains the time model, [capture and encoding](Capture%20and%20encoding.md) explains the step from frames to file, and [audiovisual synchronization](Audiovisual%20synchronization.md) explains how picture and sound share one clock.
+
+The steps below take you from an empty folder to a first rendered clip with the [starter](../starter/README.md), then point to the working pieces to add as the film grows. The starter's README documents its own files, and the linked pages give the deeper explanations. The [craft shelf](../../video-knowhow-craft/Home.md) covers the craft around the scaffold (direction, scene structure, sound roles); this shelf covers its engineering.
+
+## Set up
+
+You need three tools on the machine:
+
+- **Node 22.12 or later.** The starter's `package.json` states this as its engine requirement.
+- **Chrome or Chromium.** The renderer drives a real browser through puppeteer-core and finds it through the `CHROME_PATH` environment variable. When the variable is missing, `render.js` stops before it opens a browser and names the variable. On macOS: `export CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`. On Linux, point it at an installed Chrome or Chromium executable.
+- **ffmpeg.** `npm install` fetches it: the starter depends on the `ffmpeg-static` package, and `render.js` uses that binary. The [samples](../samples/README.md) and the QA script call an `ffmpeg` on the `PATH` instead (an `FFMPEG` variable overrides it). A production should run on any supported ffmpeg and never stop on a version. Record the version a file was measured or encoded with (in reports, manifests, and the render cache key), and prefer documented options that behave the same across versions. The color tags are the example to know. **Checked:** ffmpeg 6 writes all four BT.709 tags onto a file from the `-colorspace`/`-color_primaries`/`-color_trc`/`-color_range` output options alone, while ffmpeg 7 through 9 leave primaries and transfer unset unless the frames carry them. That is why the samples' encoders also set the four tags on the frames with `setparams`. The standard check is a two-version run: encode, mux, and QA a few seconds of the film on the oldest supported ffmpeg and on the current one, and require the tags, the loudness, and the check verdicts to match. The bytes may differ.
+
+Then copy the [starter](../starter/README.md) folder and, inside the copy, run:
+
+```sh
+npm install
+npm run render
+```
+
+`npm run render` writes `score.wav` and then renders `out/clip.mp4`, the whole 8-second clip with picture and sound. While you work, `npm run render -- --frames 0-90` renders only the first 3 seconds, which is the right size for a check. `npm run preview` serves the page at `http://localhost:8000/` with a live preview. Click the page for sound; Space pauses and R restarts.
+
+## The starter's contract
+
+The starter is seven small files that hold to one agreement: picture and sound are written against the same clock, and the renderer and the page communicate through three names. Copy the folder and replace the placeholder scene and score, and the agreement still holds.
+
+**One clock.** [timeline.js](../starter/timeline.js) is the single clock that picture and sound both read. It sets the tempo (120 BPM), the clip length (16 beats, 8 seconds), the frame rate (30), and the canvas size (1920×1080). It also holds the conversions between beats, seconds, and frames, the shared events placed in beats (in the code, cues such as the `text` cue), and the seeded random stream `T.rng`. Set your own tempo, length, and cues there. Seconds and frames are computed from the beats, so picture and sound cannot drift apart.
+
+**The page hands over frames.** The renderer and [index.html](../starter/index.html) communicate through three names. `index.html?render` puts the page in render mode, where it draws nothing on its own and waits. `await window.ready` resolves once the fonts are loaded and a frame can be drawn. `window.draw(frame, samples)` draws one frame into `canvas#c`, averaging four sub-frames across a half-frame shutter for motion blur. Time comes from the frame number and never from the wall clock; the preview uses real time only to choose which frame to draw. Anything the first frame needs, such as font loads, decoded images, and precomputed tables, goes into the `window.ready` promise.
+
+**The scene is a pure function.** [scene.js](../starter/scene.js) draws the whole frame from the `t` it is given. It fills every pixel, takes its timing from the clock, and takes its look from [tokens.js](../starter/tokens.js), which defines the palette, safe area, and type once so each value is set in one place. Every random choice comes from `T.rng(seed)`, never from `Math.random`, `Date`, or `performance.now`. The same seed gives the same numbers in the page and in Node, so a render repeats, and editing one part does not reshuffle the randomness of another. A stateful effect, such as a particle simulation or an accumulated trail, is either recomputed from `t` or stepped with fixed steps from a seeded start state. It is never carried over from the previous call.
+
+**The score path.** [audio.js](../starter/audio.js) writes `score.wav` (48 kHz, 16-bit stereo) from the same clock: a click on each beat, a seeded noise tick on each offbeat, and a chord on the `text` cue. `npm run render` runs it first, and [render.js](../starter/render.js) cuts the WAV to the span of the rendered frames, so picture and sound start together even in a partial render. The script reports the mix's peak in dBFS and warns when the gains clip.
+
+**Determinism you can check.** `render.js` rasterizes the 2D canvas on the CPU (`--disable-gpu-rasterization`, `--disable-accelerated-2d-canvas`), because GPU raster can differ by a few code values from run to run. **Checked (one machine):** on macOS 26.7 with Chrome 155, puppeteer-core 25.13.0, and ffmpeg-static 5.3.0, two 3-second renders produced byte-identical MP4 files with identical decoded frame hashes, and two runs of `audio.js` wrote byte-identical WAVs. A different machine, Chrome, ffmpeg, or set of installed fonts can change the pixels, because the font stack resolves differently on each OS. That is why the claim names its machine. To verify a re-render, hash the decoded frames of each file:
+
+```sh
+node_modules/ffmpeg-static/ffmpeg -v error -i out/clip.mp4 -map 0:v -f framemd5 -
+```
+
+## Grow into the samples
+
+The [samples](../samples/README.md) are one-file excerpts from SLASH_MY. Each one replaces or extends one part of the starter when a film needs it. Each file opens by saying what it does, when you need it, and what was generalized, and the [index records what has been run](../samples/README.md#what-has-been-run). They are listed here in the order a growing film usually needs them.
+
+**More scenes, cleaner randomness, picture driven by the score.** [seeded-streams.js](../samples/seeded-streams.js) adds named streams for each concern and per-event seeds keyed by beat, so editing one part leaves the randomness of every other part alone. [beat-clock.js](../samples/beat-clock.js) adds beat-to-frame conversion with snapping, a groove grid, and the score's events recorded where they are played. The picture's sync points then come from the score's own record, and nobody copies a table by hand. [tokens.js](../samples/tokens.js) shares one values module between page and Node, and loads and measures every font face before frame 0. [scene-registry.js](../samples/scene-registry.js) turns scenes into registered functions over segments in separate files, with named hand-offs between them. Grow into that shape when several people or agents write scenes against one timeline. Background: [deterministic rendering](Deterministic%20rendering.md) and [audiovisual synchronization](Audiovisual%20synchronization.md).
+
+**A longer or safer render.** The pipeline becomes [capture.js](../samples/capture.js) → [chunk-render.js](../samples/chunk-render.js) → [delivery-encode.js](../samples/delivery-encode.js). `capture.js` keeps the starter's page contract on the CPU raster path and always closes Chrome. `chunk-render.js` renders on parallel Chrome workers in 30-frame lossless 4:4:4 chunks, cached under a key made of the source, the machine, and the job, so after a crash or a kill the render resumes from the finished chunks. `delivery-encode.js` joins the chunks into one H.264 High 4:2:0 file with BT.709 color tags, extra bits in fades to and from black, and keyframes on whole-frame swaps, and muxes in the mastered AAC by stream copy. Background: [capture and encoding](Capture%20and%20encoding.md) and [delivery and color](Delivery%20and%20color.md).
+
+**Delivery loudness.** The starter's score is neither loudness-normalized nor dithered, and a delivered file usually has a loudness spec, such as −14 LUFS integrated with a −1 dBTP ceiling. [master-loudness.js](../samples/master-loudness.js) measures BS.1770-4 integrated loudness in Node, limits true peaks with a look-ahead limiter, and searches for the trim that puts the limited mix on the target, so the score leaves the synth already at delivery loudness. [wav-writer.js](../samples/wav-writer.js) writes 24-bit PCM with TPDF dither from its own seeded stream, and digital silence stays zero. [loudness-gate.js](../samples/loudness-gate.js) masters the WAV to AAC at the target under the ceiling. It measures the encoded stream over up to three passes, because the encoder's own overshoot can break the spec, and then gates the delivered file against the spec. Background: [mastering and delivery](Mastering%20and%20delivery.md).
+
+**Checks before a file goes out.** [facts-lint-docs.js](../samples/facts-lint-docs.js) runs at the project root before a render. [qa_av.py](../samples/qa_av.py) runs on the delivered file. Its `audio` mode measures integrated loudness, true peak, clipping, and DC. Its `sync` mode finds where each sync point's visual change starts in the picture's change signal and compares that with the event's beat. Background: [verification](Verification.md), which separates what measurements establish from what only listening and playback can.
+
+## Working habits
+
+Three habits from the know-how are worth adopting along with the starter:
+
+- **Facts, lint, docs.** When the same number (a tempo, a margin, a loudness target, a cut's beat) would otherwise appear in the score, the page, the QA script, and the docs, keep one registry that reads the values from the modules that define them. In [facts-lint-docs.js](../samples/facts-lint-docs.js), a check fails when a literal copy of a value drifts from the registry's value, and generated doc regions are rewritten from the registry and checked for staleness. An edit to one copy then stops the build before a contradiction ships.
+- **Check after picture changes.** Run the audio and sync checks after any change to picture timing or to the score. A sync point two frames late looks sloppy even though no single frame looks wrong; the fault is visible only across frames. Before a file goes out, go through the [verification](Verification.md) questions on the delivered file, not on the frames or the WAV it came from.
+- **Label claims by their evidence.** These pages label a claim Checked, Reported, Interpretation, or Untested idea, and say what would challenge it ([editorial notes](../Editorial%20notes.md#reading-a-claim)). The samples mark what has actually been run. Hold a production to the same standard: a number shown on screen traces to its source, and a note about the film says how it was checked.
+
+## When you outgrow the starter
+
+Two films show where this path leads. The [Stage intro case](../cases/Stage%20intro.md) records a 24-second render built from the same grammar the starter compresses: one beat clock, a seeded typing rhythm, and a silence before the drop. The [SLASH_MY case](../../video-knowhow-craft/cases/SLASH_MY.md) records a 68-second film made on the full pipeline the samples excerpt, with chunked rendering, a mastered and gated score, and QA passes. It is John's strongest reported reference for polish in the package. When a decision comes up that the starter does not make, [Home](../Home.md) routes by question and the [Glossary](../Glossary.md) defines the terms.

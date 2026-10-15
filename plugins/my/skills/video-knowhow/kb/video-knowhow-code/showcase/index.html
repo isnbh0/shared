@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>video-knowhow showcase</title>
+<style>
+  html, body { margin: 0; background: #000; color: #ccc; font: 12px Menlo, monospace; }
+  canvas { display: block; width: 100vw; height: auto; max-height: 100vh; object-fit: contain; margin: 0 auto; }
+  #hud { position: fixed; left: 8px; bottom: 6px; opacity: 0.6; pointer-events: none; white-space: pre; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="hud"></div>
+<script src="timeline.js"></script>
+<script src="tokens.js"></script>
+<script src="prefs.js"></script>
+<script src="scene.js"></script>
+<script src="post.js"></script>
+<script>
+// The stage. Its contract with render.js:
+//   index.html?render[&fps=N]    render mode: the page draws nothing by itself; render.js asks for each frame
+//   await window.ready           resolves once the fonts and the score's events are loaded
+//   window.draw(frame, samples)  draws frame `frame` (time frame / fps) into canvas#c from `samples` sub-frames
+// The score's events (score-events.json, written by audio.js) arrive as window.SCORE_EVENTS in render mode
+// (render.js injects them: a file:// page cannot fetch) and by fetch in the preview.
+const Q = new URLSearchParams(location.search);
+const RENDER = Q.has('render');
+const FPS = +(Q.get('fps') || T.FPS);
+const main = document.getElementById('c');
+const mctx = main.getContext('2d');
+const sub = document.createElement('canvas');   // scene() draws each sub-frame here
+sub.width = T.W; sub.height = T.H;
+const ctx = sub.getContext('2d');
+
+// One frame: `samples` sub-frames spread over a half-frame shutter (180°) and averaged into #c (a motion blur),
+// then post() once on the average. Each sub-frame depends only on its time, so frames can be drawn in any order.
+window.draw = function (frame, samples = 16) {
+  const t0 = T.frameToSec(frame, FPS);
+  for (let i = 0; i < samples; i++) {
+    ctx.save();
+    scene(ctx, t0 + (i / samples) * (0.5 / FPS), FPS);
+    ctx.restore();
+    mctx.globalAlpha = 1 / (i + 1);              // a running mean: sub-frame i weighs 1 / (i + 1)
+    mctx.drawImage(sub, 0, 0);
+  }
+  mctx.globalAlpha = 1;
+  post(mctx, t0, FPS);
+};
+
+const events = window.SCORE_EVENTS ? Promise.resolve(window.SCORE_EVENTS)
+  : fetch('score-events.json').then(r => {
+    if (!r.ok) throw new Error('score-events.json: run node audio.js');
+    return r.json();
+  });
+window.ready = Promise.all([...TOKENS.faces.map(f => document.fonts.load(f)), events])
+  .then(r => { window.EV = r[r.length - 1]; return document.fonts.ready; })
+  .then(() => { sceneLayout(ctx); return true; });
+
+// Preview. Real time chooses the frame number; the frame number still decides the picture. With score.wav
+// loaded, a click starts the sound and the picture follows the audio clock. Space pauses, R restarts.
+if (!RENDER) window.ready.then(() => {
+  const hud = document.getElementById('hud');
+  const audio = new Audio('score.wav');
+  let hasAudio = false, playing = true, clock = 0, last = performance.now();
+  audio.addEventListener('canplaythrough', () => { hasAudio = true; }, { once: true });
+  const start = () => { if (hasAudio && playing) { audio.currentTime = clock; audio.play().catch(() => {}); } };
+  addEventListener('click', start);
+  addEventListener('keydown', e => {
+    if (e.code === 'Space') { playing = !playing; if (playing) start(); else audio.pause(); e.preventDefault(); }
+    if (e.code === 'KeyR') { clock = 0; start(); }
+  });
+  const loop = now => {
+    const dt = (now - last) / 1000;
+    last = now;
+    if (playing) clock = hasAudio && !audio.paused ? audio.currentTime : clock + dt;
+    if (clock >= T.DURATION) { clock = 0; start(); }
+    const frame = Math.floor(clock * FPS);
+    window.draw(frame, 1);
+    hud.textContent = `beat ${T.secToBeat(clock).toFixed(2)}  frame ${frame}  ` +
+      (!hasAudio ? '(no score.wav)' : audio.paused ? '[click for sound]' : 'sound on');
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}).catch(e => { document.getElementById('hud').textContent = e.message; });
+</script>
+</body>
+</html>

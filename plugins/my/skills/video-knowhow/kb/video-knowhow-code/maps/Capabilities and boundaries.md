@@ -1,0 +1,7 @@
+# Capabilities and boundaries
+
+Code can control position, timing, repetition, variation, interaction, and transformation. It can move and crop a still portrait, but a convincing head turn may need a new view or a 3D model, because the portrait holds no image of the hidden side. [Capability boundaries](../knowledge/Capability%20boundaries.md) helps you find what information is missing. [Representation models](../knowledge/Representation%20models.md) and [authoring approaches](../knowledge/Authoring%20approaches.md) help you choose what to do about it.
+
+Ask what has to stay under your direct control. [Pixel art and stylization](../knowledge/Pixel%20art%20and%20stylization.md), [shaders and 3D](../knowledge/Shaders%20and%203D.md), and [raster, vector, and DOM](../knowledge/Raster%20vector%20and%20DOM.md) each give a different kind of control. [Assets and provenance](../knowledge/Assets%20and%20provenance.md) explains what prepared illustration, recorded performance, and generated imagery each add when they share one composition.
+
+Another source can supply a missing pose or material, and code can then direct the motion, timing, text, and score of the combined scene. The [Boundary tests](../cases/Boundary%20tests.md) case compares six reported attempts to find which ingredient or representation limited each result. The [Stage intro](../cases/Stage%20intro.md) and [FOXTALE](../cases/FOXTALE.md) cases show other combinations. Use [verification](../knowledge/Verification.md) to judge a new result on its own terms.

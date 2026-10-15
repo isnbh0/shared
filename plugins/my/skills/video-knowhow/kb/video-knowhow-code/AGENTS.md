@@ -1,0 +1,9 @@
+# Video know-how: code (agent guide)
+
+- **Shelves**: this folder is the code shelf of the video know-how package. Its sibling is the craft shelf, [Video know-how: craft](../video-knowhow-craft/Home.md), which routes into these pages.
+- **Entry**: [Home](Home.md).
+- **Conventions**: read [Editorial notes](Editorial%20notes.md) before writing a page. It sets the evidence labels, the source and maintenance rules, and the page format and link rules. Terms are in the [Glossary](Glossary.md).
+- **Ledgers**: the [audio source ledger](sources/Audio%20sources.md) holds external audio claims and their status. The [chatlog index](sources/Chatlog%20index.md) resolves `C-<line>` citations. [Social examples](sources/Social%20examples.md) keeps creator claims apart from inspected media. [Production lineage](sources/Production%20lineage.md) holds the history sources.
+- **Link check**: from this folder, run `uv run ../video-knowhow-craft/tools/linkcheck.py`. It fails only on broken links inside the package.
+- **Reference collections**: the motion reference (a generated mirror of [Awesome AI Motion](https://github.com/gongnyang/awesome-ai-motion) at a recorded upstream snapshot) and the design collection stay in John's workspace. Do not link into them. Where a page relies on a catalog card, inline the relied-on claim and name the collection.
+- **Provenance**: SLASH_MY, the skills hype film, is the one production John endorses as a whole. Its sources are named in prose and were inspected in John's workspace: the picture snapshot `32dec413` (2026-10-02), the audio snapshots `fd543f2a` and `f7f9d199`, and the flash-check snapshot `1fdc6435`. The AX DAY reconstruction is at snapshot `e5ae340d`; its runs and rerender are in that workspace's comparison lab. The hashes identify versions in that workspace and resolve only there. [Soundtrack code](cases/Soundtrack%20code.md#snapshots-and-reading-the-code) lists the audio snapshots.
