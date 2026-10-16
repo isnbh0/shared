@@ -147,6 +147,7 @@ Bundled skills (all under `plugins/my/skills/`):
 - `tightloop` - match verification to the reach of a change
 - `editorial-ko` and `editorial-standards` - apply bundled Korean and English editorial standards
 - `hemingway` - write plainly and concretely
+- `proofread-ko` - proofread Korean text in repeated independent cold passes
 - `findable` - keep project guidance reachable and current
 - `debrief-manifesto` - report work from the reader's viewpoint
 - `deputy` - own authorized work through verified completion

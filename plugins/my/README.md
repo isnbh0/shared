@@ -15,6 +15,7 @@ The skills are portable and can be installed individually. Most activate only wh
 | `editorial-ko` | Apply Korean editorial standards. |
 | `editorial-standards` | Apply English editorial standards. |
 | `hemingway` | Write plainly and concretely. |
+| `proofread-ko` | Proofread Korean text in repeated independent cold passes. |
 | `findable` | Keep project conventions reachable from agent entry points. |
 | `debrief-manifesto` | Report work from the reader's point of view. |
 | `deputy` | Own authorized work through verified completion. |
