@@ -141,6 +141,8 @@ An incubator for skills and macros used repeatedly. Most are explicit-request sk
 Bundled skills (all under `plugins/my/skills/`):
 - `spex` - implement an existing spex specification with coordinated work and rigorous verification
 - `grounding` - derive system laws and make invalid states unrepresentable
+- `layout-grounding` - preserve grouping and reading order with stable interface anchors and natural content flow
+- `aspects` - design overlapping concerns with explicit scope and composition
 - `space-race` - coordinate partially dependent work in parallel
 - `tightloop` - match verification to the reach of a change
 - `editorial-ko` and `editorial-standards` - apply bundled Korean and English editorial standards

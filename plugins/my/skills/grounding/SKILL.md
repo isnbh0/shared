@@ -12,7 +12,7 @@ Derive a small set of deterministic, total laws before adding cases. Every input
 
 A law holds when a contradictory state cannot be constructed: the type does not admit it, the schema has no slot for it, the protocol offers no message that expresses it, or the only constructor establishes the invariant. A validator, lint rule, or review that catches a violation does not make it unrepresentable. Close that gap by changing what the system can express.
 
-State the laws plainly, including the obvious ones.
+State the laws plainly, including the obvious ones. Treat proposed invariants as hypotheses derived from the user’s task. Check both the intended benefit and the cost of enforcing them before making them structural. For layout, distinguish stable interface anchors from content that needs to reflow.
 
 ## Maximal valid change
 
@@ -37,4 +37,4 @@ Read the verdicts carefully, because the polarity inverts between the two kinds.
 
 Offer Alloy when the laws are relational or state-machine shaped and worth the modeling cost; say so plainly when they are not. Verify that any `alloy` executable found on the system is the intended analyzer before using it.
 
-Formal modeling is one case of the general concern, not the whole of it. Property-based tests, exhaustive enumeration over a bounded space, a type-level encoding that fails to compile when violated, a decision table checked for totality and overlap, or a deliberate attempt to construct the forbidden state and observe it being impossible — any of these grounds a law. Pick the cheapest one that could actually falsify the claim. A check that cannot fail has grounded nothing.
+Formal modeling is one case of the general concern, not the whole of it. Property-based tests, exhaustive enumeration over a bounded space, a type-level encoding that fails to compile when violated, a decision table checked for totality and overlap, or a deliberate attempt to construct the forbidden state and observe it being impossible — any of these grounds a law. Pick the cheapest one that could actually falsify the claim. A check that cannot fail has grounded nothing. Passing a check establishes only the claim it measures; judge whether the resulting system serves the user’s task. For visual work, this includes reading the rendered result for spacing, readability, and density.

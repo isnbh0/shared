@@ -8,6 +8,8 @@ The skills are portable and can be installed individually. Most activate only wh
 | --- | --- |
 | `spex` | Implement an existing spex specification with coordinated work and rigorous verification. |
 | `grounding` | Derive system laws and make contradictory states unrepresentable. |
+| `layout-grounding` | Preserve grouping and reading order with stable interface anchors and natural content flow. |
+| `aspects` | Design overlapping concerns with explicit scope and composition. |
 | `space-race` | Coordinate partially dependent work in parallel. |
 | `tightloop` | Match verification cost to the reach of a change. |
 | `editorial-ko` | Apply Korean editorial standards. |
