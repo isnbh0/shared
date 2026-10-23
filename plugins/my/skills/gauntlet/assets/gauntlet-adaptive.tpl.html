@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>__TITLE__</title>
+<style>
+  :root { --bg: #18181b; --panel: #232327; --ink: #e4e4e7; --mute: #a1a1aa; --accent: #d9f469; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 -apple-system, system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 16px 8px; border-bottom: 1px solid #333; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; }
+  .bar { height: 4px; background: #333; border-radius: 2px; margin-top: 8px; }
+  .bar > div { height: 100%; background: var(--accent); border-radius: 2px; width: 0; }
+  button { background: var(--panel); color: var(--ink); border: 1px solid #444; border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--mute); }
+  button.pick { font-size: 15px; padding: 8px 18px; }
+  button.chosen { background: var(--accent); color: #111; border-color: var(--accent); }
+  kbd { font: 12px ui-monospace, monospace; border: 1px solid #555; border-radius: 4px; padding: 0 4px; color: var(--mute); }
+  .mute { color: var(--mute); }
+  #stage { display: flex; gap: 16px; justify-content: center; padding: 16px; }
+  .slot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: .05em; }
+  .frame { overflow: hidden; border-radius: 6px; outline: 1px solid #333; position: relative; }
+  .frame iframe { border: 0; transform-origin: 0 0; position: absolute; top: 0; left: 0; background: transparent; }
+  #note { width: 100%; background: var(--panel); color: var(--ink); border: 1px solid #444; border-radius: 6px; padding: 6px 8px; font: inherit; resize: vertical; min-height: 34px; }
+  #help { padding: 0 16px 16px; max-width: 1100px; margin: 0 auto; }
+  #done { display: none; text-align: center; padding: 60px 16px; }
+  #done.show { display: block; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #111; padding: 6px 14px; border-radius: 6px; opacity: 0; transition: opacity .2s; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <strong id="pos"></strong>
+    <span class="mute">__PROMPT__</span>
+    <span class="grow"></span>
+    <button class="pick" data-c="A">Prefer A <kbd>A</kbd></button>
+    <button class="pick" data-c="N">Can't tell / same <kbd>N</kbd></button>
+    <button class="pick" data-c="B">Prefer B <kbd>B</kbd></button>
+    <button id="this" class="pick">Prefer this one <kbd>Enter</kbd></button>
+    <span class="grow"></span>
+    <button id="mode">Side by side <kbd>F</kbd></button>
+    <button id="prev">← undo last</button>
+    <button id="dl">Download results</button>
+    <button id="copy">Copy</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <textarea id="note" rows="1" placeholder="Optional note (click to type; Esc to leave)"></textarea>
+  </div>
+  <div class="bar"><div id="fill"></div></div>
+</header>
+<div id="stage"></div>
+<div id="done">
+  <h2>All answered.</h2>
+  <p>Click <b>Download results</b> (saves <code>__FILE__</code> to your Downloads) or <b>Copy</b> and paste it back into the chat.</p>
+  <p class="mute">← undoes the last answer.</p>
+</div>
+<div id="help" class="mute">
+  <p><kbd>A</kbd>/<kbd>1</kbd> prefer A · <kbd>B</kbd>/<kbd>2</kbd> prefer B · <kbd>N</kbd>/<kbd>0</kbd> can't tell · <kbd>←</kbd> undo the last answer ·
+  <kbd>Space</kbd> swaps A and B in place (small differences pop out) · <kbd>Enter</kbd> prefers the one showing · <kbd>F</kbd> toggles side-by-side view.
+  The next pair depends on your answers, so the count is approximate, and some differences are deliberately extreme. Answers save in this browser as you go. __HELP__</p>
+</div>
+<div id="toast"></div>
+<script>
+const DATA = /*DATA*/;
+/*PROJECT*/
+const STORE = '__STORE__';
+const widthOf = typeof frameWidth === 'function' ? frameWidth : () => __WIDTH__;
+const saved = JSON.parse(localStorage.getItem(STORE) || '{}');
+const H = saved.history || [];
+const S = Object.fromEntries(DATA.searches.map((s) => [s.id, s]));
+const nulls = DATA.nulls || [];
+let mode = 'flip', cur = null, shownAt = 0, flipShow = 'A', flips = 0;
+const $ = (s) => document.querySelector(s);
+const save = () => localStorage.setItem(STORE, JSON.stringify({ history: H }));
+// Deterministic per-position randomness, so a reload or undo shows the same next pair.
+function rnd(n, salt) {
+  let t = (DATA.seed ^ Math.imul(n + 1, 2654435761) ^ Math.imul(salt + 1, 40503)) >>> 0;
+  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const held = (h) => h.choice === 'N' || h.choice === h.variantOn;
+const snap = (s, v) => Math.round(v / s.grain) * s.grain;
+const fmt = (v) => +v.toFixed(4);
+const nullAsked = (i) => H.some((h) => h.kind === 'null' && h.nullIdx === i);
+
+// Replay the answers into each search's bracket: ok = furthest value that held, bad = nearest that lost.
+function state() {
+  const st = {};
+  for (const s of DATA.searches) st[s.id] = { ok: s.base, bad: null, probes: 0, last: -1, done: false, confirmed: false, farHeld: false };
+  H.forEach((h, n) => {
+    if (h.kind === 'null') return;
+    const t = st[h.search];
+    if (h.kind === 'confirm') { t.confirmed = true; return; }
+    t.probes++; t.last = n;
+    if (held(h)) { t.ok = h.value; if (h.value === S[h.search].far) t.farHeld = true; } else t.bad = h.value;
+  });
+  for (const s of DATA.searches) {
+    const t = st[s.id];
+    t.done = t.farHeld || (t.bad !== null && Math.abs(t.bad - t.ok) <= s.res + 1e-9);
+    t.next = t.done ? null : t.probes === 0 ? s.far : fmt(snap(s, (t.ok + t.bad) / 2));
+    if (!t.done && (t.next === t.ok || t.next === t.bad)) t.done = true, t.next = null;
+    t.confirmValue = t.farHeld ? s.far : t.bad;
+  }
+  return st;
+}
+function remaining(st) {
+  let r = nulls.filter((x, i) => !nullAsked(i)).length;
+  for (const s of DATA.searches) {
+    const t = st[s.id];
+    if (!t.done) r += (t.probes === 0 ? 1 + Math.ceil(Math.log2(Math.abs(s.far - s.base) / s.res)) : Math.ceil(Math.log2(Math.abs(t.bad - t.ok) / s.res)));
+    if (!t.confirmed) r += 1;
+  }
+  return r;
+}
+function nextItem() {
+  const n = H.length, st = state(), prev = H.at(-1);
+  const sideOf = (salt) => (rnd(n, salt) < 0.5 ? 'A' : 'B');
+  const cands = [];
+  for (const s of DATA.searches) {
+    const t = st[s.id];
+    if (!t.done) cands.push({ kind: 'probe', search: s.id, value: t.next });
+    else if (!t.confirmed) cands.push({ kind: 'confirm', search: s.id, value: t.confirmValue, wait: n - t.last < DATA.confirmGap });
+  }
+  // A null is due once its position is reached; leftover nulls go at the end.
+  let ni = nulls.findIndex((x, i) => !nullAsked(i) && n >= x.at);
+  if (ni < 0 && !cands.length) ni = nulls.findIndex((x, i) => !nullAsked(i));
+  if (ni >= 0) return { kind: 'null', nullIdx: ni, group: nulls[ni].group, variantOn: sideOf(1) };
+  if (!cands.length) return null;
+  // Prefer: ready (not a confirm still waiting), a different search, a different group from the last pair.
+  const score = (c) => (c.wait ? 4 : 0) + (prev && c.search === prev.search ? 2 : 0) + (prev && S[c.search].group !== undefined && S[c.search].group === prev.group ? 1 : 0);
+  const best = Math.min(...cands.map(score));
+  const pool = cands.filter((c) => score(c) === best);
+  const c = pool[Math.floor(rnd(n, 2) * pool.length)];
+  let variantOn = sideOf(3);
+  if (c.kind === 'confirm') {
+    const orig = H.find((h) => h.kind === 'probe' && h.search === c.search && h.value === c.value);
+    if (orig) variantOn = orig.variantOn === 'A' ? 'B' : 'A';
+  }
+  return { kind: c.kind, search: c.search, value: c.value, group: S[c.search].group, variantOn };
+}
+
+function frame(item, side, w) {
+  const wrap = document.createElement('div');
+  wrap.className = 'frame';
+  const f = document.createElement('iframe');
+  f.style.width = w + 'px';
+  f.srcdoc = srcdoc(item, item.kind !== 'null' && item.variantOn === side);
+  wrap.append(f);
+  return { wrap, f };
+}
+
+function render() {
+  cur = nextItem();
+  const left = remaining(state());
+  $('#pos').textContent = `${H.length + (cur ? 1 : 0)} / ~${H.length + left}`;
+  $('#fill').style.width = `${(100 * H.length) / (H.length + left || 1)}%`;
+  $('#mode').innerHTML = (mode === 'side' ? 'Flip mode' : 'Side by side') + ' <kbd>F</kbd>';
+  document.querySelectorAll('.pick[data-c]').forEach((b) => b.classList.remove('chosen'));
+  $('#this').style.display = mode === 'flip' ? '' : 'none';
+  $('#note').value = '';
+  const stage = $('#stage');
+  stage.innerHTML = '';
+  if (!cur) { $('#done').classList.add('show'); return; }
+  $('#done').classList.remove('show');
+  flipShow = 'A'; flips = 0;
+  const w = widthOf(cur);
+  const frames = { A: frame(cur, 'A', w), B: frame(cur, 'B', w) };
+  if (mode === 'side') {
+    for (const s of ['A', 'B']) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.innerHTML = `<div class="label">${s}</div>`;
+      slot.append(frames[s].wrap);
+      stage.append(slot);
+    }
+  } else {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.innerHTML = '<div class="label" id="flipLabel">A</div><div class="mute">Space: swap A ⇄ B · Enter: prefer the one showing</div>';
+    const box = document.createElement('div');
+    box.style.position = 'relative';
+    frames.A.wrap.style.position = 'relative';
+    frames.B.wrap.style.cssText = 'position:absolute;top:0;left:0;visibility:hidden';
+    box.append(frames.A.wrap, frames.B.wrap);
+    slot.append(box);
+    stage.append(slot);
+  }
+  let loaded = 0;
+  const fit = () => {
+    const hs = Object.values(frames).map(({ f }) => {
+      try { return f.contentDocument.documentElement.scrollHeight; } catch { return 900; }
+    });
+    const h = Math.max(...hs);
+    const avail = mode === 'side' ? (innerWidth - 48) / 2 : innerWidth - 32;
+    const s = Math.min(1, avail / w);
+    for (const { wrap, f } of Object.values(frames)) {
+      f.style.height = h + 'px';
+      f.style.transform = `scale(${s})`;
+      wrap.style.width = w * s + 'px';
+      wrap.style.height = h * s + 'px';
+    }
+  };
+  for (const { f } of Object.values(frames)) f.onload = () => { if (++loaded === 2) { fit(); shownAt = performance.now(); } };
+  window.onresize = fit;
+}
+
+function flip() {
+  if (mode !== 'flip' || !cur) return;
+  flipShow = flipShow === 'A' ? 'B' : 'A';
+  flips++;
+  const [a, b] = document.querySelectorAll('#stage .frame');
+  a.style.visibility = flipShow === 'A' ? 'visible' : 'hidden';
+  b.style.visibility = flipShow === 'B' ? 'visible' : 'hidden';
+  $('#flipLabel').textContent = flipShow;
+}
+
+let busy = false;
+function choose(c, via = 'key') {
+  if (!cur || busy) return;
+  busy = true;
+  H.push({ ...cur, choice: c, via, note: $('#note').value.trim(), ms: Math.round(performance.now() - shownAt), mode, flips, at: new Date().toISOString() });
+  save();
+  document.querySelectorAll('.pick[data-c]').forEach((b) => b.classList.toggle('chosen', c === b.dataset.c));
+  setTimeout(() => { busy = false; render(); }, 180);
+}
+function undo() { if (!H.length || busy) return; H.pop(); save(); render(); }
+
+function results() {
+  const st = state();
+  const summary = Object.fromEntries(DATA.searches.map((s) => {
+    const t = st[s.id];
+    const probes = H.filter((h) => h.search === s.id && h.kind === 'probe');
+    return [s.id, { label: s.label, unit: s.unit, base: s.base, far: s.far, heldUpTo: t.ok, lostAt: t.bad, done: t.done,
+      beatBase: probes.filter((h) => h.choice === h.variantOn).map((h) => h.value) }];
+  }));
+  return JSON.stringify({ gauntlet: '__NAME__', exportedAt: new Date().toISOString(), answered: H.length, summary, history: H }, null, 1);
+}
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.style.opacity = 1; setTimeout(() => (el.style.opacity = 0), 1400); }
+
+document.querySelectorAll('.pick[data-c]').forEach((b) => (b.onclick = () => choose(b.dataset.c)));
+$('#this').onclick = () => mode === 'flip' && choose(flipShow, 'this');
+$('#prev').onclick = undo;
+$('#mode').onclick = () => { mode = mode === 'side' ? 'flip' : 'side'; render(); };
+$('#dl').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([results()], { type: 'application/json' }));
+  a.download = '__FILE__';
+  a.click();
+};
+$('#copy').onclick = () => navigator.clipboard.writeText(results()).then(() => toast('Copied'), () => toast('Copy failed: use Download'));
+$('#note').addEventListener('keydown', (e) => { if (e.key === 'Escape') e.target.blur(); });
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'a' || k === '1') choose('A');
+  else if (k === 'b' || k === '2') choose('B');
+  else if (k === 'n' || k === '0') choose('N');
+  else if (k === 'arrowleft') undo();
+  else if (k === 'enter') { e.preventDefault(); $('#this').click(); }
+  else if (k === 'f') $('#mode').click();
+  else if (k === ' ') { e.preventDefault(); flip(); }
+});
+render();
+</script>
+</body>
+</html>

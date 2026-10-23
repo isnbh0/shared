@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>__TITLE__</title>
+<style>
+  :root { --bg: #18181b; --panel: #232327; --ink: #e4e4e7; --mute: #a1a1aa; --accent: #d9f469; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 -apple-system, system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 16px 8px; border-bottom: 1px solid #333; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; }
+  .bar { height: 4px; background: #333; border-radius: 2px; margin-top: 8px; }
+  .bar > div { height: 100%; background: var(--accent); border-radius: 2px; width: 0; }
+  button { background: var(--panel); color: var(--ink); border: 1px solid #444; border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button:hover { border-color: var(--mute); }
+  button.pick { font-size: 15px; padding: 8px 18px; }
+  button.chosen { background: var(--accent); color: #111; border-color: var(--accent); }
+  kbd { font: 12px ui-monospace, monospace; border: 1px solid #555; border-radius: 4px; padding: 0 4px; color: var(--mute); }
+  .mute { color: var(--mute); }
+  #stage { display: flex; gap: 16px; justify-content: center; padding: 16px; }
+  .slot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: .05em; }
+  .frame { overflow: hidden; border-radius: 6px; outline: 1px solid #333; position: relative; }
+  .frame iframe { border: 0; transform-origin: 0 0; position: absolute; top: 0; left: 0; background: transparent; }
+  #note { width: 100%; background: var(--panel); color: var(--ink); border: 1px solid #444; border-radius: 6px; padding: 6px 8px; font: inherit; resize: vertical; min-height: 34px; }
+  #help { padding: 0 16px 16px; max-width: 1100px; margin: 0 auto; }
+  #done { display: none; text-align: center; padding: 60px 16px; }
+  #done.show { display: block; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #111; padding: 6px 14px; border-radius: 6px; opacity: 0; transition: opacity .2s; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <strong id="pos"></strong>
+    <span class="mute">__PROMPT__</span>
+    <span class="grow"></span>
+    <button class="pick" data-c="A">Prefer A <kbd>A</kbd></button>
+    <button class="pick" data-c="N">Can't tell / same <kbd>N</kbd></button>
+    <button class="pick" data-c="B">Prefer B <kbd>B</kbd></button>
+    <button id="this" class="pick">Prefer this one <kbd>Enter</kbd></button>
+    <span class="grow"></span>
+    <button id="mode">Side by side <kbd>F</kbd></button>
+    <button id="prev">←</button><button id="next">→</button>
+    <button id="dl">Download results</button>
+    <button id="copy">Copy</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <textarea id="note" rows="1" placeholder="Optional note (click to type; Esc to leave)"></textarea>
+  </div>
+  <div class="bar"><div id="fill"></div></div>
+</header>
+<div id="stage"></div>
+<div id="done">
+  <h2>All answered.</h2>
+  <p>Click <b>Download results</b> (saves <code>__FILE__</code> to your Downloads) or <b>Copy</b> and paste it back into the chat.</p>
+  <p class="mute">You can still go back with ← to change answers.</p>
+</div>
+<div id="help" class="mute">
+  <p><kbd>A</kbd>/<kbd>1</kbd> prefer A · <kbd>B</kbd>/<kbd>2</kbd> prefer B · <kbd>N</kbd>/<kbd>0</kbd> can't tell · <kbd>←</kbd><kbd>→</kbd> move ·
+  <kbd>Space</kbd> swaps A and B in place (small differences pop out) · <kbd>Enter</kbd> prefers the one showing · <kbd>F</kbd> toggles side-by-side view.
+  Answers save in this browser as you go. __HELP__</p>
+</div>
+<div id="toast"></div>
+<script>
+const DATA = /*DATA*/;
+/*PROJECT*/
+const STORE = '__STORE__';
+const widthOf = typeof frameWidth === 'function' ? frameWidth : () => __WIDTH__;
+const saved = JSON.parse(localStorage.getItem(STORE) || '{}');
+const R = saved.responses || {};
+let mode = 'flip';
+let i = DATA.trials.findIndex((t) => !R[t.id]);
+if (i < 0) i = DATA.trials.length - 1;
+let shownAt = 0, flipShow = 'A', flips = 0;
+const $ = (s) => document.querySelector(s);
+const save = () => localStorage.setItem(STORE, JSON.stringify({ responses: R }));
+
+function frame(t, side, w) {
+  const wrap = document.createElement('div');
+  wrap.className = 'frame';
+  const f = document.createElement('iframe');
+  f.style.width = w + 'px';
+  f.srcdoc = srcdoc(t, side);
+  wrap.append(f);
+  return { wrap, f };
+}
+
+function render() {
+  const t = DATA.trials[i];
+  const done = DATA.trials.filter((x) => R[x.id]).length;
+  $('#pos').textContent = `${i + 1} / ${DATA.trials.length}`;
+  $('#fill').style.width = `${(100 * done) / DATA.trials.length}%`;
+  $('#mode').innerHTML = (mode === 'side' ? 'Flip mode' : 'Side by side') + ' <kbd>F</kbd>';
+  document.querySelectorAll('.pick[data-c]').forEach((b) => b.classList.toggle('chosen', R[t.id]?.choice === b.dataset.c));
+  $('#this').style.display = mode === 'flip' ? '' : 'none';
+  $('#note').value = R[t.id]?.note || '';
+  $('#done').classList.remove('show');
+  const stage = $('#stage');
+  stage.innerHTML = '';
+  flipShow = 'A'; flips = 0;
+  const w = widthOf(t);
+  const frames = { A: frame(t, 'A', w), B: frame(t, 'B', w) };
+  if (mode === 'side') {
+    for (const s of ['A', 'B']) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.innerHTML = `<div class="label">${s}</div>`;
+      slot.append(frames[s].wrap);
+      stage.append(slot);
+    }
+  } else {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.innerHTML = '<div class="label" id="flipLabel">A</div><div class="mute">Space: swap A ⇄ B · Enter: prefer the one showing</div>';
+    const box = document.createElement('div');
+    box.style.position = 'relative';
+    frames.A.wrap.style.position = 'relative';
+    frames.B.wrap.style.cssText = 'position:absolute;top:0;left:0;visibility:hidden';
+    box.append(frames.A.wrap, frames.B.wrap);
+    slot.append(box);
+    stage.append(slot);
+  }
+  let loaded = 0;
+  const fit = () => {
+    const hs = Object.values(frames).map(({ f }) => {
+      try { return f.contentDocument.documentElement.scrollHeight; } catch { return 900; }
+    });
+    const h = Math.max(...hs);
+    const avail = mode === 'side' ? (innerWidth - 48) / 2 : innerWidth - 32;
+    const s = Math.min(1, avail / w);
+    for (const { wrap, f } of Object.values(frames)) {
+      f.style.height = h + 'px';
+      f.style.transform = `scale(${s})`;
+      wrap.style.width = w * s + 'px';
+      wrap.style.height = h * s + 'px';
+    }
+  };
+  for (const { f } of Object.values(frames)) f.onload = () => { if (++loaded === 2) { fit(); shownAt = performance.now(); } };
+  window.onresize = fit;
+}
+
+function flip() {
+  if (mode !== 'flip') return;
+  flipShow = flipShow === 'A' ? 'B' : 'A';
+  flips++;
+  const [a, b] = document.querySelectorAll('#stage .frame');
+  a.style.visibility = flipShow === 'A' ? 'visible' : 'hidden';
+  b.style.visibility = flipShow === 'B' ? 'visible' : 'hidden';
+  $('#flipLabel').textContent = flipShow;
+}
+
+function choose(c, via = 'key') {
+  const t = DATA.trials[i];
+  R[t.id] = { choice: c, via, note: $('#note').value.trim(), ms: Math.round(performance.now() - shownAt), mode, flips, at: new Date().toISOString() };
+  save();
+  document.querySelectorAll('.pick[data-c]').forEach((b) => b.classList.toggle('chosen', c === b.dataset.c));
+  setTimeout(() => go(1, true), 180);
+}
+
+function go(d, fromAnswer) {
+  const t = DATA.trials[i];
+  if (R[t.id]) { R[t.id].note = $('#note').value.trim(); save(); }
+  const n = i + d;
+  if (n >= DATA.trials.length) {
+    if (fromAnswer || DATA.trials.every((x) => R[x.id])) { $('#stage').innerHTML = ''; $('#done').classList.add('show'); }
+    return;
+  }
+  if (n < 0) return;
+  i = n;
+  render();
+}
+
+function results() {
+  return JSON.stringify({ gauntlet: '__NAME__', exportedAt: new Date().toISOString(), answered: Object.keys(R).length, total: DATA.trials.length, responses: R }, null, 1);
+}
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.style.opacity = 1; setTimeout(() => (el.style.opacity = 0), 1400); }
+
+document.querySelectorAll('.pick[data-c]').forEach((b) => (b.onclick = () => choose(b.dataset.c)));
+$('#this').onclick = () => mode === 'flip' && choose(flipShow, 'this');
+$('#prev').onclick = () => go(-1);
+$('#next').onclick = () => go(1);
+$('#mode').onclick = () => { mode = mode === 'side' ? 'flip' : 'side'; render(); };
+$('#dl').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([results()], { type: 'application/json' }));
+  a.download = '__FILE__';
+  a.click();
+};
+$('#copy').onclick = () => navigator.clipboard.writeText(results()).then(() => toast('Copied'), () => toast('Copy failed: use Download'));
+$('#note').addEventListener('keydown', (e) => { if (e.key === 'Escape') e.target.blur(); });
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'a' || k === '1') choose('A');
+  else if (k === 'b' || k === '2') choose('B');
+  else if (k === 'n' || k === '0') choose('N');
+  else if (k === 'arrowright') go(1);
+  else if (k === 'arrowleft') go(-1);
+  else if (k === 'enter') { e.preventDefault(); $('#this').click(); }
+  else if (k === 'f') $('#mode').click();
+  else if (k === ' ') { e.preventDefault(); flip(); }
+});
+render();
+</script>
+</body>
+</html>

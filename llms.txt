@@ -42,7 +42,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install my@isnbh0
 ```
 
-Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains fourteen skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
+Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains eighteen skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
 
 The former `zoomdoc@isnbh0` plugin identifier is retired. Install `doctype@isnbh0` for both document skills; existing zoomdoc HTML documents remain usable. For a direct install, copy `plugins/doctype/skills/zoomdoc/` or `plugins/doctype/skills/tractatus/`.
 
@@ -148,6 +148,7 @@ Bundled skills (all under `plugins/my/skills/`):
 - `editorial-ko` and `editorial-standards` - apply bundled Korean and English editorial standards
 - `hemingway` - write plainly and concretely
 - `proofread-ko` - proofread Korean text in repeated independent cold passes
+- `gauntlet` - collect intuitive judgments through a fast, blinded A/B choice page built from the person's own material
 - `findable` - keep project guidance reachable and current
 - `debrief-manifesto` - report work from the reader's viewpoint
 - `deputy` - own authorized work through verified completion
@@ -307,7 +308,7 @@ shared/
 │   ├── my/
 │   │   ├── .claude-plugin/plugin.json
 │   │   ├── README.md
-│   │   └── skills/                    # 14 independent skill directories
+│   │   └── skills/                    # 18 independent skill directories
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
