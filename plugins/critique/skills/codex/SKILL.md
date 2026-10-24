@@ -29,13 +29,13 @@ Config is resolved with the following precedence (first match wins):
 2. **Local config** (`.agents/skill-configs/codex/config.local.yaml`) — personal/local scope, gitignored
 3. **Project config** (`.agents/skill-configs/codex/config.yaml`) — project scope, committed to repo
 4. **Legacy fallback** (`.claude/skill-configs/codex/config.local.yaml`, then `config.yaml`) — older installs
-5. **Default** — `gpt-5.6-terra`
+5. **Default** — `gpt-6.1-sol`
 
 ```yaml
-model: gpt-5.6-terra  # model to use with codex exec
+model: gpt-6.1-sol  # model to use with codex exec
 ```
 
-Available tiers: `gpt-5.6-sol` (deepest reasoning, most expensive), `gpt-5.6-terra` (balanced), `gpt-5.6-luna` (cheapest).
+Current models: `gpt-6-astra` (frontier, most expensive), `gpt-6.1-sol` (workhorse for coding), and `gpt-6-luna` (fast and cheapest). Older models such as `gpt-5.6-sol` remain selectable. Models a Codex account cannot access are rejected at run time.
 
 See `config.example.yaml` in the critique plugin's codex skill for reference.
 
@@ -46,7 +46,7 @@ See `config.example.yaml` in the critique plugin's codex skill for reference.
    - `.agents/skill-configs/codex/config.local.yaml` (local scope, gitignored)
    - `.agents/skill-configs/codex/config.yaml` (project scope, committed to repo)
    - Legacy fallback (older installs): `.claude/skill-configs/codex/config.local.yaml`, then `.claude/skill-configs/codex/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
-3. If no config found, use `gpt-5.6-terra` as the default.
+3. If no config found, use `gpt-6.1-sol` as the default.
 4. Set `${MODEL}` to the resolved model name.
 
 ### Reasoning Effort
@@ -55,13 +55,15 @@ The user can request higher reasoning effort by saying things like "xhigh", "hig
 
 | User says | Flag value |
 |-----------|-----------|
-| (default) | *(omit flag — uses codex default "medium")* |
+| (default) | *(omit flag — uses the Codex config or model default; `gpt-6.1-sol` defaults to `low`)* |
+| "low" | `low` |
+| "medium" | `medium` |
 | "high" | `high` |
 | "xhigh", "think hard" | `xhigh` |
 | "max", "maximum", "deep review" | `max` |
 | "ultra" | `ultra` |
 
-`max` and `ultra` only pay off on `gpt-5.6-sol` — the lower tiers accept them but have less reasoning ceiling to spend. When the user asks for max/ultra and the resolved model is terra or luna, use sol for that run and say so. `ultra` makes codex delegate to subagents; it is the slowest and most expensive setting.
+`gpt-6-luna` does not support `ultra` and has the least reasoning ceiling for `max`. When the user asks for max or ultra and the resolved model is luna, use `gpt-6.1-sol` for that run and say so. Do not switch to `gpt-6-astra` unless the user asks for it. `ultra` makes codex delegate to subagents; it is the slowest and most expensive setting.
 
 ## How It Works
 
@@ -90,15 +92,17 @@ codex exec \
   -m <shell-quoted-model> \
   -s read-only \
   -C <shell-quoted-project-root> \
+  --ephemeral \
   --config <shell-quoted-reasoning-config> \
   <shell-quoted-review-prompt> </dev/null
 ```
 
 **Flags:**
-- `-m <model>` — the resolved model (default: `gpt-5.6-terra`)
+- `-m <model>` — the resolved model (default: `gpt-6.1-sol`)
 - `-s read-only` — read-only sandbox (no file modifications)
 - `-C <dir>` — set working directory so codex can read referenced files
-- `--config model_reasoning_effort="<effort>"` — reasoning depth: `medium` (default), `high`, `xhigh`, `max`, or `ultra`. Build this as one argument and omit it for default. Higher effort = slower but more thorough analysis.
+- `--ephemeral` — do not persist the session to disk
+- `--config model_reasoning_effort="<effort>"` — reasoning depth: `low`, `medium`, `high`, `xhigh`, `max`, or `ultra` (`ultra` is unavailable on `gpt-6-luna`). Build this as one argument and omit it for default. Higher effort = slower but more thorough analysis.
 
 **Stdin redirect (`</dev/null`) is required.** In some host-agent spawn environments, non-TTY stdin can remain open and cause `codex exec` to hang while reading additional input. Redirecting from `/dev/null` gives codex an immediate EOF.
 
@@ -113,3 +117,4 @@ codex exec \
 ## Notes
 
 - If codex errors, check `codex --version` and suggest `codex login` if auth fails
+- If codex rejects the model or a flag, report the installed version and suggest updating Codex

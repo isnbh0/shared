@@ -69,19 +69,20 @@ Copies a skill or plugin into a local project for adaptation without installing 
 
 #### critique
 
-External AI critique via CLI tools (Claude, Codex, Gemini, Pi).
+External AI critique via CLI tools (Claude, Codex, Pi; Gemini is deprecated).
 
 | Skill | Optional inputs |
 |-------|-----------------|
 | claude | file path, focus |
 | codex | file path, focus |
-| gemini | file path, focus |
+| gemini (deprecated) | file path, focus |
 | pi | file path, focus |
 
 - Gets an independent second opinion on specs, code, or recent changes
 - **Claude backend:** Runs a configured, review-only Claude Code CLI session
 - **Codex backend:** Runs a configured Codex CLI review
-- **Gemini backend:** Runs a configured Gemini CLI review
+- **Pi backend:** Runs a read-only pi review through whichever model provider pi has configured
+- **Gemini backend (deprecated):** Intentionally unmaintained for now; may not work with current Gemini CLI releases
 
 #### interview
 

@@ -3,5 +3,6 @@
 # or .agents/skill-configs/codex/config.local.yaml (local/personal scope)
 
 # Model to use with codex exec
-# Tiers: gpt-5.6-sol (deepest), gpt-5.6-terra (balanced), gpt-5.6-luna (cheapest)
-model: gpt-5.6-terra
+# Current models: gpt-6-astra (frontier), gpt-6.1-sol (workhorse), gpt-6-luna (cheapest)
+# Older models such as gpt-5.6-sol remain selectable.
+model: gpt-6.1-sol

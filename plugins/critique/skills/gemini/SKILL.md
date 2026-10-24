@@ -1,13 +1,25 @@
 ---
 name: gemini
-description: Runs Google Gemini CLI to critique a spec or code file. Use when the user wants external AI review, a second opinion, or says "gemini critique".
+description: Deprecated and intentionally unmaintained. Runs Google Gemini CLI to critique a spec or code file. Use only when the user explicitly asks for a Gemini critique after being told the backend is deprecated.
 disable-model-invocation: true
-compatibility: The documented sandbox invocation requires the Gemini CLI, macOS Seatbelt, and a POSIX-compatible shell.
+compatibility: Unmaintained. The documented sandbox invocation requires the Gemini CLI, macOS Seatbelt, a POSIX-compatible shell, and a paid Gemini API or Gemini Enterprise Agent Platform key.
 ---
 
 # Gemini Critique
 
 Run Google's Gemini CLI to get an independent critique of a file (spec, code, etc.).
+
+## Deprecation
+
+This backend is deprecated and intentionally unmaintained for now. It is not tested against current Gemini CLI releases, and its invocation, sandbox settings, and model guidance may be out of date. Prefer the claude, codex, or pi skills.
+
+Before running, tell the user that this backend is deprecated and offer the claude, codex, or pi skills instead. Proceed only if the user still wants Gemini.
+
+Known gaps:
+
+- Gemini CLI serves requests only for paid Gemini API and Gemini Enterprise Agent Platform keys. Google AI Pro, Google AI Ultra, and free individual accounts use Antigravity CLI instead, which this skill does not support.
+- Recent Gemini CLI releases run a positional prompt interactively; non-interactive runs need `-p`. The invocation below has not been updated for this.
+- Newer Gemini models may be unavailable through Gemini CLI; the default below is not refreshed.
 
 ## Pre-flight
 

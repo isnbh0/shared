@@ -40,7 +40,7 @@ Resolve the model using the first match:
 4. None: omit the model flag entirely so pi uses its own configured default
 
 ```yaml
-model: openai-codex/gpt-5.6-terra
+model: openai-codex/gpt-6.1-sol
 ```
 
 Use pi's `provider/model` form. Run `pi --list-models` to see what is available. See `config.example.yaml` next to this file. Some providers reached through pi bill per token rather than against a subscription; do not switch providers on the user's behalf.
@@ -74,7 +74,7 @@ The placeholders beginning with `<shell-quoted-...>` below mean already-escaped,
 cd <shell-quoted-project-root> && \
 pi -p \
   --no-session --no-skills --no-extensions --no-prompt-templates \
-  --no-context-files --no-approve \
+  --no-context-files --no-approve --no-mcp \
   --tools read,grep,find,ls \
   --mode text \
   <shell-quoted-review-prompt> </dev/null
@@ -84,7 +84,8 @@ When a model was resolved, insert the literal pair `--model <shell-quoted-provid
 
 The restrictions are intentional:
 
-- Pi has no read-only sandbox and cannot scope `bash` to specific commands, so `bash` is excluded. `--tools` limits the child to the four read-only builtins. Do not add `bash`, `edit`, `write`, or any extension tool.
+- Pi has no read-only sandbox and cannot scope `bash` to specific commands, so `bash` is excluded. `--tools` limits the child to the four read-only builtins. Do not add `bash`, `edit`, `write`, or any extension or MCP tool.
+- `--no-mcp` disables pi's built-in MCP support. `--tools` alone keeps configured MCP tools.
 - `--no-skills`, `--no-extensions`, and `--no-prompt-templates` disable inherited skills, extensions, and installed packages such as subagents or web access. `--no-context-files` skips AGENTS.md and CLAUDE.md. `--no-approve` ignores project-local trust. Authentication is untouched.
 - `--no-session` avoids writing a transcript.
 - Pi has no working-directory flag, so `cd` to the project root first.

@@ -38,9 +38,9 @@ Resolve the model using the first match:
 model: sonnet
 ```
 
-Use rolling aliases such as `sonnet`, `opus`, or `haiku`, or a full model identifier. See `config.example.yaml` next to this file.
+Use rolling aliases such as `sonnet`, `opus`, `haiku`, `fable`, or `best`, or a full model identifier. `fable` is not available on every account; `best` uses Fable where available and Opus otherwise. See `config.example.yaml` next to this file.
 
-Map explicit effort requests to `--effort low|medium|high|xhigh|max`. Omit `--effort` when the user does not request one so Claude Code uses the model default.
+Map explicit effort requests to `--effort low|medium|high|xhigh|max`. Omit `--effort` when the user does not request one so Claude Code uses the model default. Supported levels vary by model; Claude Code falls back to the highest supported level at or below the requested one.
 
 ## Workflow
 

@@ -1,4 +1,5 @@
 # Gemini critique configuration
+# Deprecated: this backend is intentionally unmaintained. Prefer the claude, codex, or pi skills.
 # Copy this file to .agents/skill-configs/gemini/config.yaml (project scope)
 # or .agents/skill-configs/gemini/config.local.yaml (local/personal scope)
 

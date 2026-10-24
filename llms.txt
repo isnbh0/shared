@@ -87,7 +87,7 @@ Two-phase specification and implementation workflow that separates planning from
 Sources: `plugins/spex/skills/write/`, `plugins/spex/skills/write-phased/`, `plugins/spex/skills/write-phased-gradual/`, and `plugins/spex/skills/implement/`.
 
 ### critique
-External AI critique via CLI tools (Claude, Codex, Gemini, Pi). Gets an independent second opinion on specs, code, or recent changes using restricted execution.
+External AI critique via CLI tools (Claude, Codex, Pi; Gemini is deprecated). Gets an independent second opinion on specs, code, or recent changes using restricted execution. The gemini skill is intentionally unmaintained for now and may not work with current Gemini CLI releases.
 
 Sources: `plugins/critique/skills/claude/`, `plugins/critique/skills/codex/`, `plugins/critique/skills/gemini/`, and `plugins/critique/skills/pi/`, each with an optional file path and focus.
 
