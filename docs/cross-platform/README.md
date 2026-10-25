@@ -9,6 +9,7 @@ This table is the only place in this repository that should list third-party ins
 | Tool | Project roots | User roots | Other packaging |
 |------|---------------|------------|-----------------|
 | [Codex CLI](codex-cli.md) | `.agents/skills/<name>/` | `~/.agents/skills/<name>/` | — |
+| [Pi](pi-cli.md) | `.agents/skills/<name>/` | `~/.agents/skills/<name>/`, `~/.pi/agent/skills/<name>/` | Pi packages install from a `pi` manifest in `package.json` |
 | [Gemini CLI](gemini-cli.md) | `.agents/skills/<name>/`, `.gemini/skills/<name>/` | `~/.agents/skills/<name>/`, `~/.gemini/skills/<name>/` | Extension-local `skills/<name>/` |
 | [Amp](amp.md) | `.agents/skills/<name>/` | `~/.config/agents/skills/<name>/`, `~/.agents/skills/<name>/`, `~/.config/amp/skills/<name>/` | — |
 | [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) | `.claude/skills/<name>/` | See current Claude Code documentation | Marketplace plugins use `.claude-plugin/` metadata |
@@ -79,6 +80,7 @@ The spex plugin includes the `write`, `write-phased`, and `implement` skills. In
 ## Tool Guides
 
 - [Codex CLI](codex-cli.md)
+- [Pi](pi-cli.md)
 - [Gemini CLI](gemini-cli.md)
 - [Antigravity](antigravity.md)
 - [Amp](amp.md)

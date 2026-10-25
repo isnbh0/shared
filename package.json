@@ -1,0 +1,11 @@
+{
+  "name": "isnbh0-shared",
+  "version": "1.0.0",
+  "private": true,
+  "pi": {
+    "skills": [
+      "plugins/macros/skills",
+      "plugins/my/skills"
+    ]
+  }
+}
