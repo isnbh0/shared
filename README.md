@@ -150,7 +150,7 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 
 An incubator for skills and macros I keep using. See the [plugin overview](plugins/my/README.md) for the full list.
 
-The plugin includes grounding, layout-grounding, aspects, space-race, tightloop, editorial-ko, editorial-standards, hemingway, proofread-ko, gauntlet, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, spex, and video-knowhow. Most are activated only by explicit request. The video-knowhow skill bundles one person's practice notes on making video with code, with a starter and a runnable showcase, and activates when an agent makes or reviews such a video. The spex skill requires the separate spex plugin; tractatus bundles its own renderer and uses `.agents/skill-configs/my-tractatus/` for its output directory when the user does not give a path.
+The plugin includes grounding, layout-grounding, aspects, space-race, tightloop, editorial-ko, editorial-standards, hemingway, proofread-ko, gauntlet, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, my-complexity-panel, spex, and video-knowhow. Most are activated only by explicit request. The video-knowhow skill bundles one person's practice notes on making video with code, with a starter and a runnable showcase, and activates when an agent makes or reviews such a video. The spex skill requires the separate spex plugin; tractatus bundles its own renderer and uses `.agents/skill-configs/my-tractatus/` for its output directory when the user does not give a path.
 
 #### gimme
 

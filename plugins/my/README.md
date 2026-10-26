@@ -23,4 +23,5 @@ The skills are portable and can be installed individually. Most activate only wh
 | `visual-grounding` | Build visual systems from semantic structure and inspect the result. |
 | `tractatus` | Write and render a navigable outline page with the bundled renderer. |
 | `simple-now` | Make the useful simple change and leave a robust follow-up. |
+| `my-complexity-panel` | Convene cold, read-only reviewers to map accidental complexity and rank cleanup. |
 | `video-knowhow` | Consult bundled practice notes, a starter, and a showcase for video made with code. The `kb/` folder is generated from its source repository. |

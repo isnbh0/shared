@@ -42,7 +42,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install my@isnbh0
 ```
 
-Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains eighteen skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
+Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `packet`, `calibrate`, `leeway`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains nineteen skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
 
 The former `zoomdoc@isnbh0` plugin identifier is retired. Install `doctype@isnbh0` for both document skills; existing zoomdoc HTML documents remain usable. For a direct install, copy `plugins/doctype/skills/zoomdoc/` or `plugins/doctype/skills/tractatus/`.
 
@@ -155,6 +155,7 @@ Bundled skills (all under `plugins/my/skills/`):
 - `visual-grounding` - build visual systems from semantic structure and inspect rendered output
 - `tractatus` - author and render a navigable outline page with a standalone renderer
 - `simple-now` - do the useful simple thing and record a robust follow-up
+- `my-complexity-panel` - convene cold, read-only reviewers to map accidental complexity and rank cleanup
 - `video-knowhow` - consult bundled practice notes, a starter, and a runnable showcase when making, reviewing, or directing video made with code
 
 ### labs

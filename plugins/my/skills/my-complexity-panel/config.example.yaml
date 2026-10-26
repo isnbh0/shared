@@ -1,0 +1,25 @@
+# my-complexity-panel defaults, merged per key. Precedence:
+#   .agents/skill-configs/my-complexity-panel/config.yaml (project)
+#   ~/.agents/skill-configs/my-complexity-panel/config.local.yaml
+#   ~/.agents/skill-configs/my-complexity-panel/config.yaml
+
+# Lenses to convene, by the names in SKILL.md section 3. A person's name not listed
+# there gets a lens paragraph written in that person's terms.
+lenses:
+  - principles
+  - ousterhout
+  - hickey
+  - parnas-brooks
+  - beck-fowler-metz
+  - nygard-ops
+  - metrics
+
+# Extra principles documents read by the principles lens, besides the project's
+# agent instructions and the documents they reference.
+principles_paths: []
+
+# Word cap for each reviewer's return.
+max_words: 700
+
+# Reviewer model, if the host can choose one. Empty uses the host default.
+model: ""
