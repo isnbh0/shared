@@ -1,6 +1,6 @@
 <!-- Generated from isnbh0/my-sandbox:projects/principles/clean.md
 Source revision: 00f6875bce86c4ab044e443b81ab1116f875302d
-Refresh with projects/principles/export_skill.py in the source repository. -->
+-->
 
 # Principles for building projects
 

@@ -6,7 +6,7 @@ The skills are portable and can be installed individually. Most activate only wh
 
 | Skill | Purpose |
 | --- | --- |
-| `principles` | Apply working principles for building projects to implementation, design, and review. The bundled reference is generated from the principles source project. |
+| `principles` | Apply working principles for building projects to implementation, design, and review. |
 | `spex` | Implement an existing spex specification with coordinated work and rigorous verification. |
 | `grounding` | Derive system laws and make contradictory states unrepresentable. |
 | `layout-grounding` | Preserve grouping and reading order with stable interface anchors and natural content flow. |
