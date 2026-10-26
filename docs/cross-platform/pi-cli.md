@@ -6,7 +6,7 @@ Use the skill root listed in the [compatibility SSOT](README.md). This page only
 
 ## Installation
 
-Pi discovers `~/.agents/skills/` and `.agents/skills/` natively, so the copy and symlink options from the overview work as-is:
+Pi discovers the skill roots listed in the [compatibility SSOT](README.md) natively, so the copy and symlink options from the overview work as-is:
 
 ```bash
 git clone https://github.com/isnbh0/shared.git /tmp/shared
