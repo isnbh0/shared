@@ -19,7 +19,7 @@ Resolve these from the request and the repository, asking only what you cannot r
 
 - **Target:** the repository or paths to review; by default the current repository.
 - **Lenses:** the configured set, adjusted by the user. A lens named after a person gets a paragraph in that person's terms.
-- **Principles:** the owner's own rules, if any: the project's agent instructions (`AGENTS.md`, `CLAUDE.md` or similar), the principles documents they reference, and any configured paths. If there are none, drop the principles lens and say so.
+- **Principles:** Use any stated design or maintenance principles. Skip this lens if none are available.
 - **Since:** an optional commit or tag; reviewers then weigh what changed since it.
 
 Tell the user the panel you are launching, then launch.
