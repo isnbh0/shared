@@ -1,4 +1,6 @@
 # complexity-panel defaults, merged per key. Precedence:
+#   Explicit user instructions
+#   .agents/skill-configs/complexity-panel/config.local.yaml (project-local personal)
 #   .agents/skill-configs/complexity-panel/config.yaml (project)
 #   ~/.agents/skill-configs/complexity-panel/config.local.yaml
 #   ~/.agents/skill-configs/complexity-panel/config.yaml

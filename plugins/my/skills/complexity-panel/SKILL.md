@@ -1,8 +1,10 @@
 ---
 name: complexity-panel
 description: >-
-  Explicit-request macro. Activate only when the user directly requests this macro;
-  never infer activation from task characteristics. Skill — Convene a panel of cold, read-only reviewers who each judge a codebase's accidental complexity through one lens (the owner's principles, named software-design authors, operations, raw metrics), then synthesize a lay of the land with agreement counts, disagreements, verified high-stakes findings, and a ranked cleanup proposal.
+  Review a codebase's accidental complexity through independent design lenses,
+  verify consequential findings, and propose cleanup priorities.
+  Use only when explicitly requested.
+disable-model-invocation: true
 ---
 
 Honor every skill explicitly activated in the user's request exactly once. If another activated skill is not yet loaded and the host provides a skill-loading mechanism, load it through that mechanism. Do not reload an active skill.
@@ -11,7 +13,7 @@ You lead a panel review of accidental complexity: brief the reviewers, check wha
 
 ## 1. Intake
 
-Read defaults from config, merged per key. `.agents/skill-configs/complexity-panel/config.yaml` in the project overrides `~/.agents/skill-configs/complexity-panel/config.local.yaml`, which overrides `~/.agents/skill-configs/complexity-panel/config.yaml`. See `config.example.yaml` next to this file. With no config, use the lenses in section 3.
+Read defaults from config, merged per key. `.agents/skill-configs/complexity-panel/config.local.yaml` in the project overrides `.agents/skill-configs/complexity-panel/config.yaml`, which overrides `~/.agents/skill-configs/complexity-panel/config.local.yaml`, which overrides `~/.agents/skill-configs/complexity-panel/config.yaml`. Explicit user instructions take precedence over config. See `config.example.yaml` next to this file. With no config, use the lenses in section 3.
 
 Resolve these from the request and the repository, asking only what you cannot resolve:
 
