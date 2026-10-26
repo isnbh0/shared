@@ -7,6 +7,7 @@
 
 # Lenses to convene, by the names in SKILL.md section 3. A person's name not listed
 # there gets a lens paragraph written in that person's terms.
+# The principles entry selects the Project context lens.
 lenses:
   - principles
   - ousterhout
@@ -16,8 +17,8 @@ lenses:
   - nygard-ops
   - metrics
 
-# Extra principles documents read by the principles lens, besides the project's
-# agent instructions and the documents they reference.
+# Extra documents read by the Project context lens, alongside the project's
+# existing guidance, relevant design notes, and user-provided context.
 principles_paths: []
 
 # Word cap for each reviewer's return.

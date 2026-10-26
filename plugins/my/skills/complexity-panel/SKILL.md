@@ -19,7 +19,7 @@ Resolve these from the request and the repository, asking only what you cannot r
 
 - **Target:** the repository or paths to review; by default the current repository.
 - **Lenses:** the configured set, adjusted by the user. A lens named after a person gets a paragraph in that person's terms.
-- **Principles:** Use any stated design or maintenance principles. Skip this lens if none are available.
+- **Project context:** the user's supplied context, the project's existing guidance (`AGENTS.md`, `CLAUDE.md`, README or similar), relevant design notes, and any configured `principles_paths`.
 - **Since:** an optional commit or tag; reviewers then weigh what changed since it.
 
 Tell the user the panel you are launching, then launch.
@@ -34,7 +34,7 @@ Note any project rule about what subagents may run, such as read-only command li
 
 Launch the reviewers in parallel as fresh agents with no shared context, one lens each, on the configured model if one is set. The default panel:
 
-1. **Owner's principles.** Read the principles and agent instructions in full first. Judge where the code honors them, where it drifts, and where the rules themselves cause complexity.
+1. **Project context.** Use the project's existing guidance, relevant design notes, and context supplied by the user to understand its goals, constraints and conventions. Assess how the code serves those goals and constraints, where it departs from stated expectations, and where the guidance itself adds complexity. Distinguish stated expectations from conventions inferred from the code.
 2. **Ousterhout** (*A Philosophy of Software Design*). Complexity is dependencies plus obscurity, showing up as change amplification, cognitive load and unknown unknowns. Look for deep vs shallow modules; information leakage, temporal decomposition and pass-through methods; special cases that could be defined out of existence; configuration pushed upward. Gauge change amplification by tracing what recent features had to touch.
 3. **Hickey** ("Simple Made Easy", "The Value of Values"). Find what is complected: state and identity, time and order, policy and mechanism, data and behavior, who is asking and what is done. Look at mutable state, implicit ordering, rich objects vs plain values, and whether decisions are pure functions of facts.
 4. **Parnas and Brooks** (information hiding, designing for change; essential vs accidental complexity, conceptual integrity). What decision does each module hide, and is it likely to change? Do the boundaries hide the right secrets, or are they ceremony? Is there one coherent model of the core concepts, or several overlapping ones? How many modules would a few plausible next changes touch?
@@ -60,7 +60,7 @@ Report to the user:
 
 1. **Verdict.** Answer the question asked ("is it spaghetti?") briefly, on the grounds of where the panel agrees it is sound and where complexity concentrates and whether it is growing, per the metrics.
 2. **Hotspots.** A table of hotspot, what's wrong (with `path:line`), and how many reviewers raised it. Prioritize verified impact and expected simplification payoff; treat agreement as supporting context, since lenses can overlap.
-3. **Disagreements.** Where lenses conflict, such as act now vs wait: each side and who holds it, then your recommendation, noting where the owner's stated rules settle it.
+3. **Disagreements.** Where lenses conflict, such as act now vs wait: each side and who holds it, then your recommendation, explaining how the project's stated goals and constraints inform it.
 4. **More than tidiness.** Correctness, data-loss, security and operational-safety findings, each with its verification status.
 5. **Corrections.** Reviewer claims that proved wrong.
 6. **Ranked cleanup proposal.** Each item with its payoff, whether it is mechanical or a restructuring, its rough size in hours, and what it depends on. Name what you would leave alone and why.
