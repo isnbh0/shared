@@ -15,7 +15,7 @@ mkdir -p ~/.pi/agent/skills
 cp -R /tmp/shared/plugins/interview/skills/interview ~/.pi/agent/skills/
 ```
 
-The repository is also a Pi package. The `pi` manifest in `package.json` declares the plugin skills Pi should load (currently `macros` and `my`):
+The repository is also a Pi package. The `pi` manifest in `package.json` declares the plugin skills Pi should load (`macros`, `my`, `spex`, and `merbook`):
 
 ```bash
 pi install git:github.com/isnbh0/shared

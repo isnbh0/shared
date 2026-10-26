@@ -1,11 +1,13 @@
 {
   "name": "isnbh0-shared",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "pi": {
     "skills": [
       "plugins/macros/skills",
-      "plugins/my/skills"
+      "plugins/my/skills",
+      "plugins/spex/skills",
+      "plugins/merbook/skills"
     ]
   }
 }
