@@ -1,7 +1,7 @@
-# my-complexity-panel defaults, merged per key. Precedence:
-#   .agents/skill-configs/my-complexity-panel/config.yaml (project)
-#   ~/.agents/skill-configs/my-complexity-panel/config.local.yaml
-#   ~/.agents/skill-configs/my-complexity-panel/config.yaml
+# complexity-panel defaults, merged per key. Precedence:
+#   .agents/skill-configs/complexity-panel/config.yaml (project)
+#   ~/.agents/skill-configs/complexity-panel/config.local.yaml
+#   ~/.agents/skill-configs/complexity-panel/config.yaml
 
 # Lenses to convene, by the names in SKILL.md section 3. A person's name not listed
 # there gets a lens paragraph written in that person's terms.

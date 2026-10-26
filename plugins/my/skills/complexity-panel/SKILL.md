@@ -1,5 +1,5 @@
 ---
-name: my-complexity-panel
+name: complexity-panel
 description: >-
   Explicit-request macro. Activate only when the user directly requests this macro;
   never infer activation from task characteristics. Skill — Convene a panel of cold, read-only reviewers who each judge a codebase's accidental complexity through one lens (the owner's principles, named software-design authors, operations, raw metrics), then synthesize a lay of the land with agreement counts, disagreements, verified high-stakes findings, and a ranked cleanup proposal.
@@ -11,7 +11,7 @@ You lead a panel review of accidental complexity: brief the reviewers, check wha
 
 ## 1. Intake
 
-Read defaults from config, merged per key. `.agents/skill-configs/my-complexity-panel/config.yaml` in the project overrides `~/.agents/skill-configs/my-complexity-panel/config.local.yaml`, which overrides `~/.agents/skill-configs/my-complexity-panel/config.yaml`. See `config.example.yaml` next to this file. With no config, use the lenses in section 3.
+Read defaults from config, merged per key. `.agents/skill-configs/complexity-panel/config.yaml` in the project overrides `~/.agents/skill-configs/complexity-panel/config.local.yaml`, which overrides `~/.agents/skill-configs/complexity-panel/config.yaml`. See `config.example.yaml` next to this file. With no config, use the lenses in section 3.
 
 Resolve these from the request and the repository, asking only what you cannot resolve:
 

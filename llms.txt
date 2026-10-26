@@ -155,7 +155,7 @@ Bundled skills (all under `plugins/my/skills/`):
 - `visual-grounding` - build visual systems from semantic structure and inspect rendered output
 - `tractatus` - author and render a navigable outline page with a standalone renderer
 - `simple-now` - do the useful simple thing and record a robust follow-up
-- `my-complexity-panel` - convene cold, read-only reviewers to map accidental complexity and rank cleanup
+- `complexity-panel` - convene cold, read-only reviewers to map accidental complexity and rank cleanup
 - `video-knowhow` - consult bundled practice notes, a starter, and a runnable showcase when making, reviewing, or directing video made with code
 
 ### labs
@@ -309,7 +309,7 @@ shared/
 │   ├── my/
 │   │   ├── .claude-plugin/plugin.json
 │   │   ├── README.md
-│   │   └── skills/                    # 18 independent skill directories
+│   │   └── skills/                    # 19 independent skill directories
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
