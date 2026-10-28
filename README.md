@@ -142,7 +142,7 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 - **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
 - **dry-run** — One-shot failsafe: describes what it would do for the activating request instead of doing it, then waits for confirmation
 - **timeless** — Shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- **dredge** — Searches prior coding-agent transcripts for context; checks available prompt histories for exhaustive searches and distinguishes requests whose transcripts are missing. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code grep fallback)
+- **dredge** — Searches prior coding-agent transcripts for context; checks available prompt histories for exhaustive searches and distinguishes requests whose transcripts are missing. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code and Pi grep fallback)
 - **timestamp** — Shorthand: resolve the timestamp value referred to by the user with `date +%y%m%d-%H%M%S`
 - **new** — Scaffold a custom macro for a project or user and selected agent hosts from one source directory; user-scope macros default to a `my-` name prefix
 

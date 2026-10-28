@@ -17,8 +17,9 @@ Find and surface context from prior coding-agent chat transcripts relevant to th
 Each coding agent keeps its own transcript store.
 
 - **Claude Code** — `~/.claude/projects/<project-slug>/*.jsonl`, where `<project-slug>` is the absolute project path with `/` replaced by `-` (e.g. `/Users/x/repo` → `-Users-x-repo`). The current project's slug can be derived from `pwd`.
-- **Codex and other agents** — each has its own layout, indexed by AgentsView. The grep fallback only knows Claude Code's layout.
-- Each `.jsonl` file is one session; each line is a JSON message event with fields like `role`, `content`, `timestamp`.
+- **Pi** — by default `~/.pi/agent/sessions/<project-dir>/*.jsonl`. Respect `PI_CODING_AGENT_SESSION_DIR`, or `PI_CODING_AGENT_DIR` (whose `sessions` subdirectory is the default); a session may also use a custom `--session-dir`. The first JSONL record has `type: "session"`, `id`, and `cwd`; message records have `type: "message"`, a `timestamp`, and a nested `message` containing `role` and `content`. Entries may branch through `id` and `parentId`.
+- **Codex and other agents** — each has its own layout, indexed by AgentsView. The grep fallback knows Claude Code and Pi layouts.
+- Each `.jsonl` file is one session, with one JSON event per line; event schemas vary by agent.
 - On the grep backend, file mtime can shortlist raw files for an ordinary time-window lookup. For a complete inventory, inspect message timestamps rather than excluding files solely by mtime. AgentsView uses per-message timestamps; prompt histories use their record timestamps.
 
 ## Argument handling
@@ -28,10 +29,10 @@ Each coding agent keeps its own transcript store.
 
 ## Scope
 
-Default to the **current project's** transcripts (slug derived from `pwd`). Widen based on natural-language hints in the query:
+Default to the **current project's** transcripts. Match Claude's project slug or Pi's session header `cwd` against the project path. Widen based on natural-language hints in the query:
 
-- "across all projects" / "anywhere" / "in any chat" → search every project under `~/.claude/projects/`.
-- Names a different repo ("in the craken project") → resolve to that project's slug and search there. If the slug is ambiguous, list candidates under `~/.claude/projects/` and pick by name match.
+- "across all projects" / "anywhere" / "in any chat" → search all available project stores.
+- Names a different repo ("in the craken project") → resolve its project path and search its Claude slug and Pi session headers. If ambiguous, inspect candidate project paths.
 - Time hints ("yesterday", "last week", "earlier today", "recent") → filter by file mtime.
 
 ## Search backend
@@ -72,7 +73,7 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 
 - **Current project** → resolve `basename(pwd)`, confirm it appears exactly once in
   `agentsview projects --json`, and pass `--project <name>` only if it resolves unambiguously.
-  If two projects share that basename (collision), omit `--project` and fall back to slug-grep
+  If two projects share that basename (collision), omit `--project` and fall back to scoped raw-file search
   for that scope rather than returning wrong-project hits.
 - **"across all projects" / "anywhere"** → omit `--project`.
 - **Named repo** → match its basename against `projects --json` (same collision rule).
@@ -92,8 +93,9 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 
 The grep fallback (also the AgentsView path's last resort):
 
-1. Shortlist candidate `.jsonl` files with `rg` / `grep` using keywords from the query. Use `find -newer` / mtime only to narrow ordinary lookups; for a complete date-limited inventory, check message timestamps across candidate project files.
-2. Read the top candidates to pull the actual context (not just the matching lines).
+1. Search both the Claude and Pi stores within the requested scope. For Pi, select files by the session header's `cwd`, comparing resolved paths where possible; do not assume Pi's project-directory encoding matches Claude's. Include known custom session directories and report unknown or unavailable stores as coverage limits.
+2. Shortlist candidate `.jsonl` files with `rg` / `grep` using keywords from the query. Use `find -newer` / mtime only to narrow ordinary lookups; for a complete date-limited inventory, check message timestamps across candidate project files.
+3. Read the top candidates to pull the actual context (not just the matching lines). For Pi, inspect nested messages and their parent links when needed to distinguish branches; cite the header's session ID, not the filename timestamp.
 
 ## Coverage check
 
@@ -107,7 +109,7 @@ each source, using record timestamps rather than file mtime for prompt history.
 - **AgentsView** searches indexed messages and tool events. Sync can index
   surviving files but cannot recover a missing transcript.
 - **Raw session stores** can contain surviving transcripts absent from the
-  index. The known grep path above covers Claude Code; inspect other agent
+  index. The known grep paths above cover Claude Code and Pi; inspect other agent
   stores only when their layout is verified.
 - **Prompt histories** record user requests, often without the assistant's
   response. Claude Code's `~/.claude/history.jsonl` has `display`,
@@ -130,7 +132,7 @@ missing stores or result caps that limit confidence.
 ## Output
 
 - Answer the query directly.
-- Cite each session you drew from by agent + `<session-id>`, with that agent's resume command only when its transcript exists and you know the command (e.g. `claude --resume <session-id>` for Claude Code, `codex resume <session-id>` for Codex). The AgentsView `session_id` is the agent's native session id; the grep path cites `<project-slug>/<session-id>.jsonl`.
+- Cite each session you drew from by agent + native session ID, with that agent's resume command only when its transcript exists and you know the command (e.g. `claude --resume <session-id>`, `codex resume <session-id>`, or `pi --session <session-file-path>`). Include the raw file path for grep hits; Pi filenames include a timestamp as well as the ID. AgentsView may prefix IDs with the agent name; use the native ID when identifying the session.
 - If you don't know an agent's resume command, cite the agent name + session id alone.
 - If nothing relevant turns up, say so plainly and identify the sources searched;
   do not imply that missing stores were searched or that no other cases exist.
