@@ -110,7 +110,7 @@ Bundled skills (all under `plugins/macros/skills/`):
 - `tmi` - flag content that only makes sense if you were in the room when it was written; report by default, edit if explicitly instructed
 - `dry-run` - one-shot failsafe: describe what you would do for the activating request instead of doing it, then wait for confirmation
 - `timeless` - shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
-- `dredge` with an optional freeform query - search prior coding-agent transcripts for context; check available prompt histories for exhaustive searches and distinguish requests with missing transcripts. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code and Pi grep fallback)
+- `dredge` with an optional freeform query - search prior coding-agent transcripts for context; check available prompt histories for exhaustive searches and distinguish requests with missing transcripts. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code, Codex, and Pi grep fallback)
 - `timestamp` - shorthand: resolve the timestamp value referred to by the user with `date +%y%m%d-%H%M%S`
 - `new` - scaffold a custom macro for a project or user and selected agent hosts from one source directory; user-scope macros default to a `my-` name prefix
 
