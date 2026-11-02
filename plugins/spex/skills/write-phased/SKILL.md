@@ -17,7 +17,7 @@ path remains after diagnosis.
 
 ## Task
 
-Investigate the request, write and commit a phased specification, then stop. Do not implement it in the same task.
+Investigate the request, write and commit a phased specification, then stop. Do not implement it in the same task, in the repository or anywhere else. A complete specification states the decisions, contracts, and verification requirements; verifying the proposed change belongs to implementation.
 
 ## Setup
 
@@ -35,7 +35,7 @@ Set `${SPECS_DIR}` to the resolved value.
 ## Workflow
 
 1. Create `${SPECS_DIR}/{YYMMDD-HHMMSS}-{kebab-case-description}/` using the current local time.
-2. Trace the real code paths, verify assumptions, and confirm the problem before proposing changes.
+2. Trace the real code paths, verify assumptions, and confirm the problem on the current code before proposing changes.
 3. Write `README.md` plus one `PN-{name}.md` per phase.
 4. Run the quality checks below.
 5. Add and commit the entire spec directory, then stop.
@@ -105,13 +105,13 @@ Set `${SPECS_DIR}` to the resolved value.
 
 ### Code
 
-[Complete implementation guidance, with repository-relative paths and enough context for a fresh agent.]
+[Implementation guidance at the level of decisions and contracts, with repository-relative paths and enough context for a fresh agent. Include literal code only where the exact code is the decision.]
 
 ### Required Tests
 
 **File:** `tests/path/to/test_file.py` (NEW or UPDATE)
 
-[Complete tests or exact test requirements.]
+[Exact test requirements, with test code where it states an assertion more clearly than prose.]
 
 ### Example Workflow
 
@@ -129,7 +129,7 @@ Before committing, verify once:
 - The spec contains no conversation-only context, author-to-author hedges, or machine-absolute paths.
 - Every referenced existing path is tracked: check with `git ls-files` and `git check-ignore -v`.
 - Every path the implementation creates is checked against gitignore rules; include an explicit un-ignore instruction when required.
-- A fresh agent on a fresh clone can implement each phase using only committed content.
+- A fresh agent on a fresh clone can implement each phase using only committed content, and each phase states its decisions in prose rather than leaving them inside code.
 
 If normative material is untracked or ignored, either commit it to a tracked location and update the references or inline it in the spec. Do not commit a broken reference.
 

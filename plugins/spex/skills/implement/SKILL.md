@@ -137,7 +137,7 @@ If the current frontier has `State: Awaiting concretization`:
 1. Reinspect the repository and verify the overview's baseline against its current state.
 2. Choose the smallest coherent step that materially advances the overall goal.
 3. Rewrite the current phase in place using its concrete phase contract. Include a concrete outcome,
-   verified entry state, repository-relative paths, completed-phase contracts, complete
+   verified entry state, repository-relative paths, completed-phase contracts,
    implementation guidance, exact tests, headless verification, and an application commit boundary.
 4. Keep the following phase unchanged as the trailing placeholder.
 5. Set the phase to `State: In Progress`. Update the overview's phase summary, set its status to `In

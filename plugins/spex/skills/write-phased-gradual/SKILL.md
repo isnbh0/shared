@@ -18,7 +18,9 @@ path remains after diagnosis.
 ## Task
 
 Investigate the request, write and commit the initial frontier of a gradual phased specification,
-then stop. Do not choose a concrete first phase or implement application code in the same task.
+then stop. Do not choose a concrete first phase, and do not implement application code in the same
+task, in the repository or anywhere else. A complete specification states the decisions, contracts,
+and verification requirements; verifying the proposed change belongs to implementation.
 
 Use this workflow when later phases should respond to evidence learned from earlier implementation.
 Use an up-front phased specification instead when the complete phase plan should be known before
@@ -40,8 +42,8 @@ Set `${SPECS_DIR}` to the resolved value.
 ## Workflow
 
 1. Create `${SPECS_DIR}/{YYMMDD-HHMMSS}-{kebab-case-description}/` using the current local time.
-2. Trace the real code paths, verify assumptions, and record the repository baseline without
-   selecting the first implementation increment.
+2. Trace the real code paths, verify assumptions against the current code, and record the
+   repository baseline without selecting the first implementation increment.
 3. Write exactly `README.md`, `P1.md`, and `P2.md` using the templates below.
 4. Run the quality checks below.
 5. Add and commit only the new specification directory, then stop.
@@ -155,13 +157,13 @@ When a placeholder becomes the current concrete phase, rewrite it in this form:
 
 ## Code
 
-[Complete implementation guidance, with repository-relative paths and enough context for a fresh agent.]
+[Implementation guidance at the level of decisions and contracts, with repository-relative paths and enough context for a fresh agent. Include literal code only where the exact code is the decision.]
 
 ## Required Tests
 
 **File:** `tests/path/to/test_file.py` (NEW or UPDATE)
 
-[Complete tests or exact test requirements.]
+[Exact test requirements, with test code where it states an assertion more clearly than prose.]
 
 ## Verification
 
@@ -189,7 +191,8 @@ Before committing, verify once:
   un-ignore instruction when required.
 - Phase numbers are monotonic, all links resolve, and completed phases reference real application
   commits.
-- A fresh agent on a fresh clone can select and implement the next phase using only committed content.
+- A fresh agent on a fresh clone can select and implement the next phase using only committed content,
+  and each concrete phase states its decisions in prose rather than leaving them inside code.
 - Only the intended specification files are staged.
 
 If normative material is untracked or ignored, either commit it to a tracked location and update

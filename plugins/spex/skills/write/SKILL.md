@@ -19,7 +19,7 @@ path remains after diagnosis.
 
 You are writing a specification document. The user's request contains the context/requirements for the spec.
 
-Write and commit one specification, then stop. Do not implement it in the same task.
+Write and commit one specification, then stop. Do not implement it in the same task, in the repository or anywhere else. A complete specification states the decisions, contracts, and verification requirements; verifying the proposed change belongs to implementation.
 
 ## Setup
 
@@ -59,7 +59,7 @@ touch ${SPECS_DIR}/${TIMESTAMP}-descriptive-name.md
 
 1. **Trace execution**: Use grep/find to follow actual code paths
 2. **Verify assumptions**: Check if functionality already exists elsewhere
-3. **Confirm the problem**: Ensure issue exists where suspected
+3. **Confirm the problem**: Ensure issue exists where suspected, on the current code
 4. **Never assume missing**: Always verify before claiming something doesn't exist
 
 **Step 3: Write complete spec**
@@ -139,7 +139,8 @@ Before committing, verify:
 - [ ] Implementation details are actionable with full file paths
 - [ ] Code examples properly formatted with file:line references
 - [ ] No meta-commentary or self-notes
-- [ ] Self-contained for fresh agent to implement
+- [ ] Self-contained for fresh agent to implement, with decisions
+      stated in prose rather than left inside code
 - [ ] Committed-visibility check: every path the spec references as
       already-existing resolves within the committed tree
       (`git ls-files` / `git check-ignore -v <path>`). If normative
