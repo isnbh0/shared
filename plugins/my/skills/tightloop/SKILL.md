@@ -12,4 +12,6 @@ Running every check after every edit does not make the work more careful. A chec
 
 A good check covers what the change can reach, and it fails if the change is wrong. Often that is one test, a typecheck, an assertion, or a short script that runs the one path in question.
 
+The full suite is the most expensive check there is. It is slow, and it occupies the machine while it runs. Its result also holds only for the code it ran on, so a full run partway through the work usually has to be repeated at the end. Most work needs it once, on the finished code.
+
 A change can affect code that depends on it. Clear boundaries, and units that can be tested at those boundaries, let you check a local change locally and trust the result. If the only honest way to check a small change is to run everything, the code around it has no boundary where it can be checked alone. Point that out instead of running everything each time.
