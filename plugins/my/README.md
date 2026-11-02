@@ -18,6 +18,7 @@ The skills are portable and can be installed individually. Most activate only wh
 | `hemingway` | Write plainly and concretely. |
 | `proofread-ko` | Proofread Korean text in repeated independent cold passes. |
 | `gauntlet` | Collect intuitive judgments through a fast, blinded A/B choice page built from the person's own material. |
+| `design-feedback` | Build a local HTML design gallery with per-frame comments, screenshots, and a feedback ZIP that round-trips between revisions. |
 | `findable` | Keep project conventions reachable from agent entry points. |
 | `debrief-manifesto` | Report work from the reader's point of view. |
 | `deputy` | Own authorized work through verified completion. |
