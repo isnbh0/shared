@@ -11,6 +11,7 @@ Host-specific activation syntax is documented separately. This plugin identifies
 - `macros:packet` — package work as a durable filesystem handoff with flexible structure, pause only work that depends on the return, then validate returned artifacts by their material contract and resume.
 - `macros:calibrate` — align a mental model or state through adaptive passes from broad structure to consequential finer distinctions.
 - `macros:leeway` — grant interpretive latitude without needless rigidity or literalism.
+- `macros:landscaping` — shape the information environment so capable agents arrive at intended behavior through ordinary judgment.
 - `macros:doubt` — launch an independent, web-researched critique of recent work or a supplied question.
 - `macros:consensus` — run blind agents on the same job concurrently, then merge consensus, unique findings, and conflicts.
 - `macros:seq` — run blind passes serially, committing each pass before the next.

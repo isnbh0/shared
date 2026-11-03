@@ -125,13 +125,14 @@ Four self-contained skills:
 
 #### macros
 
-Subagent orchestration workflows and behavior modifiers: map-reduce, chunked sequencing, durable filesystem packets, progressive mental-model calibration, interpretive leeway, research-backed critique, consensus review, sequential passes, and rigor mode.
+Subagent orchestration workflows and behavior modifiers: map-reduce, chunked sequencing, durable filesystem packets, progressive mental-model calibration, interpretive leeway, agent-environment landscaping, research-backed critique, consensus review, sequential passes, and rigor mode.
 
 - **mapreduce** — Splits tasks into independent chunks, dispatches parallel subagents, consolidates results
 - **chunked** — Runs a task as an ordered partition where each iteration may read prior iterations' outputs
 - **packet** — Packages work as a durable filesystem handoff with flexible structure, pauses only work that depends on the return, then validates returned artifacts by their material contract and resumes
 - **calibrate** — Aligns a mental model or state through adaptive passes from broad structure to consequential finer distinctions; composes with packet for file-based exchanges
 - **leeway** — Grants interpretive latitude where the user intends it, avoiding needless rigidity and literalism without making it a new protocol
+- **landscaping** — Shapes the information environment (entry points, docs, state, checks) so capable agents arrive at intended behavior through ordinary judgment rather than accumulated rules
 - **doubt** — Spawns a blind subagent that reads code, verifies assumptions against web sources, applies fixes, and reports concerns ranked by severity
 - **consensus** — Runs N blind agents on the same job in parallel, merges findings into consensus/unique/conflicts (no edits for concurrent safety)
 - **seq** — Runs N serial blind passes with commits between rounds; requires clean worktree
