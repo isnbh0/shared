@@ -8,7 +8,7 @@ The skills are portable and can be installed individually. Most activate only wh
 | --- | --- |
 | `principles` | Apply working principles for building projects to implementation, design, and review. |
 | `spex` | Implement an existing spex specification with coordinated work and rigorous verification. |
-| `grounding` | Derive system laws and make contradictory states unrepresentable. |
+| `grounding` | Pursue the foundation you wish the work had started from and make invalid states impossible to express. |
 | `layout-grounding` | Preserve grouping and reading order with stable interface anchors and natural content flow. |
 | `aspects` | Design overlapping concerns with explicit scope and composition. |
 | `space-race` | Coordinate partially dependent work in parallel. |

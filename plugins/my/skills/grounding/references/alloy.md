@@ -1,6 +1,6 @@
 # Running Alloy
 
-Alloy needs Java and its distribution jar. These notes were checked against Alloy 6.2.0. Set `ALLOY_JAR` to the jar's path. If no jar is available, say so and use another check instead of installing anything. Use the jar rather than an `alloy` executable on the PATH, which may be a different program.
+Alloy needs Java and its distribution jar. These notes were checked against Alloy 6.2.0. Set `ALLOY_JAR` to the jar's path. If it is unset, look for `org.alloytools.alloy.dist*.jar` on the machine. If no jar is available, say so and use another check instead of installing anything. Use the jar rather than an `alloy` executable on the PATH, which may be a different program.
 
 ```
 java -Djava.awt.headless=true -jar "$ALLOY_JAR" \
@@ -29,6 +29,6 @@ These expectations are worth asserting in a script. Compare the whole verdict, b
 
 ## Avoiding checks that cannot fail
 
-- A law written as a `fact` and asserted again is `UNSAT` by construction. Check consequences and interactions between laws, not the laws restated.
+- A law written as a `fact` and asserted again is `UNSAT` by construction. A `run` of a forbidden scenario that only negates a fact is `UNSAT` the same way. Check consequences and interactions between laws, not the laws restated.
 - Contradictory facts make every check pass. Pair each check with a `run` that reaches the check's precondition.
 - Weaken or remove a law and confirm that the check turns `SAT`.
