@@ -142,7 +142,7 @@ An incubator for skills and macros used repeatedly. Most are explicit-request sk
 Bundled skills (all under `plugins/my/skills/`):
 - `principles` - apply working principles for building projects to implementation, design, and review
 - `spex` - implement an existing spex specification with coordinated work and rigorous verification
-- `grounding` - derive system laws, make contradicting states impossible, and reopen whatever it takes
+- `grounding` - pursue the foundation you wish the work had started from and make invalid states impossible to express
 - `layout-grounding` - preserve grouping and reading order with stable interface anchors and natural content flow
 - `aspects` - design overlapping concerns with explicit scope and composition
 - `space-race` - coordinate partially dependent work in parallel
