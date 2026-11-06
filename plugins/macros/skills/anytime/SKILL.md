@@ -11,10 +11,11 @@ Whenever the run is stopped or checked:
 
 - **Usable now.** What the user asked for exists in usable form from the first finished item onward: the finished files if they asked for files, the report so far if they asked for a report. No final step stands between the work and its value.
 - **Nothing finished is lost.** Finished work survives whatever ends the run, and a later run can pick up without redoing it.
+- **Clear to a newcomer.** Anyone arriving fresh, including a new session, can tell from what the run leaves behind where the results are, how many are finished, what failed, whether the run is still going, and how to stop or resume it.
 - **Honest count.** "How many so far?" has a true answer that is cheap to get. Only fully finished items count, all held to the same quality bar, and failed or skipped items are reported alongside them.
 
 The conversation decides everything else, including what ends the run ("stop at 1000", "stop at 6:30am", "until the quota runs out"), where the work comes from, where it runs, and how much runs at once. Apart from the stop condition, choose what fits the job where the user has not said.
 
-If no stop condition has been given, ask for one while starting on a bounded default that fits the job, such as the end of a finite list. Hold off starting only if even that default would spend something consequential. Make sure the run can actually reach the stop, or say up front that it can't: an in-session run won't reach 6:30am if the session closes first.
+If no stop condition has been given, ask for one while starting on a bounded default that fits the job, such as the end of a finite list. Hold off starting only if even that default would spend something consequential or do something that can't be undone. Make sure the run can actually reach the stop, or say up front that it can't: an in-session run won't reach 6:30am if the session closes first.
 
 When some work is clearly worth more and nothing else sets the order, do it first, so that stopping early leaves the best of it done.
