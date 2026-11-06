@@ -8,6 +8,7 @@ Host-specific activation syntax is documented separately. This plugin identifies
 
 - `macros:mapreduce` — split work into independent parallel chunks, then consolidate the results.
 - `macros:chunked` — process an ordered partition sequentially, allowing later chunks to use earlier outputs.
+- `macros:anytime` — run bulk work so partial results are usable at any moment and more time yields more results, with the stop condition set in conversation.
 - `macros:packet` — package work as a durable filesystem handoff with flexible structure, pause only work that depends on the return, then validate returned artifacts by their material contract and resume.
 - `macros:calibrate` — align a mental model or state through adaptive passes from broad structure to consequential finer distinctions.
 - `macros:leeway` — grant interpretive latitude without needless rigidity or literalism.
