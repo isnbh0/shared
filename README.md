@@ -282,7 +282,7 @@ File-producing skills (interview, spex, report-writer, macros, study, gimme, pro
 3. **Project config** (`.agents/skill-configs/<skill>/config.yaml`) — committed to repo, shared with team
 4. **Legacy fallback** (`.claude/skill-configs/<skill>/`) — only for skills that shipped older config paths
 
-There are no built-in defaults for most file-producing skills. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`, `pictograms`).
+There are no built-in defaults for most file-producing skills. Ask for output configuration only when the request and existing configuration do not supply it. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`, `pictograms`).
 
 Use `.agents/skill-configs/` for new configuration. This is a provider-neutral convention defined by this repository, not an Agent Skills ecosystem standard. The `.claude/skill-configs/` path is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
 

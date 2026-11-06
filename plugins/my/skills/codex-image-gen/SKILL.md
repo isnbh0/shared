@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Codex image generation
 
-Use the bundled runner to generate one new image through Codex's native image tool. Requires
+Use the bundled runner to generate one new image per invocation through Codex's native image tool. Requires
 `codex`, an authenticated installation with native image generation, and `uv` on macOS or Linux.
 This consumes Codex usage. Do not switch to the separately billed image API without agreement.
 Editing and reference-image composition are outside this skill's current interface.
@@ -32,7 +32,7 @@ installation's configured execution permissions; the runner does not bypass appr
 
 ## Generate
 
-Save the prepared prompt to a UTF-8 file, then run:
+Supply the prepared prompt as a UTF-8 file or stdin. For example:
 
 ```sh
 uv run "<skill-root>/scripts/generate.py" \
@@ -44,14 +44,15 @@ uv run "<skill-root>/scripts/generate.py" \
 
 Omit `--transparent` for an opaque background. `--prompt-file -` reads stdin. Use `--replace` only
 when replacement of that output and its metadata is authorized. The runner refuses occupied output
-paths before generating. For a requested batch, use one distinct output per image, sequentially
-(concurrency one); never generate more than the requested count. Do not invoke this skill recursively
-inside the nested session.
+paths before generating. For a requested batch, launch independent runners in parallel, defaulting
+to up to three concurrent jobs unless the user specifies another limit. Give each image a distinct
+output path, track each job's result, and await all jobs. Generate only the requested count.
+Do not invoke this skill recursively inside the nested session.
 
 Stdout contains one JSON result; progress goes to stderr. Success includes the output and metadata
 paths, dimensions, actual format, alpha measurements, SHA-256, source path, and execution thread ID.
-Report those measured results rather than the nested agent's claims. A requested transparent image
-with no transparent pixels returns a failure with the saved artifact's metadata.
+Report the saved image and relevant measured properties; keep full provenance in the sidecar.
+A requested transparent image with no transparent pixels returns a failure with the saved artifact's metadata.
 
 ## Recover
 
@@ -70,9 +71,11 @@ Recovery never launches Codex. It verifies an already published output or search
 thread's generated-image directory, then saves the original bytes. Multiple candidate images are an
 error, not a reason to select the newest. If the job is still running, wait for it to finish before
 recovering. Do not delete job state to retry automatically: an interrupted request may have consumed
-usage or still be completing. Inspect the logs, resolve the cause, and obtain an explicit retry
-decision before starting another job at a new output path. To intentionally reuse a completed output
-path, archive its job directory first and authorize replacement.
+usage or still be completing. Inspect the logs and resolve the cause. If generation never started,
+correct the problem and continue within existing authorization. For another generation, ask only
+when duplication risk or authorization for additional usage remains unresolved. Start a retry at
+a new output path. To intentionally reuse a completed output path, archive its job directory first
+and use `--replace` when replacement is authorized.
 
 The source-directory layout is an observed Codex CLI behavior, not a stable API. If it changes,
 report the capability/recovery failure and retain the logs; do not search globally for a recent image.

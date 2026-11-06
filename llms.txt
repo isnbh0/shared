@@ -333,7 +333,7 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, codex-image-gen, and the tractatus skill in my) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, codex-image-gen, and the tractatus skill in my) write to configurable workspace directories. Most have no built-in output directory. Ask for output configuration only when the request and existing configuration do not supply it. Typical configured values:
 
 | Skill | Example workspace |
 |-------|-------------------|
@@ -346,7 +346,7 @@ Skills that produce files (interview, spex, report-writer, macros, study, gimme,
 | promptopt | `.agent-workspace/promptopt/runs` |
 | pictogram | `.agent-workspace/pictograms` |
 | tractatus | Configured `output_dir`; user-provided output path takes precedence |
-| codex-image-gen | Configured `output_dir` under `.agents/skill-configs/codex-image-gen/`; explicit output path wins; job state beside output |
+| codex-image-gen | Configured `output_dir` under `.agents/skill-configs/codex-image-gen/`; explicit output path wins |
 | my tractatus | Configured `output_dir` under `.agents/skill-configs/my-tractatus/`; user-provided path takes precedence |
 
 Override precedence (first match wins):
