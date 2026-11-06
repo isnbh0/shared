@@ -1,0 +1,10 @@
+# The skill reads the first existing project config.local.yaml or config.yaml.
+# Explicit user choices win. Relative paths resolve against the project root.
+# No output directory is assumed: ask once if no output path or config is supplied.
+output_dir: .agent-workspace/images
+# Omit workspace to use the project root. This is the nested Codex working directory.
+workspace: .
+# Agent model, not the image-generation backend model.
+model: gpt-6-luna
+# Maximum time to wait for Codex; recovery never regenerates.
+timeout: 300

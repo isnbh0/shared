@@ -152,7 +152,7 @@ URL 또는 로컬 파일을 기반으로 한 소크라테스식 학습 세션 �
 
 실제 작업에서 반복해서 쓰는 스킬과 매크로를 모은 인큐베이터입니다. 전체 목록은 [플러그인 개요](plugins/my/README.md)에 있습니다.
 
-principles, grounding, layout-grounding, aspects, space-race, tightloop, editorial-ko, editorial-standards, hemingway, proofread-ko, gauntlet, design-feedback, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, complexity-panel, spex, video-knowhow를 포함합니다. 대부분은 명시적으로 요청했을 때만 활성화됩니다. video-knowhow에는 코드로 영상을 만드는 한 사람의 작업 노트와 스타터, 직접 실행해 볼 수 있는 쇼케이스가 들어 있어, 에이전트가 그런 영상을 만들거나 검토할 때 알아서 불러 씁니다. spex 스킬에는 별도의 spex 플러그인이 필요합니다. tractatus는 자체 렌더러를 포함하며, 사용자가 출력 경로를 지정하지 않으면 `.agents/skill-configs/my-tractatus/` 설정을 사용합니다.
+principles, grounding, layout-grounding, aspects, space-race, tightloop, editorial-ko, editorial-standards, hemingway, proofread-ko, gauntlet, design-feedback, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, complexity-panel, spex, video-knowhow, codex-image-gen을 포함합니다. 대부분은 명시적으로 요청했을 때만 활성화됩니다. video-knowhow에는 코드로 영상을 만드는 한 사람의 작업 노트와 스타터, 직접 실행해 볼 수 있는 쇼케이스가 들어 있어, 에이전트가 그런 영상을 만들거나 검토할 때 알아서 불러 씁니다. spex 스킬에는 별도의 spex 플러그인이 필요합니다. tractatus는 자체 렌더러를 포함하며, 사용자가 출력 경로를 지정하지 않으면 `.agents/skill-configs/my-tractatus/` 설정을 사용합니다.
 
 #### gimme
 
@@ -273,7 +273,7 @@ Phaser 작업 시 의미 기반으로 활성화되는 패시브 지식 베이스
 
 ## 워크스페이스 설정
 
-파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus 및 my 플러그인의 tractatus)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
+파일을 생성하는 스킬(interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, codex-image-gen 및 my 플러그인의 tractatus)은 계층적 우선순위를 가진 워크스페이스 디렉터리 설정을 지원합니다 (먼저 발견된 항목 우선):
 
 1. **명시적 오버라이드** — 이번 실행에 사용할 워크스페이스 디렉터리를 요청
 2. **로컬 설정** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignore 대상, 개인 오버라이드
@@ -283,6 +283,8 @@ Phaser 작업 시 의미 기반으로 활성화되는 패시브 지식 베이스
 대부분의 파일 생성 스킬에는 기본값이 없습니다. 각 스킬은 첫 사용 시 설정을 안내합니다. 출력은 `.agent-workspace/<folder>` 규칙을 따릅니다 (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`, `pictograms`).
 
 새 설정은 `.agents/skill-configs/`를 사용하세요. 이는 Agent Skills 생태계 표준이 아니라 이 저장소에서 정의한 제공자 중립 규칙입니다. `.claude/skill-configs/` 경로는 이전에 해당 경로를 사용했던 스킬의 마이그레이션 지원용으로만 유지되며, 새 스킬은 이 폴백을 추가할 필요가 없습니다. 2027-01-31 이후 레거시 폴백 제거를 검토합니다.
+
+codex-image-gen은 명시적으로 요청했을 때 번들 실행기로 인증된 Codex의 이미지 생성 기능을 사용합니다. 원본 바이트를 보존하고 실제 이미지 정보를 측정하며, 중단된 작업은 다시 생성하지 않고 복구합니다. 출력 설정은 `.agents/skill-configs/codex-image-gen/`에 두며 사용자가 지정한 출력 경로를 우선합니다.
 
 ## 다른 에이전트 도구
 

@@ -152,7 +152,7 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 
 An incubator for skills and macros I keep using. See the [plugin overview](plugins/my/README.md) for the full list.
 
-The plugin includes principles, grounding, layout-grounding, aspects, space-race, tightloop, editorial-ko, editorial-standards, hemingway, proofread-ko, gauntlet, design-feedback, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, complexity-panel, spex, and video-knowhow. Most are activated only by explicit request. The video-knowhow skill bundles one person's practice notes on making video with code, with a starter and a runnable showcase, and activates when an agent makes or reviews such a video. The spex skill requires the separate spex plugin; tractatus bundles its own renderer and uses `.agents/skill-configs/my-tractatus/` for its output directory when the user does not give a path.
+The plugin includes principles, grounding, layout-grounding, aspects, space-race, tightloop, editorial-ko, editorial-standards, hemingway, proofread-ko, gauntlet, design-feedback, findable, debrief-manifesto, deputy, visual-grounding, tractatus, simple-now, complexity-panel, spex, video-knowhow, and codex-image-gen. Most are activated only by explicit request. The video-knowhow skill bundles one person's practice notes on making video with code, with a starter and a runnable showcase, and activates when an agent makes or reviews such a video. The spex skill requires the separate spex plugin; tractatus bundles its own renderer and uses `.agents/skill-configs/my-tractatus/` for its output directory when the user does not give a path.
 
 #### gimme
 
@@ -275,7 +275,7 @@ Evidence-based debugging protocol using the scientific method.
 
 ## Workspace Configuration
 
-File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, and the tractatus skill in my) support configurable workspace directories with layered precedence (first match wins):
+File-producing skills (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, codex-image-gen, and the tractatus skill in my) support configurable workspace directories with layered precedence (first match wins):
 
 1. **Explicit override** — ask to use a specific workspace directory for this run
 2. **Local config** (`.agents/skill-configs/<skill>/config.local.yaml`) — gitignored, personal overrides
@@ -285,6 +285,8 @@ File-producing skills (interview, spex, report-writer, macros, study, gimme, pro
 There are no built-in defaults for most file-producing skills. Each skill prompts for setup on first use. Output follows the `.agent-workspace/<folder>` convention (`specs`, `reports`, `interviews`, `macros`, `study`, `gimme`, `promptopt`, `pictograms`).
 
 Use `.agents/skill-configs/` for new configuration. This is a provider-neutral convention defined by this repository, not an Agent Skills ecosystem standard. The `.claude/skill-configs/` path is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
+
+The codex-image-gen skill generates new images through an authenticated Codex installation using its bundled runner. It activates only by explicit request, preserves original bytes, reports measured metadata, and recovers interrupted jobs without regenerating. Output configuration lives under `.agents/skill-configs/codex-image-gen/`; explicit output paths take precedence.
 
 ## Other Agentic Tools
 

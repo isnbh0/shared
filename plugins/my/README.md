@@ -27,3 +27,4 @@ The skills are portable and can be installed individually. Most activate only wh
 | `simple-now` | Make the useful simple change and leave a robust follow-up. |
 | `complexity-panel` | Convene cold, read-only reviewers to map accidental complexity and rank cleanup. |
 | `video-knowhow` | Consult bundled practice notes, a starter, and a showcase for video made with code. The `kb/` folder is generated from its source repository. |
+| `codex-image-gen` | Generate new images through authenticated Codex with a bundled runner, verified original bytes, and recovery without regeneration. |

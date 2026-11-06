@@ -42,7 +42,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install my@isnbh0
 ```
 
-Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `anytime`, `packet`, `calibrate`, `leeway`, `landscaping`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains twenty-one skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
+Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `anytime`, `packet`, `calibrate`, `leeway`, `landscaping`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains twenty-two skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
 
 The former `zoomdoc@isnbh0` plugin identifier is retired. Install `doctype@isnbh0` for both document skills; existing zoomdoc HTML documents remain usable. For a direct install, copy `plugins/doctype/skills/zoomdoc/` or `plugins/doctype/skills/tractatus/`.
 
@@ -160,6 +160,7 @@ Bundled skills (all under `plugins/my/skills/`):
 - `tractatus` - author and render a navigable outline page with a standalone renderer
 - `simple-now` - do the useful simple thing and record a robust follow-up
 - `complexity-panel` - convene cold, read-only reviewers to map accidental complexity and rank cleanup
+- `codex-image-gen` - explicitly generate new images through authenticated Codex with byte verification, measured metadata, and recovery without regeneration
 - `video-knowhow` - consult bundled practice notes, a starter, and a runnable showcase when making, reviewing, or directing video made with code
 
 ### labs
@@ -315,7 +316,8 @@ shared/
 │   ├── my/
 │   │   ├── .claude-plugin/plugin.json
 │   │   ├── README.md
-│   │   └── skills/                    # 21 independent skill directories
+│   │   └── skills/                    # 22 independent skill directories
+│   │       └── codex-image-gen/        # SKILL.md, config example, runner, tests, invocation policy
 │   ├── phaser/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/phaser/
@@ -331,7 +333,7 @@ shared/
 
 ## Workspace Configuration
 
-Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, and the tractatus skill in my) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
+Skills that produce files (interview, spex, report-writer, macros, study, gimme, promptopt, pictogram, tractatus, codex-image-gen, and the tractatus skill in my) write to configurable workspace directories. There are no built-in defaults - each skill prompts for setup on first use. Typical configured values:
 
 | Skill | Example workspace |
 |-------|-------------------|
@@ -344,6 +346,7 @@ Skills that produce files (interview, spex, report-writer, macros, study, gimme,
 | promptopt | `.agent-workspace/promptopt/runs` |
 | pictogram | `.agent-workspace/pictograms` |
 | tractatus | Configured `output_dir`; user-provided output path takes precedence |
+| codex-image-gen | Configured `output_dir` under `.agents/skill-configs/codex-image-gen/`; explicit output path wins; job state beside output |
 | my tractatus | Configured `output_dir` under `.agents/skill-configs/my-tractatus/`; user-provided path takes precedence |
 
 Override precedence (first match wins):
