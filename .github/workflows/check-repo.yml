@@ -14,3 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ruby scripts/check-repo.rb
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.13"
+          enable-cache: false
+      - name: Test codex-image-gen offline
+        run: uv run plugins/my/skills/codex-image-gen/tests/test_generate.py
