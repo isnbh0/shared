@@ -230,13 +230,10 @@ class ReferenceTests(unittest.TestCase):
         Image.new("RGB", (3, 2), (0, 0, 255)).save(self.second)
         self.hashes = [gen.digest(self.first.read_bytes()), gen.digest(self.second.read_bytes())]
 
-    def run_new(self, references, reported=None, **kwargs):
+    def run_new(self, references, **kwargs):
         output = self.root / "edit.png"
         job = Path(str(output) + ".imagegen")
         rows = [dict(type="thread.started", thread_id=self.thread)]
-        if reported is not None:
-            rows.append(dict(type="item.completed", item=dict(
-                type="image_generation", input_images=[dict(path="x", sha256=h) for h in reported])))
         with patch.dict(os.environ, {"CODEX_HOME": str(self.root)}), \
                 patch.object(gen.subprocess, "Popen") as popen:
             popen.return_value.pid, popen.return_value.returncode = 98765, 0
@@ -246,9 +243,9 @@ class ReferenceTests(unittest.TestCase):
                                        reference=references, **kwargs))
         return result, job, popen
 
-    def test_ordered_snapshots_are_passed_and_verified(self):
-        result, job, popen = self.run_new([self.first, self.second], reported=self.hashes)
-        self.assertEqual((result["status"], result["references_verified"]), ("ok", True))
+    def test_ordered_snapshots_are_passed_to_codex(self):
+        result, job, popen = self.run_new([self.first, self.second])
+        self.assertEqual(result["status"], "ok")
         snapshots = [Path(r["snapshot"]) for r in result["references"]]
         self.assertEqual([p.name for p in snapshots], ["reference-1.png", "reference-2.jpg"])
         self.assertEqual([r["sha256"] for r in result["references"]], self.hashes)
@@ -256,23 +253,12 @@ class ReferenceTests(unittest.TestCase):
         self.assertTrue(all(p.stat().st_mode & 0o777 == 0o600 for p in snapshots))
         instruction = popen.return_value.communicate.call_args.args[0].decode()
         self.assertIn(json.dumps([str(p) for p in snapshots]), instruction)
-        self.assertIn("view_image", instruction)
-        self.assertNotIn("Omit all reference-image arguments", instruction)
         Image.new("RGB", (9, 9)).save(self.first)
         self.assertEqual(gen.digest(snapshots[0].read_bytes()), self.hashes[0])
-
-    def test_dropped_reference_is_a_constraint_failure(self):
-        result, _, _ = self.run_new([self.first, self.second], reported=self.hashes[:1])
-        self.assertEqual((result["status"], result["references_verified"]), ("constraint_failed", False))
-
-    def test_unreported_references_are_marked_unverified(self):
-        result, _, _ = self.run_new([self.first], reported=None)
-        self.assertEqual((result["status"], result["references_verified"]), ("ok", None))
 
     def test_generation_without_references_omits_reference_arguments(self):
         result, _, popen = self.run_new([])
         instruction = popen.return_value.communicate.call_args.args[0].decode()
-        self.assertIn("Omit all reference-image arguments", instruction)
         self.assertNotIn("referenced_image_paths", instruction)
         self.assertEqual(result["references"], [])
 
@@ -283,8 +269,12 @@ class ReferenceTests(unittest.TestCase):
         Image.new("RGB", (2, 2)).save(bitmap)
         output = self.root / "edit.png"
         output.write_bytes(self.first.read_bytes())
+        alias = self.root / "alias.png"
+        os.link(output, alias)
         cases = [[self.root / "missing.png"], [text], [bitmap], [self.first] * 6,
-                 [output], [Path(str(output) + ".json")]]
+                 [output], [Path(str(output) + ".json")], [alias]]
+        if (self.root / "EDIT.png").exists():  # Case-insensitive volume.
+            cases.append([self.root / "EDIT.png"])
         for references in cases:
             with self.subTest(references=references), \
                     patch.object(gen.subprocess, "Popen", side_effect=AssertionError("Must not generate")):

@@ -33,15 +33,16 @@ installation's configured execution permissions; the runner does not bypass appr
 ## References
 
 Pass local images with repeated `--reference` options when the result should be derived from them:
-modifying, restyling, or combining their content. Codex sends these as an edit request. For a
-brand-new image, omit references and describe any inspiration in the prompt.
+modifying, restyling, or combining their content. When the user supplies no images, omit
+references and describe any inspiration in the prompt.
 
 Infer each reference's role from the request, such as the image to modify or a source of style or
 elements, and ask only when roles are unclear. Order the references so the prompt can name them
 ("the first image", "the second image"), and state what to preserve. References must be readable
 PNG, JPEG, or WebP files. Write the result to a new path: a reference cannot be the output or its
 metadata, even with `--replace`. When an edit target has transparent pixels, pass `--transparent`
-unless the user wants an opaque result; the native tool does not infer it.
+unless the user wants an opaque result; the native tool does not infer it. Edits do not keep the
+reference's pixel dimensions; resizing to match is a separate derivative.
 
 ## Generate
 
@@ -51,7 +52,6 @@ Supply the prepared prompt as a UTF-8 file or stdin. For example:
 uv run "<skill-root>/scripts/generate.py" \
   --prompt-file /absolute/path/brief.txt \
   --output /absolute/path/assets/teapot.png \
-  --reference /absolute/path/assets/source.png \
   --workspace /absolute/path/project \
   --model gpt-6-luna --timeout 300 --transparent
 ```
@@ -67,19 +67,16 @@ Stdout contains one JSON result; progress goes to stderr. Success includes the o
 paths, dimensions, actual format, alpha measurements, SHA-256, source path, and execution thread ID.
 Report the saved image and relevant measured properties; keep full provenance in the sidecar.
 A requested transparent image with no transparent pixels returns a failure with the saved artifact's metadata.
-Results also list the ordered references. `references_verified` is `true` when Codex's event stream
-reports the same ordered input hashes, `null` when the stream omits them, and `false` otherwise.
-A `false` value returns `constraint_failed`; do not present that image as an edit of the supplied
-references.
+Results also list the ordered references supplied. Codex's event stream does not confirm which
+images the tool received; judge an edit from the output.
 
 ## Recover
 
 `<output>.imagegen/` holds the prompt, execution instruction, reference snapshots, JSONL events,
 stderr, and job state. `<output>.json` is the metadata sidecar. Keep these until the result is
 accepted; they may contain private prompt and image content. The runner snapshots references before
-starting Codex, so later changes to the originals do not affect the job, and recovery never treats
-snapshots as generated images. The recorded prompt is the exact prompt supplied to Codex with
-instructions to pass it verbatim; apart from any reported input hashes, the JSONL stream does not
+starting Codex, so later changes to the originals do not affect the job. The recorded prompt is the
+exact prompt supplied to Codex with instructions to pass it verbatim; the JSONL stream does not
 independently expose the native tool's arguments.
 
 After interruption or failure, use the same output path:

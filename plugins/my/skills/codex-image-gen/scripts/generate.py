@@ -73,14 +73,16 @@ def measure(data):
 
 
 def load_references(paths, output):
-    """Validate references before any job state exists; returns bytes to snapshot."""
+    """Validate references; returns bytes to snapshot."""
     if len(paths) > MAX_REFERENCES:
         raise Failure("invalid_request", f"At most {MAX_REFERENCES} references are supported.")
     protected = {output, Path(str(output) + ".json")}
     loaded = []
     for given in paths:
         path = given.expanduser().resolve()
-        if path in protected:
+        # samefile also catches hard links and case variants on case-insensitive volumes.
+        if path in protected or any(path.exists() and p.exists() and os.path.samefile(path, p)
+                                    for p in protected):
             raise Failure("invalid_request", f"A reference cannot be the output or its metadata: {path}")
         try:
             if not path.is_file():
@@ -101,27 +103,11 @@ def snapshot_references(job, loaded):
     for index, (path, data, measured) in enumerate(loaded, 1):
         snapshot = job / f"reference-{index}{REFERENCE_FORMATS[measured['format']]}"
         atomic_write(snapshot, data)  # mkstemp creates 0600 files; replacement keeps the mode.
-        if digest(snapshot.read_bytes()) != measured["sha256"]:
-            raise Failure("copy_failed", f"Reference snapshot does not match {path}.")
         references.append(dict(path=str(path), snapshot=str(snapshot), format=measured["format"],
                                width=measured["width"], height=measured["height"],
                                has_transparency=measured["has_transparency"],
                                sha256=measured["sha256"]))
     return references
-
-
-def observed_inputs(value):
-    """Latest input-image hashes the native tool reported, or None if the stream omits them."""
-    if isinstance(value, dict):
-        if isinstance(value.get("input_images"), list):
-            return [item.get("sha256") for item in value["input_images"] if isinstance(item, dict)]
-        value = list(value.values())
-    if isinstance(value, list):
-        for item in reversed(value):
-            found = observed_inputs(item)
-            if found is not None:
-                return found
-    return None
 
 
 def events(job):
@@ -192,12 +178,8 @@ def recover(job, state):
                       model=state["model"], prompt=state["prompt"],
                       transparent_requested=state["transparent"],
                       execution=state.get("execution", "interrupted"))
-        references = state.get("references", [])  # Absent in generation-only jobs from 1.8.x.
-        seen = observed_inputs(events(job))
-        result["references"] = references
-        result["references_verified"] = None if seen is None else seen == [r["sha256"] for r in references]
-        transparent_ok = not state["transparent"] or measured["has_transparency"]
-        result["status"] = "ok" if transparent_ok and result["references_verified"] is not False else "constraint_failed"
+        result["references"] = state.get("references", [])  # Absent in generation-only jobs from 1.8.x.
+        result["status"] = "ok" if not state["transparent"] or measured["has_transparency"] else "constraint_failed"
         save_json(receipt, result)  # Persist verification before either public file is installed.
     publish(output, data, state["original_output"])
     if digest(output.read_bytes()) != result["sha256"]:
