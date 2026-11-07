@@ -141,7 +141,7 @@ Subagent orchestration workflows and behavior modifiers: map-reduce, chunked seq
 - **orchestrate** — While active, delegates execution to subagents by default and operates at the high level, conserving context for direction and synthesis; an escape hatch keeps trivial work inline
 - **askme** — Shorthand: stop and ask the user to clarify ambiguities or make decisions instead of assuming
 - **delegate** — Shorthand: prefer subagents to save context space and parallelize independent subtasks
-- **tmi** — Flags content that only makes sense if you were in the room when it was written; reports by default, edits if explicitly instructed
+- **tmi** — Flags content a future reader doesn't need — session residue, defensive justifications, unsolicited caveats; reports by default, edits if explicitly instructed
 - **dry-run** — One-shot failsafe: describes what it would do for the activating request instead of doing it, then waits for confirmation
 - **timeless** — Shorthand: avoid time estimates (hours, calendar, size-to-time buckets); describe complexity, scope, risk, and ordering instead
 - **dredge** — Searches prior coding-agent transcripts for context; checks available prompt histories for exhaustive searches and distinguishes requests whose transcripts are missing. Defaults to the current project, widens scope from query hints, and uses AgentsView when available (with a Claude Code, Codex, and Pi grep fallback)
