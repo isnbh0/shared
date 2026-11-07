@@ -1,15 +1,15 @@
 ---
 name: codex-image-gen
-description: Generate new images through an authenticated Codex installation from a shell-capable agent, preserving original files and reporting measured metadata. Use only when explicitly requested.
+description: Generate new images or edit local reference images through an authenticated Codex installation from a shell-capable agent, preserving original files and reporting measured metadata. Use only when explicitly requested.
 disable-model-invocation: true
 ---
 
 # Codex image generation
 
-Use the bundled runner to generate one new image per invocation through Codex's native image tool. Requires
+Use the bundled runner to produce one new image per invocation through Codex's native image tool,
+either from a prompt alone or as an edit of up to five local reference images. Requires
 `codex`, an authenticated installation with native image generation, and `uv` on macOS or Linux.
 This consumes Codex usage. Do not switch to the separately billed image API without agreement.
-Editing and reference-image composition are outside this skill's current interface.
 
 ## Prepare
 
@@ -30,6 +30,19 @@ project config. An explicit output path needs no setup question. Default `worksp
 root, `model` to `gpt-6-luna`, and `timeout` to 300 seconds. The nested Codex process retains the
 installation's configured execution permissions; the runner does not bypass approvals or sandboxing.
 
+## References
+
+Pass local images with repeated `--reference` options when the result should be derived from them:
+modifying, restyling, or combining their content. Codex sends these as an edit request. For a
+brand-new image, omit references and describe any inspiration in the prompt.
+
+Infer each reference's role from the request, such as the image to modify or a source of style or
+elements, and ask only when roles are unclear. Order the references so the prompt can name them
+("the first image", "the second image"), and state what to preserve. References must be readable
+PNG, JPEG, or WebP files. Write the result to a new path: a reference cannot be the output or its
+metadata, even with `--replace`. When an edit target has transparent pixels, pass `--transparent`
+unless the user wants an opaque result; the native tool does not infer it.
+
 ## Generate
 
 Supply the prepared prompt as a UTF-8 file or stdin. For example:
@@ -38,6 +51,7 @@ Supply the prepared prompt as a UTF-8 file or stdin. For example:
 uv run "<skill-root>/scripts/generate.py" \
   --prompt-file /absolute/path/brief.txt \
   --output /absolute/path/assets/teapot.png \
+  --reference /absolute/path/assets/source.png \
   --workspace /absolute/path/project \
   --model gpt-6-luna --timeout 300 --transparent
 ```
@@ -53,13 +67,20 @@ Stdout contains one JSON result; progress goes to stderr. Success includes the o
 paths, dimensions, actual format, alpha measurements, SHA-256, source path, and execution thread ID.
 Report the saved image and relevant measured properties; keep full provenance in the sidecar.
 A requested transparent image with no transparent pixels returns a failure with the saved artifact's metadata.
+Results also list the ordered references. `references_verified` is `true` when Codex's event stream
+reports the same ordered input hashes, `null` when the stream omits them, and `false` otherwise.
+A `false` value returns `constraint_failed`; do not present that image as an edit of the supplied
+references.
 
 ## Recover
 
-`<output>.imagegen/` holds the prompt, execution instruction, JSONL events, stderr, and job state.
-`<output>.json` is the metadata sidecar. Keep these until the result is accepted; they may contain
-private prompt content. The recorded prompt is the exact prompt supplied to Codex with instructions
-to pass it verbatim; the JSONL stream does not independently expose the native tool's arguments.
+`<output>.imagegen/` holds the prompt, execution instruction, reference snapshots, JSONL events,
+stderr, and job state. `<output>.json` is the metadata sidecar. Keep these until the result is
+accepted; they may contain private prompt and image content. The runner snapshots references before
+starting Codex, so later changes to the originals do not affect the job, and recovery never treats
+snapshots as generated images. The recorded prompt is the exact prompt supplied to Codex with
+instructions to pass it verbatim; apart from any reported input hashes, the JSONL stream does not
+independently expose the native tool's arguments.
 
 After interruption or failure, use the same output path:
 

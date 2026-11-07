@@ -286,7 +286,7 @@ There are no built-in defaults for most file-producing skills. Ask for output co
 
 Use `.agents/skill-configs/` for new configuration. This is a provider-neutral convention defined by this repository, not an Agent Skills ecosystem standard. The `.claude/skill-configs/` path is retained only as migration support for skills that previously used it; new skills do not need to add that fallback. Review legacy fallback removal after 2027-01-31.
 
-The codex-image-gen skill generates new images through an authenticated Codex installation using its bundled runner. It activates only by explicit request, preserves original bytes, reports measured metadata, and recovers interrupted jobs without regenerating. Output configuration lives under `.agents/skill-configs/codex-image-gen/`; explicit output paths take precedence.
+The codex-image-gen skill generates new images, or edits local reference images, through an authenticated Codex installation using its bundled runner. It activates only by explicit request, preserves original bytes, reports measured metadata, and recovers interrupted jobs without regenerating. Output configuration lives under `.agents/skill-configs/codex-image-gen/`; explicit output paths take precedence.
 
 ## Other Agentic Tools
 

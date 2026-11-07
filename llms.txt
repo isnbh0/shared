@@ -160,7 +160,7 @@ Bundled skills (all under `plugins/my/skills/`):
 - `tractatus` - author and render a navigable outline page with a standalone renderer
 - `simple-now` - do the useful simple thing and record a robust follow-up
 - `complexity-panel` - convene cold, read-only reviewers to map accidental complexity and rank cleanup
-- `codex-image-gen` - explicitly generate new images through authenticated Codex with byte verification, measured metadata, and recovery without regeneration
+- `codex-image-gen` - explicitly generate new images or edit local reference images through authenticated Codex with byte verification, measured metadata, and recovery without regeneration
 - `video-knowhow` - consult bundled practice notes, a starter, and a runnable showcase when making, reviewing, or directing video made with code
 
 ### labs

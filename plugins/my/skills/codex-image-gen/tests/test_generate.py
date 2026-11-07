@@ -43,7 +43,7 @@ class RecoveryTests(unittest.TestCase):
         (self.job / "stderr.log").touch()
 
     def args(self, **kwargs):
-        values = dict(output=self.output, recover=True, replace=False, timeout=300,
+        values = dict(output=self.output, recover=True, replace=False, timeout=300, reference=[],
                       workspace=self.root, prompt_file=None, model="gpt-6-luna", transparent=True)
         return argparse.Namespace(**(values | kwargs))
 
@@ -215,6 +215,98 @@ class RecoveryTests(unittest.TestCase):
                 gen.generate(self.job, self.state, 300)
         self.assertEqual(caught.exception.code, "authentication_failed")
         self.assertEqual(popen.call_count, 1)
+
+
+class ReferenceTests(unittest.TestCase):
+    args = RecoveryTests.args
+
+    def setUp(self):
+        RecoveryTests.setUp(self)
+        self.prompt = self.root / "brief.txt"
+        self.prompt.write_text("make the sky green")
+        self.first = self.root / "source.png"
+        self.second = self.root / "style.jpg"
+        Image.new("RGBA", (4, 4), (255, 0, 0, 0)).save(self.first)
+        Image.new("RGB", (3, 2), (0, 0, 255)).save(self.second)
+        self.hashes = [gen.digest(self.first.read_bytes()), gen.digest(self.second.read_bytes())]
+
+    def run_new(self, references, reported=None, **kwargs):
+        output = self.root / "edit.png"
+        job = Path(str(output) + ".imagegen")
+        rows = [dict(type="thread.started", thread_id=self.thread)]
+        if reported is not None:
+            rows.append(dict(type="item.completed", item=dict(
+                type="image_generation", input_images=[dict(path="x", sha256=h) for h in reported])))
+        with patch.dict(os.environ, {"CODEX_HOME": str(self.root)}), \
+                patch.object(gen.subprocess, "Popen") as popen:
+            popen.return_value.pid, popen.return_value.returncode = 98765, 0
+            popen.return_value.communicate.side_effect = lambda *a, **k: (job / "events.jsonl").write_text(
+                "".join(json.dumps(row) + "\n" for row in rows))
+            result = gen.run(self.args(output=output, recover=False, prompt_file=str(self.prompt),
+                                       reference=references, **kwargs))
+        return result, job, popen
+
+    def test_ordered_snapshots_are_passed_and_verified(self):
+        result, job, popen = self.run_new([self.first, self.second], reported=self.hashes)
+        self.assertEqual((result["status"], result["references_verified"]), ("ok", True))
+        snapshots = [Path(r["snapshot"]) for r in result["references"]]
+        self.assertEqual([p.name for p in snapshots], ["reference-1.png", "reference-2.jpg"])
+        self.assertEqual([r["sha256"] for r in result["references"]], self.hashes)
+        self.assertEqual(job.stat().st_mode & 0o777, 0o700)
+        self.assertTrue(all(p.stat().st_mode & 0o777 == 0o600 for p in snapshots))
+        instruction = popen.return_value.communicate.call_args.args[0].decode()
+        self.assertIn(json.dumps([str(p) for p in snapshots]), instruction)
+        self.assertIn("view_image", instruction)
+        self.assertNotIn("Omit all reference-image arguments", instruction)
+        Image.new("RGB", (9, 9)).save(self.first)
+        self.assertEqual(gen.digest(snapshots[0].read_bytes()), self.hashes[0])
+
+    def test_dropped_reference_is_a_constraint_failure(self):
+        result, _, _ = self.run_new([self.first, self.second], reported=self.hashes[:1])
+        self.assertEqual((result["status"], result["references_verified"]), ("constraint_failed", False))
+
+    def test_unreported_references_are_marked_unverified(self):
+        result, _, _ = self.run_new([self.first], reported=None)
+        self.assertEqual((result["status"], result["references_verified"]), ("ok", None))
+
+    def test_generation_without_references_omits_reference_arguments(self):
+        result, _, popen = self.run_new([])
+        instruction = popen.return_value.communicate.call_args.args[0].decode()
+        self.assertIn("Omit all reference-image arguments", instruction)
+        self.assertNotIn("referenced_image_paths", instruction)
+        self.assertEqual(result["references"], [])
+
+    def test_invalid_references_fail_before_job_creation(self):
+        text = self.root / "notes.png"
+        text.write_text("not an image")
+        bitmap = self.root / "legacy.bmp"
+        Image.new("RGB", (2, 2)).save(bitmap)
+        output = self.root / "edit.png"
+        output.write_bytes(self.first.read_bytes())
+        cases = [[self.root / "missing.png"], [text], [bitmap], [self.first] * 6,
+                 [output], [Path(str(output) + ".json")]]
+        for references in cases:
+            with self.subTest(references=references), \
+                    patch.object(gen.subprocess, "Popen", side_effect=AssertionError("Must not generate")):
+                with self.assertRaises(gen.Failure):
+                    gen.run(self.args(output=output, recover=False, replace=True,
+                                      prompt_file=str(self.prompt), reference=references))
+                self.assertFalse(Path(str(output) + ".imagegen").exists())
+
+    def test_recovery_rejects_new_references(self):
+        with self.assertRaisesRegex(gen.Failure, "recorded references"):
+            gen.run(self.args(reference=[self.first]))
+
+    def test_snapshots_are_never_recovery_candidates(self):
+        Image.new("RGB", (2, 2)).save(self.job / "reference-1.png")
+        self.source.unlink()
+        with self.assertRaises(gen.Failure) as caught:
+            gen.run(self.args())
+        self.assertEqual(caught.exception.code, "image_unavailable")
+
+    def test_generation_only_job_from_previous_release_recovers(self):
+        result = gen.run(self.args())
+        self.assertEqual((result["status"], result["references"]), ("ok", []))
 
 
 if __name__ == "__main__":
