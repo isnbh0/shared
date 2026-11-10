@@ -1,5 +1,5 @@
 <!-- Generated from isnbh0/my-sandbox:projects/principles/clean.md
-Source revision: 864716f3534ae17185b6d4a559ffdad7ac17efc5
+Source revision: 3f6a5bd670b1bb8fee3c33944d574c9d470f7f91
 -->
 
 # Principles for building projects
@@ -30,9 +30,9 @@ Build what the present work calls for. Give the rules that matter a clear home. 
     - 2.2.2 When several symptoms share a cause, repair their common source.
     - 2.2.3 A sound repair reaches every model, caller, datum, and test that depends on the broken shape.
     - 2.2.4 Test interacting rules with a check that could reveal a counterexample. State the bounds of what the check established.
-    - 2.2.5 Declare what an operation needs and how it can fail in the signature, protocol, or contract its callers use. Prefer a check that catches a missing requirement or unhandled failure to a convention every caller must remember.
-    - 2.2.6 Give running work and resources a lifetime owner who governs completion, cancellation, and release, including work the owner starts. Detached work needs an explicit handoff to another owner.
-    - 2.2.7 When several operations make the same promises, give validation, failure handling, and cleanup a shared home each one inherits. A new operation carries the rules to its callers instead of requiring each caller to rebuild them.
+    - 2.2.5 Declare what an operation needs and how it can fail in the signature, protocol, or contract its callers use. Prefer a check to a convention every caller must remember: the check catches a missing requirement or an unhandled failure.
+    - 2.2.6 Give running work and resources a lifetime owner that governs completion, cancellation, and release, including work the owner starts. Work that must outlive the request that started it needs an explicit handoff to a longer-lived owner.
+    - 2.2.7 When several operations make the same promises, give their validation, failure handling, and cleanup a shared home each one uses. A new operation, or a combination of operations, carries these promises to its callers instead of requiring each caller to rebuild them.
   - 2.3 Expand what people can do through features they can combine.
     - 2.3.1 Count the tasks a person can finish, not merely the controls the product contains.
     - 2.3.2 Give each feature a distinct purpose. Let useful combinations carry more work than any single feature alone.
