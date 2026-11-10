@@ -1,5 +1,5 @@
 <!-- Generated from isnbh0/my-sandbox:projects/principles/clean.md
-Source revision: 6f935391d694bdbe9509ef1b9ea31ebb17533849
+Source revision: 47ce09c8b0b211adfeef46d202525faed250e64d
 -->
 
 # Principles for building projects
