@@ -9,6 +9,8 @@ Use an artifact-process flow to show how processes consume or consult durable in
 
 Artifact nodes represent durable information, whereas process nodes represent work that transforms information. Solid paths alternate between artifact and process nodes. A dotted edge means that a process consults an artifact without transforming it along the main path.
 
+An artifact with solid arrows both in from and out to the same process reads as a two-way document. Prefer one writer per artifact, so the path runs process → artifact → next process; an artifact fed by independent processes may have several writers. Use a portal (a hexagon labelled `returns to X`) only to close a real loop back to an earlier artifact, rather than drawing the back-edge.
+
 ```mermaid
 flowchart TD
     request[("Request")]

@@ -103,7 +103,16 @@ Prefer participants anchored in named code elements, runtime mechanisms, people,
 
 Ask: “What concrete implementation, runtime process, person, or external system anchors this participant and its attributed behavior?”
 
-Keep a coarse participant when its internal handoffs are irrelevant; decompose it when finer, grounded roles improve the explanation. Cycles are valid when they truthfully expose interaction. Do not let layout dictate action direction, and do not decompose participants solely to make the graph acyclic.
+Keep a coarse participant when its internal handoffs are irrelevant; decompose it when finer, grounded roles improve the explanation. Cycles are valid when they truthfully expose interaction. Do not let layout dictate action direction, and do not decompose participants solely to make the graph acyclic; reshape only an apparent cycle, as described next.
+
+## Apparent cycles
+
+A cycle is real when the participants truly act on each other in a loop; keep it. Reshape the drawing when the loop only appears, or when it makes the layout unreadable.
+
+- **Box boundary:** a subgraph that is both upstream and downstream of something outside it looks cyclic even when the nodes do not loop, for example when an outside node sends into the box and a node in the box acts back on that outside node. This applies once boxes are being drawn. Prefer dropping or redrawing the box over splitting a participant that does one coherent job just to avoid it. Group by role or phase (entry, trigger, outbound) rather than by vendor or owner, so edges between boxes run one way. Keep the original relationship visible across the split.
+- **Active sender and passive receiver:** when one counterparty both sends and receives, split it into the participants that actually do each, such as a dispatch runtime and a passive socket, only when each is a grounded mechanism.
+- **Return to start:** end the loop at a portal, either a hexagon labelled with its target (`returns to X`) or a second copy of the same participant that only receives the returning action.
+- **Repeating cycle:** when the cycle repeats over time, clone the participants the loop passes through per step (t0, t1, t2); participants outside the loop need not be cloned. A single portal node can recreate the cycle.
 
 ## Common failure modes
 
@@ -117,6 +126,8 @@ Use these as diagnostic examples rather than an exhaustive checklist.
 | Return journey | Paired request and response arrows | Keep only initiation direction |
 | Vague agency | `Platform` or `System` performs unrelated actions | Ground or decompose the participant |
 | Layout-driven direction | An arrow points opposite the real action | Preserve agency; use `~~~` or restructure |
+| Apparent cycle | A subgraph is both upstream and downstream of a node outside it | Split by role or phase so boundary edges run one way |
+| Over-split | A split cuts the link between two things that belong together | Keep the original anchor; use a shared passive node instead |
 | Ambiguous unlabeled edge | The reader must guess the verb | Add an action label or declare a default |
 
 ## Composition
