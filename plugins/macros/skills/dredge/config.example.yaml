@@ -23,7 +23,7 @@ agentsview:
   # Content to search. Trim to "messages" to cut tool-output noise.
   search_in: messages,tool_input,tool_result
   # Which coding agents to search. Default `all` covers every agent AgentsView has
-  # indexed (Claude Code, Codex, Cursor, Copilot, Gemini, ...). Restrict to a subset
+  # indexed (Claude Code, Codex, Gemini CLI, Antigravity CLI, ...). Restrict to a subset
   # by listing names, e.g. [claude, codex].
   agents: all
   # Include subagent sessions in ordinary searches. Off by default; complete

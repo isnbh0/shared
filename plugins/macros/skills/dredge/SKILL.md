@@ -19,8 +19,10 @@ Each coding agent keeps its own transcript store.
 - **Claude Code** — `~/.claude/projects/<project-slug>/*.jsonl`, where `<project-slug>` is the absolute project path with `/` replaced by `-` (e.g. `/Users/x/repo` → `-Users-x-repo`). The current project's slug can be derived from `pwd`.
 - **Pi** — by default `~/.pi/agent/sessions/<project-dir>/*.jsonl`. Respect `PI_CODING_AGENT_SESSION_DIR`, or `PI_CODING_AGENT_DIR` (whose `sessions` subdirectory is the default); a session may also use a custom `--session-dir`. The first JSONL record has `type: "session"`, `id`, and `cwd`; message records have `type: "message"`, a `timestamp`, and a nested `message` containing `role` and `content`. Entries may branch through `id` and `parentId`.
 - **Codex** — `${CODEX_HOME:-~/.codex}/sessions/` contains date-organized JSONL files; also check `archived_sessions/` under the same home. A `session_meta` record has `payload.id` and `payload.cwd`; `response_item` records can contain messages under `payload.role` and `payload.content`, alongside tool and other events.
-- **Other agents** — each has its own layout, indexed by AgentsView. The grep fallback knows Claude Code, Codex, and Pi layouts.
-- Each `.jsonl` file is one session, with one JSON event per line; event schemas vary by agent.
+- **Gemini CLI** — `~/.gemini/tmp/<project>/chats/` contains session JSON and JSONL files. For AgentsView, respect its `GEMINI_DIR` override when set. Resolve project directories from Gemini's project registry or verified session metadata; do not guess from a basename. A session has a native session ID and messages; formats vary by version.
+- **Antigravity CLI (agy)** — `~/.gemini/antigravity-cli/conversations/` contains SQLite conversation databases and may contain decoded `<id>.trajectory.json` sidecars. Older stores may contain encrypted `.pb` files, prompt history and plaintext artifacts. These are distinct from Gemini CLI. AgentsView may index full transcripts or only summaries. `agy-reader` can produce sidecars or export supported databases offline, but decoding can fail for unsupported formats and a daemon may require authentication. Never assume all databases are readable.
+- **Other agents** — each has its own layout, indexed by AgentsView when supported.
+- Session formats and event schemas vary by agent and version; JSONL is not universal.
 - On the grep backend, file mtime can shortlist raw files for an ordinary time-window lookup. For a complete inventory, inspect message timestamps rather than excluding files solely by mtime. AgentsView uses per-message timestamps; prompt histories use their record timestamps.
 
 ## Argument handling
@@ -94,9 +96,10 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 
 The grep fallback (also the AgentsView path's last resort):
 
-1. Search likely Claude, Codex, and Pi stores within the requested scope; for a complete inventory, search all available stores. For Codex and Pi, select files by the session metadata's `cwd`, comparing resolved paths where possible. Include known custom session directories and report coverage limits that affect the answer.
-2. Shortlist candidate `.jsonl` files with `rg` / `grep` using keywords from the query. Use `find -newer` / mtime only to narrow ordinary lookups; for a complete date-limited inventory, check message timestamps across candidate project files.
-3. Read the top candidates to pull the actual context (not just the matching lines). For Pi, inspect nested messages and their parent links when needed to distinguish branches; cite the header's session ID, not the filename timestamp.
+1. Search likely Claude, Codex, Pi, Gemini CLI, and Antigravity CLI stores within the requested scope; for a complete inventory, search all available stores. For Codex and Pi, select files by the session metadata's `cwd`, comparing resolved paths where possible. Include known custom session directories and report coverage limits that affect the answer.
+2. Shortlist searchable session files with `rg` / `grep` using keywords from the query. Parse Gemini JSON and JSONL according to their actual structure; inspect matching messages and their timestamps. Use `find -newer` / mtime only to narrow ordinary lookups; for a complete date-limited inventory, check message timestamps across candidate project files.
+3. For Antigravity, search available plaintext sidecars and verified transcript exports, and inspect prompt history or artifacts as partial evidence. Do not grep binary databases as if they were transcripts. If a compatible `agy-reader` is already available, an offline export can be attempted into a private temporary file; report unsupported formats. Do not automatically generate persistent plaintext sidecars or install tools.
+4. Read the top candidates to pull the actual context (not just the matching lines). For Pi, inspect nested messages and their parent links when needed to distinguish branches; cite the header's session ID, not the filename timestamp.
 
 ## Coverage check
 
@@ -109,8 +112,9 @@ each source, using record timestamps rather than file mtime for prompt history.
 
 - **AgentsView** searches indexed messages and tool events. Sync can index
   surviving files but cannot recover a missing transcript.
+- **Antigravity coverage**: inspect session fidelity and compare indexed sessions with available conversation files when completeness matters. Summary-only entries, decoding failures, missing databases, and sessions without verified project identity limit coverage. Search unassigned sessions where appropriate, but do not attribute them to a project without evidence.
 - **Raw session stores** can contain surviving transcripts absent from the
-  index. The known grep paths above cover Claude Code, Codex, and Pi; inspect other agent
+  index. The known paths above include Gemini and available Antigravity plaintext; inspect other agent
   stores only when their layout is verified.
 - **Prompt histories** record user requests, often without the assistant's
   response. Claude Code's `~/.claude/history.jsonl` has `display`,
@@ -133,6 +137,6 @@ missing stores or result caps that limit confidence.
 ## Output
 
 - Answer the query directly.
-- Cite each session by agent and native session ID. When the transcript exists and you know the resume command, include it (e.g. `claude --resume <session-id>`, `codex resume <session-id>`, or `pi --session <session-file-path>`). Include the raw path when needed to locate or resume the session. Pi filenames include a timestamp as well as the ID; AgentsView may prefix IDs with the agent name.
+- Cite each session by agent and native session ID. When the transcript exists and you know the resume command, include it (e.g. `claude --resume <session-id>`, `codex resume <session-id>`, `pi --session <session-file-path>`, or `agy --conversation <id>`). Include the raw path when needed to locate or resume the session. Pi filenames include a timestamp as well as the ID; AgentsView may prefix IDs with the agent name.
 - If nothing relevant turns up, say so plainly and identify the sources searched;
   do not imply that missing stores were searched or that no other cases exist.
