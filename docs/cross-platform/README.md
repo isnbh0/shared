@@ -58,6 +58,8 @@ Activation belongs to the host. Shared documentation names the skill; host-speci
 
 The portable part is the skill name, frontmatter description, and `SKILL.md` instructions; the activation mechanism belongs to the host.
 
+Some skills are explicit-request only, and many of those also set `disable-model-invocation: true` in their frontmatter, with `agents/openai.yaml` for Codex. Claude Code, Pi, Codex, Cursor, and the Antigravity CLI honor that flag: the agent cannot load such a skill, even when asked in plain words, so the person types the selector. Gemini CLI ignores the flag, and there the description is the only guard.
+
 ### Configuration Paths
 
 Skills read layered configuration using this repository's provider-neutral convention. These paths are not defined by the Agent Skills standard:

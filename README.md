@@ -23,6 +23,9 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 
 For automatic updates, symlink the skill directory instead of copying it.
 
+Copy from a fresh clone when you can: a skill that has already run may carry build output. After
+first use, `whiteboard` keeps about 400 MB in `node_modules/`.
+
 ### Option B: Claude Code Marketplace
 
 The repository also packages selected skills as Claude Code marketplace plugins. First, register the marketplace:
@@ -239,15 +242,18 @@ such as those from TypeSafe's Jev or another System One model.
 #### whiteboard
 
 Opens Mermaid files as tabs on a shared local whiteboard, synced both ways between the files and
-the browser. Activate it only when requested by name.
+the browser. You start it with your host's skill selector (see the
+[cross-platform guide](docs/cross-platform/README.md)); the agent does not load it on its own.
 
 - One page holds every open file as a tab, with a live preview and an editor
 - The agent and the person edit the same file, and each side's changes reach the other within a moment
 - An unsaved draft that collides with a file change offers "Reload from file" or "Overwrite file"
 - `wb shot` renders a diagram to PNG, so the agent can look before describing it
 
-Requires Node 24 or later and pnpm. The first `wb open` installs the dependencies and starts the
-server, which exits on its own after 30 minutes unused.
+Requires Node 24 or later and pnpm 9 or later. The first `wb open` downloads about 400 MB of
+dependencies and starts a small local server, which keeps running after the session and exits after
+30 minutes with no page open. The first `wb shot` downloads a headless browser of about 100 MB.
+Open tabs last only while the server runs.
 
 ### Other (copy / symlink)
 

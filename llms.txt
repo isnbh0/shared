@@ -21,9 +21,11 @@ mkdir -p <install-root>
 cp -R ~/shared/plugins/<plugin-name>/skills/<skill-name> <install-root>/
 ```
 
+Copy from a fresh clone when you can. A skill that has already run may carry build output: after first use, `whiteboard` keeps about 400 MB in `node_modules/`.
+
 ### Option B: Claude Code marketplace
 
-Use this only when the target is Claude Code and the user wants marketplace installation.
+Use this only when the target is Claude Code and the user wants marketplace installation. The person types these commands in Claude Code. An agent with a shell uses the equivalents `claude plugin marketplace add isnbh0/shared` and `claude plugin install <name>@isnbh0`.
 
 ```bash
 /plugin marketplace add isnbh0/shared
@@ -43,7 +45,7 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install whiteboard@isnbh0
 ```
 
-Only the fourteen plugins above are published to the Claude Code marketplace. The `whiteboard` plugin holds the single `whiteboard` skill, an application that needs Node 24 or later and pnpm. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `anytime`, `packet`, `calibrate`, `leeway`, `landscaping`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains twenty-three skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
+Only the fourteen plugins above are published to the Claude Code marketplace. The `whiteboard` plugin holds the single `whiteboard` skill, an application that needs Node 24 or later and pnpm 9 or later. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `anytime`, `packet`, `calibrate`, `leeway`, `landscaping`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains twenty-three skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
 
 The former `zoomdoc@isnbh0` plugin identifier is retired. Install `doctype@isnbh0` for both document skills; existing zoomdoc HTML documents remain usable. For a direct install, copy `plugins/doctype/skills/zoomdoc/` or `plugins/doctype/skills/tractatus/`.
 
@@ -193,7 +195,7 @@ Bundled skill:
 Source: `plugins/system1-machine/skills/system1-machine/`.
 
 ### whiteboard
-Opens Mermaid files as tabs on a shared local whiteboard in the browser, synced both ways with the files on disk, so an agent and a person work on one diagram. Explicit-request only: activate it when the user asks for the whiteboard by name. Requires Node 24 or later and pnpm; the first `wb open` installs the dependencies and starts a local server that exits after 30 minutes idle.
+Opens Mermaid files as tabs on a shared local whiteboard in the browser, synced both ways with the files on disk, so an agent and a person work on one diagram. The person starts it: the skill sets `disable-model-invocation: true`, so on hosts that honor it (Claude Code, Pi, Codex, Cursor, the Antigravity CLI) the agent cannot load it, even when asked in plain words. Tell the person to type the host's skill selector for it (see `docs/cross-platform/README.md`). Gemini CLI ignores the flag, so there the description is the only guard. Requires Node 24 or later and pnpm 9 or later; the first `wb open` downloads about 400 MB of dependencies and starts a local server that exits after 30 minutes with no page open, and the first `wb shot` downloads a headless browser of about 100 MB.
 
 Source: `plugins/whiteboard/skills/whiteboard/`.
 
@@ -218,7 +220,7 @@ Most skills are self-contained. The spex skill in the my plugin requires the imp
 
 The `write`, `write-phased`, `write-phased-gradual`, and `implement` skills are included in the `spex` plugin. Plugin-level overviews live in `plugins/spex/README.md` and `plugins/macros/README.md`; they are documentation, not discoverable skills.
 
-The `whiteboard` skill needs Node 24 or later and pnpm at run time and ships its own copy of the Mermaiden packages under `vendor/`, so it depends on no other skill or checkout.
+The `whiteboard` skill needs Node 24 or later and pnpm 9 or later at run time and ships its own copy of the Mermaiden packages under `vendor/`, so it depends on no other skill or checkout.
 
 ## File Structure Reference
 
@@ -381,5 +383,5 @@ Use `.agents/skill-configs/` for new configuration. This is a provider-neutral c
 - Provider-specific install roots are centralized in `docs/cross-platform/README.md`; verify target-agent docs before automating installs.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The rigorous-debug skill requires a one-time initialization step after installation. Ask the target agent to activate it before use.
-- The whiteboard skill is an application: it needs Node 24 or later and pnpm, and its first run installs about 400 MB of dependencies. Say so before installing it for someone.
+- The whiteboard skill is an application: it needs Node 24 or later and pnpm 9 or later, its first run downloads about 400 MB of dependencies, and its first screenshot a headless browser. Say so before installing it for someone. The person starts it with their host's skill selector; on hosts that honor `disable-model-invocation`, the agent cannot load it.
 - Always verify that the clone location (`~/shared` or user-specified) does not conflict with existing directories before cloning.

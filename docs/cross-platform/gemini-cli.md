@@ -13,6 +13,8 @@ mkdir -p <skill-root>
 cp -R /tmp/shared/plugins/interview/skills/interview <skill-root>/
 ```
 
+Or use Gemini CLI's own commands: `gemini skills install <git-url> --path plugins/<plugin>/skills/<skill>` installs one skill from the repository, and `gemini skills link <path>` links a local clone.
+
 For extension-bundled installs, copy the skill directory into the extension's documented skills directory:
 
 ```bash

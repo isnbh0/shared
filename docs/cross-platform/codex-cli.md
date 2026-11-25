@@ -25,6 +25,9 @@ Use natural language or explicitly mention a skill with Codex's `$` selector:
 | spex implement | `$implement ./spec.md` |
 | report-writer | `$report-writer perf-analysis` |
 | rigorous-debug | `$rigorous-debug` |
+| whiteboard | `$whiteboard docs/flow.mmd` |
+
+A skill whose `agents/openai.yaml` sets `allow_implicit_invocation: false`, such as whiteboard, is not offered to the model; only the `$` selector reaches it.
 
 ## Configuration
 

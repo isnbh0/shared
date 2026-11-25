@@ -21,7 +21,7 @@ The repository is also a Pi package. The `pi` manifest in `package.json` declare
 pi install git:github.com/isnbh0/shared
 ```
 
-Personal installs are written to `~/.pi/agent/settings.json`. Pi keeps its own clone under `~/.pi/agent/git/`; reconcile it with `pi update --extensions` after pushing to the repository. To load different plugins, edit the `pi.skills` manifest in `package.json` or narrow the package's `skills` in Pi settings.
+Personal installs are written to `~/.pi/agent/settings.json`. Pi keeps its own clone under `~/.pi/agent/git/`; reconcile it with `pi update --extensions` after pushing to the repository. An update that moves the clone also removes `node_modules` from skills that carry dependencies, such as whiteboard; its next run reinstalls them from the local pnpm store. To load different plugins, edit the `pi.skills` manifest in `package.json` or narrow the package's `skills` in Pi settings.
 
 ## Usage
 
@@ -33,6 +33,7 @@ Force-load a skill with Pi's explicit selector, optionally followed by a request
 | askme (macros) | `/skill:askme` |
 | doubt (macros) | `/skill:doubt` |
 | grounding (my) | `/skill:grounding` |
+| whiteboard | `/skill:whiteboard` |
 
 Skills without `disable-model-invocation: true` in their frontmatter are also advertised to the model and may load automatically when the task matches the description. Run `/reload` after changing skills during an active session.
 
