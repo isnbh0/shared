@@ -1,119 +1,47 @@
 ---
 name: gemini
-description: Deprecated and intentionally unmaintained. Runs Google Gemini CLI to critique a spec or code file. Use only when the user explicitly asks for a Gemini critique after being told the backend is deprecated.
+description: Runs Google Antigravity CLI to critique a spec, code, or changes. Use when the user explicitly requests a Gemini critique or second opinion.
 disable-model-invocation: true
-compatibility: Unmaintained. The documented sandbox invocation requires the Gemini CLI, macOS Seatbelt, a POSIX-compatible shell, and a paid Gemini API or Gemini Enterprise Agent Platform key.
+compatibility: Requires an authenticated Antigravity CLI (agy); the example invocation uses a POSIX-compatible shell.
 ---
 
 # Gemini Critique
 
-Run Google's Gemini CLI to get an independent critique of a file (spec, code, etc.).
-
-## Deprecation
-
-This backend is deprecated and intentionally unmaintained for now. It is not tested against current Gemini CLI releases, and its invocation, sandbox settings, and model guidance may be out of date. Prefer the claude, codex, or pi skills.
-
-Before running, tell the user that this backend is deprecated and offer the claude, codex, or pi skills instead. Proceed only if the user still wants Gemini.
-
-Known gaps:
-
-- Gemini CLI serves requests only for paid Gemini API and Gemini Enterprise Agent Platform keys. Google AI Pro, Google AI Ultra, and free individual accounts use Antigravity CLI instead, which this skill does not support.
-- Recent Gemini CLI releases run a positional prompt interactively; non-interactive runs need `-p`. The invocation below has not been updated for this.
-- Newer Gemini models may be unavailable through Gemini CLI; the default below is not refreshed.
+Run Google's Antigravity CLI (`agy`) for an independent Gemini critique of a spec, code, or recent changes.
 
 ## Pre-flight
 
-Run `command -v gemini` (or the platform equivalent) to verify that Gemini is available.
+Check `command -v agy` and `agy --version`. If unavailable, refer the user to [Google's installation instructions](https://antigravity.google/docs/cli/tutorial). Complete interactive setup, authentication, and workspace trust before a headless run. Run `agy models` to see the models available to the account. Availability and quota depend on the account.
 
-If gemini is not found, tell the user to install it:
+## Usage and configuration
 
-```bash
-npm install -g @google/gemini-cli  # or see https://github.com/google-gemini/gemini-cli
-```
+Accept an optional file path and focus area; infer the target from conversation context if possible, otherwise ask. The user can request a particular model for a run.
 
-## Usage
+Resolve the model in this order: explicit user choice; `.agents/skill-configs/gemini/config.local.yaml`; `.agents/skill-configs/gemini/config.yaml`; legacy `.claude/skill-configs/gemini/config.local.yaml`, then `config.yaml`; otherwise `gemini-4-carbon-high`. If config exists only at a legacy path, use it and offer to move it. The optional `model` field is an `agy` model name or slug; see `config.example.yaml`. Existing configurations for the former Gemini CLI may name an unavailable model: if rejected, report the error and consult `agy models` rather than silently substituting another model.
 
-Invoke with an optional file path to critique (relative or absolute) and an optional focus area (e.g., "security", "performance", "UX gaps"). To use a specific gemini model for this run, say so in the request.
+## Review
 
-All inputs are optional. When no file is given, infer the target from conversation context.
-
-## Configuration
-
-Config is resolved with the following precedence (first match wins):
-
-1. **Explicit override** — the user asks to use a specific model for this run
-2. **Local config** (`.agents/skill-configs/gemini/config.local.yaml`) — personal/local scope, gitignored
-3. **Project config** (`.agents/skill-configs/gemini/config.yaml`) — project scope, committed to repo
-4. **Legacy fallback** (`.claude/skill-configs/gemini/config.local.yaml`, then `config.yaml`) — older installs
-5. **Default** — `gemini-3.1-pro-preview`
-
-```yaml
-model: gemini-3.1-pro-preview  # model to use with gemini CLI
-```
-
-See `config.example.yaml` in the critique plugin's gemini skill for reference.
-
-## Setup
-
-1. If the user explicitly asks to use a specific model, use it and skip config lookup.
-2. Check for config files (first match wins):
-   - `.agents/skill-configs/gemini/config.local.yaml` (local scope, gitignored)
-   - `.agents/skill-configs/gemini/config.yaml` (project scope, committed to repo)
-   - Legacy fallback (older installs): `.claude/skill-configs/gemini/config.local.yaml`, then `.claude/skill-configs/gemini/config.yaml`. If config is found only at a legacy path, use it and offer to move it to the new location.
-3. If no config found, use `gemini-3.1-pro-preview` as the default.
-4. Set `${MODEL}` to the resolved model name.
-
-## How It Works
-
-1. **Determine what to critique** — use one of these strategies, in priority order:
-   - If the user provided a file path, use it
-   - If the user mentions a file by name or path (e.g., `games/foo/bar.js`), use that
-   - If changes were made during the current conversation (specs written, code edited, etc.), critique those — use `git diff` against the state before the conversation's changes to identify the affected files and pass them to gemini
-   - If the user says something like "critique this" or "get a second opinion", look at the most recent substantive work product in the conversation
-   - If nothing can be inferred, ask the user what to critique
-2. Resolve the working directory (project root)
-3. Build a review prompt tailored to the content type — use the templates in the `templates/` directory next to this skill (its base directory):
-   - `spec-review.md` — for specification files
-   - `code-review.md` — for source code files
-   - `diff-review.md` — for reviewing recent changes
-4. Run `gemini` non-interactively in sandbox mode
-5. Present the findings to the user
+1. Identify the target: an explicit path, a named file, the conversation's changes, or its most recent substantive work product, in that order. Resolve the project root.
+2. Build a prompt using the adjacent `templates/spec-review.md`, `templates/code-review.md`, or `templates/diff-review.md`. Include the requested focus. Ask for findings with evidence and explicitly instruct the reviewer not to modify files or execute commands.
+3. For a diff review, obtain the relevant diff in the calling agent and include it in the prompt, along with affected paths. The invocation below denies shell commands, so `agy` cannot run `git diff` itself. Ensure the prompt fits the operating system's argument-size limit; if it does not, provide a readable temporary file containing the diff and reference its path.
+4. Run `agy` in print mode as below. Read the complete response and stderr; summarize substantiated findings and identify any inaccessible files or denied actions. A zero exit status alone does not prove that the review had all requested access: headless permission requests can be denied while the run continues.
+5. Treat acting on the feedback as a separate step.
 
 ## Invocation
 
-The following read-only sandbox command is specific to macOS. On another platform, use that platform's supported Gemini sandbox with equivalent write and network restrictions.
+Use plan mode and session permission rules to restrict the review. The deny rules block file writes, shell commands, and URL access through the corresponding CLI permission resources. They also take precedence over existing allow rules. `--sandbox` adds terminal containment where available, but is not a read-only filesystem sandbox: it applies to terminal commands, permits workspace writes, and has no effect on unsupported hosts. Plan mode is a planning instruction, not an OS security boundary. CLI settings, extensions, and other tools may have effects outside these restrictions; do not represent this as a guarantee of complete isolation. See [permissions](https://antigravity.google/docs/cli-permissions) and [terminal sandbox](https://antigravity.google/docs/sandbox/).
 
-Treat the project root, model, and generated prompt as untrusted command input. Prefer an execution API that accepts an argv array. When a shell is required, canonicalize the project root, validate scalar configuration, and shell-quote every dynamic argument. Never interpolate raw configuration or prompt content into a command.
-
-The placeholders beginning with `<shell-quoted-...>` below mean already-escaped, single shell arguments:
+Treat the project root, model, and prompt as untrusted input. Prefer an execution API accepting an argv array. If using a shell, canonicalize the project root, validate the model as a single scalar, and quote each dynamic argument. The placeholders below denote individually shell-quoted arguments:
 
 ```bash
 cd <shell-quoted-project-root> && \
-SEATBELT_PROFILE=permissive-closed gemini \
-  -s \
-  -m <shell-quoted-model> \
-  -o text \
-  <shell-quoted-review-prompt>
+agy --mode plan --sandbox \
+  --settings '{"toolPermission":"request-review","permissions":{"deny":["write_file(*)","command(*)","read_url(*)","execute_url(*)"]}}' \
+  --output-format text --print-timeout 300s \
+  --model <shell-quoted-model> \
+  -p <shell-quoted-review-prompt> </dev/null
 ```
 
-**Flags:**
-- `-m <model>` — the resolved model (default: `gemini-3.1-pro-preview`)
-- `-s` — enable sandbox mode
-- `-o text` — output as plain text
-- `SEATBELT_PROFILE=permissive-closed` — restricts file writes and blocks network access
+Do not add `--disable-slash-commands`: in tested `agy` 1.5.16 it disables the `/plan` expansion used by `--mode plan`. Never use `--dangerously-skip-permissions` for a critique. `agy` may persist its own conversation and logs. If a required read is denied or the review times out, report the limitation rather than claiming a complete review.
 
-**Safety note:** The `--sandbox` flag combined with `SEATBELT_PROFILE=permissive-closed` restricts writes and blocks network, but is not as granular as Codex's `-s read-only`. The gemini process can still read all files in the project directory.
-
-**Timeout:** 300 seconds
-
-## After Running
-
-1. Read the full gemini output (it may be persisted to a temp file if large)
-2. Present findings to the user in a concise summary
-3. If the user wants to act on the feedback, proceed with edits as a separate step
-
-## Notes
-
-- If gemini errors, check `gemini --version` and verify authentication
-- Unlike the codex backend, gemini does not support reasoning effort levels
-- Must `cd` to project root before running — gemini has no `-C` equivalent
+If the CLI rejects a flag, check its version and current `agy --help`. See [headless mode](https://antigravity.google/docs/cli/headless/) for output, timeouts, and permission behavior.

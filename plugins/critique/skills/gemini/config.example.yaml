@@ -1,7 +1,6 @@
 # Gemini critique configuration
-# Deprecated: this backend is intentionally unmaintained. Prefer the claude, codex, or pi skills.
-# Copy this file to .agents/skill-configs/gemini/config.yaml (project scope)
-# or .agents/skill-configs/gemini/config.local.yaml (local/personal scope)
-
-# Model to use with gemini CLI
-model: gemini-3.1-pro-preview
+# Copy to .agents/skill-configs/gemini/config.yaml (project scope)
+# or .agents/skill-configs/gemini/config.local.yaml (local/personal scope).
+# Optional: omit model to use gemini-4-carbon-high.
+# Run `agy models` to list models available to your account.
+# model: gemini-4-carbon-high

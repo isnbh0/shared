@@ -1,5 +1,5 @@
 interface:
-  display_name: "Gemini Critique (Deprecated)"
-  short_description: "Deprecated, unmaintained review backend using Gemini CLI"
+  display_name: "Gemini Critique"
+  short_description: "Independent review using Antigravity CLI"
 policy:
   allow_implicit_invocation: false
