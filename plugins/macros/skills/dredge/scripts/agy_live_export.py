@@ -203,19 +203,17 @@ def sync(root, output, reader, source_reader=None):
                             timeout = True
                     else:
                         proc = None
-                    if signature(source) != before:
-                        item['reason'] = 'source changed during capture; retry next run'
-                        failures += 1
-                        continue
+                    changed = signature(source) != before
                     os.chmod(db, 0o600)
                     os.replace(db, backups / (ident + '.db'))
-                    item.update(state='raw_only', backupSha256=backup_sha)
-                    captured_artifacts = capture_artifacts(root, ident, brain_before, objects)
-                    if brain_entries(root, ident) != brain_before:
-                        item['state'] = 'stale'
-                        item['reason'] = 'artifacts changed during capture; retry next run'
-                        failures += 1
-                        continue
+                    item.update(state='stale' if changed else 'raw_only', backupSha256=backup_sha,
+                                capturedAt=now)
+                    try:
+                        captured_artifacts = capture_artifacts(root, ident, brain_before, objects)
+                        changed = changed or brain_entries(root, ident) != brain_before
+                    except OSError:
+                        captured_artifacts = {}
+                        changed = True
                     item['artifacts'] = captured_artifacts
                     export_state = 'ok'
                     if proc is None or proc.returncode != 0:
@@ -245,19 +243,19 @@ def sync(root, output, reader, source_reader=None):
                         item['reason'] = 'incomplete or invalid offline export'
                         failures += 1
                         continue
-                    if signature(source) != before:
-                        item['state'] = 'stale'
-                        item['reason'] = 'source changed during capture; retry next run'
-                        failures += 1
-                        continue
+                    changed = changed or signature(source) != before
                     os.chmod(transcript, 0o600)
                     os.replace(transcript, target)
-                    sessions[ident] = {'state': export_state, 'signature': before, 'readerSignature': reader_sig,
+                    sessions[ident] = {'state': 'stale' if changed else export_state, 'format': export_state,
+                                       'signature': before, 'readerSignature': reader_sig,
                                        'sourceReaderSignature': source_reader_sig,
                                        'sha256': hashlib.sha256(data).hexdigest(), 'backupSha256': backup_sha,
                                        'artifactSignature': brain_sig, 'artifacts': captured_artifacts,
                                        'sourceDigest': offline['sourceDigest'], 'steps': len(parsed['steps']),
                                        'capturedAt': now}
+                    if changed:
+                        sessions[ident]['reason'] = 'source or artifacts changed during capture; retry next run'
+                        failures += 1
             except (OSError, sqlite3.Error, subprocess.TimeoutExpired, ValueError, KeyError, TypeError):
                 item['reason'] = 'capture failed; retry next run'
                 failures += 1

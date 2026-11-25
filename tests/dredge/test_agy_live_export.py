@@ -133,7 +133,10 @@ class LiveExportTest(unittest.TestCase):
         with mock.patch.object(exporter.subprocess, 'run', side_effect=racing):
             self.assertEqual(exporter.sync(self.root, self.output, self.reader), 1)
         self.assertEqual(self.state()['state'], 'stale')
-        self.assertFalse((self.output / (self.ident + '.json')).exists())
+        self.assertEqual(self.state()['format'], 'ok')
+        self.assertEqual(json.loads((self.output / (self.ident + '.json')).read_text())['steps'][0]['text'], 'first')
+        with closing(sqlite3.connect(self.output / 'source' / self.db.name)) as backup:
+            self.assertEqual(backup.execute('select value from fixture').fetchone()[0], 'first')
 
 
 if __name__ == '__main__':

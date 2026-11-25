@@ -87,7 +87,7 @@ is a fresh offline reconstruction of a SQLite snapshot, not a daemon-verified
 sidecar. `source_only` is a readable export of the saved source representation; its presentation is not verified. `raw_only` means a source backup exists but no current searchable
 export was produced; `stale` means the source changed or capture failed, and
 `missing_source` means a previously saved session no longer has a native file.
-Search current `ok` and `source_only` exports, labeling their respective fidelity. Do not present an older export as current. Report these gaps for the relevant
+Search current `ok` and `source_only` exports, labeling their respective fidelity. A `stale` entry with a recorded `format`, checksum, and capture time can still be searched as a point-in-time snapshot; verify its checksum and identify it as potentially out of date. Do not present an older export as current. Report these gaps for the relevant
 scope and use existing verified sidecars or recovery snapshots as historical
 evidence where applicable. Recover per-session brain files from the status
 entry's `artifacts` map: keys are paths relative to `brain/<session-id>/`, and
