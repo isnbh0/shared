@@ -114,7 +114,7 @@ end
 install_roots = [
   ".agents/skills/", "~/.agents/skills/", ".gemini/skills/", "~/.gemini/skills/",
   ".claude/skills/", ".cursor/skills/", "~/.config/agents/skills/",
-  "~/.config/amp/skills/", "~/.gemini/config/skills/"
+  "~/.config/amp/skills/", "~/.gemini/config/skills/", "~/.gemini/antigravity-cli/skills/"
 ]
 portable_docs.reject { |path| path == "docs/cross-platform/README.md" }.each do |path|
   File.foreach(path).with_index(1) do |line, number|

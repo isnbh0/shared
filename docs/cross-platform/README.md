@@ -14,7 +14,8 @@ This table is the only place in this repository that should list third-party ins
 | [Amp](amp.md) | `.agents/skills/<name>/` | `~/.config/agents/skills/<name>/`, `~/.agents/skills/<name>/`, `~/.config/amp/skills/<name>/` | — |
 | [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) | `.claude/skills/<name>/` | See current Claude Code documentation | Marketplace plugins use `.claude-plugin/` metadata |
 | [Cursor](cursor.md) | `.cursor/skills/<name>/`, `.agents/skills/<name>/` | See current Cursor documentation | Cursor plugins use their own packaging |
-| [Antigravity](antigravity.md) | `.agents/skills/<name>/` | `~/.gemini/config/skills/<name>/` | — |
+| [Antigravity App and IDE](antigravity.md) | `.agents/skills/<name>/` | `~/.gemini/config/skills/<name>/` | Plugins |
+| [Antigravity CLI](antigravity.md) | `.agents/skills/<name>/` | `~/.gemini/config/skills/<name>/`, `~/.gemini/antigravity-cli/skills/<name>/`, `~/.gemini/skills/<name>/`, `~/.agents/skills/<name>/` | Plugins managed by `agy plugin` |
 
 ## What Works Everywhere
 

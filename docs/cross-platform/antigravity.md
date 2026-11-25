@@ -2,7 +2,7 @@
 
 # Antigravity
 
-Use the skill roots listed in the [compatibility SSOT](README.md). This page only covers repo-specific usage patterns.
+Use the skill roots listed in the [compatibility SSOT](README.md). Antigravity CLI (`agy`) and the Antigravity App share a project root and a user root; the CLI also supports CLI-only user roots. CLI-specific and shared Gemini skill roots take precedence over other locations on name collisions. See Google’s [customization discovery](https://antigravity.google/docs/customization-discovery/) for scope and precedence.
 
 ## Installation
 
@@ -29,6 +29,8 @@ After installation, ask for the workflow by skill name or description, for examp
 
 > "Use the interview skill for the auth system."
 > "Use the write skill for the payment flow."
+
+In the CLI, run `/skills` to inspect discovered skills and `/skills reload` after adding or changing them. The CLI also supports `agy plugin list` and `agy plugin install` for plugins; consult the [CLI skills guide](https://antigravity.google/docs/skills?app=cli) for current packaging options. Gemini CLI is a separate tool with its own [guide](gemini-cli.md).
 
 ## Configuration
 
