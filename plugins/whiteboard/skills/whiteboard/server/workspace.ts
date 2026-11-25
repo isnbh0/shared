@@ -137,24 +137,26 @@ export class Workspace {
     });
   }
 
-  async open(path: string, options: { create: boolean }): Promise<{ doc: Doc; opened: boolean }> {
+  async open(path: string, options: { create: boolean }): Promise<{ doc: Doc; opened: boolean; created: boolean }> {
     let disk = await this.read(path);
+    let created = false;
     if (disk.rev === null) {
       if (!options.create) throw new WorkspaceError("refused", `no such file: ${path}`);
       await this.write(path, STARTER, null);
       disk = await this.read(path);
       if (disk.rev === null) throw new WorkspaceError("refused", `could not create: ${path}`);
+      created = true;
     }
     const real = await this.resolve(path);
     const id = docIdOf(real);
     const existing = this.#docs.get(id);
-    if (existing) return { doc: existing, opened: false };
+    if (existing) return { doc: existing, opened: false, created };
     const doc: Doc = { id, name: basename(real), path: real };
     this.#docs.set(id, doc);
     this.#lastRev.set(id, disk.rev);
     this.#watch(doc);
     this.#emit({ kind: "docs", docs: this.docs() });
-    return { doc, opened: true };
+    return { doc, opened: true, created };
   }
 
   docs(): Doc[] {

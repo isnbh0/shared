@@ -18,7 +18,7 @@ rebinding.
 **One server per port.** The server binds its TCP port before anything else, with no fallback, so
 the operating system refuses a second server. The holder of port `P` owns `STATE/P/` (control
 socket, `server.log`, built page), where `STATE` is `WHITEBOARD_STATE_DIR` or
-`$TMPDIR/my-whiteboard`. While it builds the page it answers 503 with `x-whiteboard-starting: 1`,
+`$TMPDIR/whiteboard`. While it builds the page it answers 503 with `x-whiteboard-starting: 1`,
 so a `wb` that lost a simultaneous start keeps waiting for the winner. `wb` starts the server
 detached when health fails and waits up to 120 s.
 
@@ -73,8 +73,9 @@ is moved from the stage into the pane. The toggles persist in the browser's
 draft included, with the grid, highlight, playback, and freeze toggles as the demo's aspects.
 `app/src/share.ts` builds the demo's `pako:` hash (base64url of zlib-deflated JSON) with the
 browser's `CompressionStream`; `tests/unit/share.test.ts` decodes it with Node's zlib and, when
-`MERMAIDEN_DIR` names a Mermaiden checkout, with the demo's own codec too, so a format change
-there fails the test.
+a Mermaiden checkout is at `MERMAIDEN_DIR` (by default `~/local/src/mermaiden`), with the demo's
+own codec too, so a format change there fails the test. Without a checkout those two tests are
+skipped.
 
 **Page styles.** `app/src/styles.css` is organized by concern: tokens; one control anatomy (icon or
 text button) with one set of hover, pressed, `aria-pressed`, focus-visible, and disabled states

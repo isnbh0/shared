@@ -72,16 +72,21 @@ describe("open", () => {
     await expect(ws.open(join(dir, "missing.mmd"), { create: false })).rejects.toThrow(/no such file/);
   });
 
-  it("creates the directory and starter diagram with create, and reports opened once", async () => {
+  it("creates the directory and starter diagram with create, and reports opened and created once", async () => {
     const path = join(dir, "new", "sub", "flow.mmd");
     const first = await ws.open(path, { create: true });
     expect(first.opened).toBe(true);
+    expect(first.created).toBe(true);
     expect(first.doc.name).toBe("flow.mmd");
     expect(await readFile(path, "utf8")).toBe(STARTER);
     const second = await ws.open(path, { create: true });
     expect(second.opened).toBe(false);
+    expect(second.created).toBe(false);
     expect(second.doc).toEqual(first.doc);
     expect(ws.docs()).toHaveLength(1);
+    const kept = join(dir, "kept.mmd");
+    await writeFile(kept, "flowchart LR\n  A\n");
+    expect((await ws.open(kept, { create: true })).created).toBe(false);
   });
 });
 

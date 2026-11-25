@@ -94,9 +94,20 @@ function portHeldByStartingServer(): Promise<boolean> {
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Names a missing or too-old pnpm; the lockfile needs version 9 or later. */
+function checkPnpm(): void {
+  const version = spawnSync("pnpm", ["--version"], { encoding: "utf8" });
+  if (version.error) throw new CliError("pnpm is not installed; the whiteboard needs it (https://pnpm.io/installation)");
+  const found = version.stdout.trim();
+  if (version.status !== 0 || !(Number.parseInt(found, 10) >= 9)) {
+    throw new CliError(`the whiteboard needs pnpm 9 or later; ${found || "a broken pnpm"} was found`);
+  }
+}
+
 function ensureDependencies(): void {
   if (!existsSync(join(SKILL_DIR, "node_modules", ".modules.yaml"))) {
     process.stderr.write("installing whiteboard dependencies…\n");
+    checkPnpm();
     const result = spawnSync("pnpm", ["install", "--frozen-lockfile"], {
       cwd: SKILL_DIR,
       stdio: ["ignore", process.stderr, process.stderr],
@@ -183,7 +194,10 @@ async function main(argv: string[]): Promise<void> {
     await call("POST", "/stop").catch(() => undefined);
     const deadline = Date.now() + 10_000;
     while (Date.now() < deadline) {
-      if (!(await healthy())) return;
+      if (!(await healthy())) {
+        process.stdout.write("stopped\n");
+        return;
+      }
       await delay(100);
     }
     throw new CliError("the server did not stop within 10 s");
@@ -214,7 +228,8 @@ async function main(argv: string[]): Promise<void> {
     case "open": {
       const reply = await call("POST", "/open", { path, create: true, focus: true });
       if (reply.status !== 200) fail(reply);
-      const { doc, pages } = reply.body as { doc: Doc; pages: number };
+      const { doc, pages, created } = reply.body as { doc: Doc; pages: number; created: boolean };
+      if (created) process.stderr.write(`created ${doc.path}\n`);
       process.stdout.write(tabAddress(doc) + "\n");
       if (pages === 0) process.stdout.write("No page is connected; the user can open the address above.\n");
       return;
@@ -225,6 +240,12 @@ async function main(argv: string[]): Promise<void> {
       for (const doc of (reply.body as { docs: Doc[] }).docs) {
         process.stdout.write(`${doc.id}  ${doc.name}  ${doc.path}\n`);
       }
+      if ((reply.body as { docs: Doc[] }).docs.length === 0) process.stdout.write("nothing is open\n");
+      // Whether anyone can see the board, since the agent cannot.
+      const health = await call("GET", "/health");
+      if (health.status !== 200) fail(health);
+      const pages: number = health.body.pages;
+      process.stdout.write(pages === 0 ? "no page is connected\n" : `${pages} page${pages === 1 ? "" : "s"} connected\n`);
       return;
     }
     case "read": {

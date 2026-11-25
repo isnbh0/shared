@@ -2,4 +2,19 @@
 # Agent CLI for the whiteboard; see SKILL.md.
 set -euo pipefail
 dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "whiteboard: node is not installed; it needs Node 24 or later (https://nodejs.org)" >&2
+  exit 1
+fi
+version="$(node -p 'process.versions.node' 2>/dev/null || echo '')"
+if [ -z "$version" ]; then
+  echo "whiteboard: node is installed but does not run; it needs Node 24 or later" >&2
+  exit 1
+fi
+if [ "${version%%.*}" -lt 24 ]; then
+  echo "whiteboard: Node $version is too old; it needs Node 24 or later" >&2
+  exit 1
+fi
+
 exec node "$dir/cli/wb.ts" "$@"

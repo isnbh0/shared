@@ -19,7 +19,12 @@ describe("wb shot", () => {
   let stateDir: string;
   let port: number;
   let env: Record<string, string>;
-  const ls = async () => (await wb(["ls"], env)).stdout;
+  // The open documents, without the status line `wb ls` ends with.
+  const ls = async () =>
+    (await wb(["ls"], env)).stdout
+      .split("\n")
+      .filter((line) => /^[0-9a-f]{12} {2}/.test(line))
+      .join("\n");
 
   beforeAll(async () => {
     dir = await tempDir("wb-shot-");

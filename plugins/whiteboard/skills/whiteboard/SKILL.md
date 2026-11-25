@@ -15,15 +15,18 @@ each side's changes reach the other within a moment.
 ## Start it
 
 Pick the file. Use one the user names or one that already fits the topic. Otherwise create a file
-named for the topic where the project keeps scratch notes, or under
-`$TMPDIR/my-whiteboard/boards/` if the diagram is throwaway. The file holds raw Mermaid source,
-optionally with Mermaid frontmatter.
+named for the topic where the project keeps scratch notes, or in `docs/` if it keeps none. Put it
+under `$TMPDIR/whiteboard/boards/` only when the user says the diagram is throwaway. The file holds
+raw Mermaid source, optionally with Mermaid frontmatter.
 
-Run `<skill dir>/wb open <file>` with an absolute or relative path. It installs dependencies,
-starts the shared server if needed, and creates the file with a starter diagram if it doesn't
-exist. The server keeps running after the session and stops on its own after 30 minutes unused, so
-do not stop it. Give the user the printed address; open it in their browser only if they ask. One
-page holds every open file as a tab, and `wb open` switches an open page to that file.
+Run `<skill dir>/wb open <file>` with an absolute or relative path. It installs dependencies the
+first time, starts the shared server if needed, and creates the file and its directory with a
+starter diagram if the file doesn't exist, saying `created` on stderr. The server keeps running
+after the session and stops on its own after 30 minutes with no page open, so do not stop it. Give
+the user the printed address; open it in their browser only if they ask. One page holds every open
+file as a tab, and `wb open` switches an open page to that file.
+
+Open tabs last only while the server runs; after it stops, `wb open` each file again.
 
 ## Work on it together
 
@@ -44,18 +47,20 @@ from what you read earlier.
 
 Say what the diagram shows only as far as you have seen it. Mermaid's layout can surprise you, so
 after structural changes run `wb shot <file>` and view the PNG path it prints. It exits 1 with the
-message when the diagram fails to render. It does not change the user's page. Do not drive the
-user's own browser.
+message when the diagram fails to render. It does not change the user's page. The first `wb shot`
+on a machine downloads a headless browser (about 100 MB). Do not drive the user's own browser.
 
 ## Variants
 
-To keep a variant, copy the file to a sibling name rather than overwriting the user's work, then
-`wb open` the copy so both appear as tabs.
+To keep a variant, copy the file to a sibling name rather than overwriting the user's work, change
+the copy, then `wb open` it so both appear as tabs.
 
 ## Other commands
 
-`wb ls` shows what's open. `wb close <file>` removes a tab for everyone. `wb stop` stops the
-server; it is needed only after changing the skill's own app code.
+`wb ls` shows what's open and ends by saying whether a page is connected. `wb close <file>` removes
+a tab for everyone. `wb stop` stops the server; it is needed only after changing the skill's own
+app code. The server's state, its log, and screenshots live under `$TMPDIR/whiteboard/`, or
+`WHITEBOARD_STATE_DIR`; `WHITEBOARD_PORT` picks another port when the default is taken.
 
 ## Conflicts
 
@@ -65,4 +70,6 @@ choose.
 
 ## Requirements
 
-Node 24 or later and pnpm. `wb` names whichever is missing.
+Node 24 or later and pnpm 9 or later. `wb` names whichever is missing or too old. On a host that
+sandboxes commands, `wb open` needs the network the first time and permission to listen on a
+loopback port, so ask for that approval.

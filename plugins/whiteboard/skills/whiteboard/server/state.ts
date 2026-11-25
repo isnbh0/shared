@@ -8,7 +8,7 @@ export const STARTING_HEADER = "x-whiteboard-starting";
 export const DEFAULT_PORT = 5179;
 
 export function defaultStateDir(): string {
-  return process.env["WHITEBOARD_STATE_DIR"] || join(process.env["TMPDIR"] || tmpdir() || "/tmp", "my-whiteboard");
+  return process.env["WHITEBOARD_STATE_DIR"] || join(process.env["TMPDIR"] || tmpdir() || "/tmp", "whiteboard");
 }
 
 export function portFromEnv(): number {

@@ -220,9 +220,9 @@ export function controlRoutes(
         const path = stringField(body, "path");
         const create = booleanField(body, "create");
         const focus = booleanField(body, "focus");
-        const { doc, opened } = await workspace.open(path, { create });
+        const { doc, opened, created } = await workspace.open(path, { create });
         if (focus) options.hub.focus(doc.id);
-        sendJson(res, 200, { doc, opened, pages: options.hub.count() });
+        sendJson(res, 200, { doc, opened, created, pages: options.hub.count() });
       } else if (method === "POST" && pathname === "/read") {
         const body = await readJson(req);
         sendJson(res, 200, { disk: await workspace.read(stringField(body, "path")) });
