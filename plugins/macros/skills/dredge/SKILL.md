@@ -70,6 +70,40 @@ With no config, behave as `backend: auto`. See `config.example.yaml` for all key
 
 Never hard-fail: if AgentsView is unavailable or errors, warn briefly and fall back to grep.
 
+### Optional Antigravity live recovery
+
+When `antigravity.live_export.enabled` is true and the requested agents include
+Antigravity CLI, run the bundled `scripts/agy_live_export.py` with the configured
+`--reader`, optional `--source-reader`, `--root`, and `--output` before searching. Resolve the script from
+this skill's directory and expand `~` in paths. Its defaults for root and output
+are `~/.gemini/antigravity-cli` and that root's `recovery-live/`. A missing or incompatible presentation reader still allows database and associated brain-file backups; when configured, a compatible source reader can also export the saved structured data without reconstructing the presentation. The command may return
+nonzero when some sessions are not readable; inspect `status.json` and continue
+searching the usable sessions. A background scheduler may run the same helper;
+it serializes concurrent runs and on-demand searches wait for the lock.
+
+Search `recovery-live/*.json` **in addition to AgentsView**, even when the index
+has hits: an index can contain only summaries. A status entry with `state: ok`
+is a fresh offline reconstruction of a SQLite snapshot, not a daemon-verified
+sidecar. `source_only` is a readable export of the saved source representation; its presentation is not verified. `raw_only` means a source backup exists but no current searchable
+export was produced; `stale` means the source changed or capture failed, and
+`missing_source` means a previously saved session no longer has a native file.
+Search current `ok` and `source_only` exports, labeling their respective fidelity. Do not present an older export as current. Report these gaps for the relevant
+scope and use existing verified sidecars or recovery snapshots as historical
+evidence where applicable. Recover per-session brain files from the status
+entry's `artifacts` map: keys are paths relative to `brain/<session-id>/`, and
+values name content-addressed files in `recovery-live/artifacts/`. The helper
+retains private `source/<id>.db` snapshots and artifacts, including when a
+decoder refuses a session. It does not create AgentsView sidecars or certify
+that an offline projection matches the daemon's presentation. A separately configured watcher can create verified sidecars when its daemon authentication and decoding succeed.
+
+Use `metadata` workspace paths or independently verified project association
+to apply the requested scope. If the project is unknown, do not silently count
+the session as searched in or excluded from that project. Read message
+timestamps for date scopes, and deduplicate by native session ID and message
+identity against index, sidecar, and saved recovery hits. Only enable this
+feature when explicitly configured: it stores plaintext transcripts and tool
+outputs on disk.
+
 ### AgentsView flag mapping
 
 On the AgentsView backend, translate the natural-language scope/time hints (see "Scope") to flags:
@@ -94,7 +128,7 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 
 ## Approach
 
-The grep fallback (also the AgentsView path's last resort):
+The grep fallback (also the AgentsView path's last resort; the configured live recovery above is also searched alongside AgentsView):
 
 1. Search likely Claude, Codex, Pi, Gemini CLI, and Antigravity CLI stores within the requested scope; for a complete inventory, search all available stores. For Codex and Pi, select files by the session metadata's `cwd`, comparing resolved paths where possible. Include known custom session directories and report coverage limits that affect the answer.
 2. Shortlist searchable session files with `rg` / `grep` using keywords from the query. Parse Gemini JSON and JSONL according to their actual structure; inspect matching messages and their timestamps. Use `find -newer` / mtime only to narrow ordinary lookups; for a complete date-limited inventory, check message timestamps across candidate project files.

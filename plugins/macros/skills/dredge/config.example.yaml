@@ -30,3 +30,19 @@ agentsview:
   # inventories also include children, automated, and one-shot
   # sessions when the CLI supports them, unless the user narrows the scope.
   include_children: false
+
+# Optional persistent offline recovery for Antigravity CLI. It stores private
+# database copies, plaintext transcripts and content-addressed brain artifacts.
+# Enable only when that persistence is wanted. When disabled, dredge does not
+# invoke the helper or create these files.
+antigravity:
+  live_export:
+    enabled: false
+    # Set to an executable compatible with your installed agy. If omitted,
+    # the helper looks for agy-reader on PATH; without it, it saves raw only.
+    reader: null
+    # Optional helper that writes source-format JSON when presentation decoding
+    # refuses a session. It accepts a source database and a new output path.
+    source_reader: null
+    root: ~/.gemini/antigravity-cli
+    output: ~/.gemini/antigravity-cli/recovery-live
