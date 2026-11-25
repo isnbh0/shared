@@ -1,6 +1,6 @@
 # Gemini critique configuration
 # Copy to .agents/skill-configs/gemini/config.yaml (project scope)
 # or .agents/skill-configs/gemini/config.local.yaml (local/personal scope).
-# Optional: omit model to use gemini-4-carbon-high.
+# Optional: omit model to use gemini-4-neon-high.
 # Run `agy models` to list models available to your account.
-# model: gemini-4-carbon-high
+# model: gemini-4-neon-high

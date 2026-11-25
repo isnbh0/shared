@@ -1,7 +1,7 @@
 {
   "name": "critique",
   "description": "External AI critique via CLI tools (Claude, Codex, Gemini, and Pi)",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "author": { "name": "isnbh0" },
   "keywords": ["review", "critique", "claude", "codex", "gemini", "pi", "anthropic", "openai", "google", "zai", "second-opinion"]
 }

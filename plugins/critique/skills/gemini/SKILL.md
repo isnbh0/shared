@@ -17,7 +17,7 @@ Check `command -v agy` and `agy --version`. If unavailable, refer the user to [G
 
 Accept an optional file path and focus area; infer the target from conversation context if possible, otherwise ask. The user can request a particular model for a run.
 
-Resolve the model in this order: explicit user choice; `.agents/skill-configs/gemini/config.local.yaml`; `.agents/skill-configs/gemini/config.yaml`; legacy `.claude/skill-configs/gemini/config.local.yaml`, then `config.yaml`; otherwise `gemini-4-carbon-high`. If config exists only at a legacy path, use it and offer to move it. The optional `model` field is an `agy` model name or slug; see `config.example.yaml`. Existing configurations for the former Gemini CLI may name an unavailable model: if rejected, report the error and consult `agy models` rather than silently substituting another model.
+Resolve the model in this order: explicit user choice; `.agents/skill-configs/gemini/config.local.yaml`; `.agents/skill-configs/gemini/config.yaml`; legacy `.claude/skill-configs/gemini/config.local.yaml`, then `config.yaml`; otherwise `gemini-4-neon-high`. If config exists only at a legacy path, use it and offer to move it. The optional `model` field is an `agy` model name or slug; see `config.example.yaml`. Existing configurations for the former Gemini CLI may name an unavailable model: if rejected, report the error and consult `agy models` rather than silently substituting another model.
 
 ## Review
 
