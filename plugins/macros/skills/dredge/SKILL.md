@@ -70,39 +70,30 @@ With no config, behave as `backend: auto`. See `config.example.yaml` for all key
 
 Never hard-fail: if AgentsView is unavailable or errors, warn briefly and fall back to grep.
 
-### Optional Antigravity live recovery
+### Antigravity CLI coverage
 
-When `antigravity.live_export.enabled` is true and the requested agents include
-Antigravity CLI, run the bundled `scripts/agy_live_export.py` with the configured
-`--reader`, optional `--source-reader`, `--root`, and `--output` before searching. Resolve the script from
-this skill's directory and expand `~` in paths. Its defaults for root and output
-are `~/.gemini/antigravity-cli` and that root's `recovery-live/`. A missing or incompatible presentation reader still allows database and associated brain-file backups; when configured, a compatible source reader can also export the saved structured data without reconstructing the presentation. The command may return
-nonzero when some sessions are not readable; inspect `status.json` and continue
-searching the usable sessions. A background scheduler may run the same helper;
-it serializes concurrent runs and on-demand searches wait for the lock.
+When Antigravity CLI is in scope, search its indexed sessions and available
+plaintext sidecars. An index can contain only summaries, so also inspect raw
+sources when their coverage is relevant, even if the index has hits. Use
+`antigravity.reader` from config, or `agy-reader` on PATH, to attempt an offline
+export of relevant `.db` files into a private temporary directory, using
+`<reader> export-offline --format=json --out=<new-file> <database>`. The reader
+may refuse unsupported or in-progress data. Offline exports are reconstructed
+from saved data; they are not daemon-verified presentations.
 
-Search `recovery-live/*.json` **in addition to AgentsView**, even when the index
-has hits: an index can contain only summaries. A status entry with `state: ok`
-is a fresh offline reconstruction of a SQLite snapshot, not a daemon-verified
-sidecar. `source_only` is a readable export of the saved source representation; its presentation is not verified. `raw_only` means a source backup exists but no current searchable
-export was produced; `stale` means the source changed or capture failed, and
-`missing_source` means a previously saved session no longer has a native file.
-Search current `ok` and `source_only` exports, labeling their respective fidelity. A `stale` entry with a recorded `format`, checksum, and capture time can still be searched as a point-in-time snapshot; verify its checksum and identify it as potentially out of date. Do not present an older export as current. Report these gaps for the relevant
-scope and use existing verified sidecars or recovery snapshots as historical
-evidence where applicable. Recover per-session brain files from the status
-entry's `artifacts` map: keys are paths relative to `brain/<session-id>/`, and
-values name content-addressed files in `recovery-live/artifacts/`. The helper
-retains private `source/<id>.db` snapshots and artifacts, including when a
-decoder refuses a session. It does not create AgentsView sidecars or certify
-that an offline projection matches the daemon's presentation. A separately configured watcher can create verified sidecars when its daemon authentication and decoding succeed.
+If offline presentation decoding fails and `antigravity.source_reader` is
+configured, it may be called with the database path and a new output path to
+recover searchable source-format JSON. Treat this as source evidence with an
+unverified presentation. If neither reader succeeds, report the gap. Search
+existing recovery snapshots when useful, but identify them as point-in-time
+copies that may be older than the current database. Clean up temporary exports
+when finished; do not install tools, start background jobs, or create persistent
+sidecars as part of a search.
 
-Use `metadata` workspace paths or independently verified project association
-to apply the requested scope. If the project is unknown, do not silently count
-the session as searched in or excluded from that project. Read message
-timestamps for date scopes, and deduplicate by native session ID and message
-identity against index, sidecar, and saved recovery hits. Only enable this
-feature when explicitly configured: it stores plaintext transcripts and tool
-outputs on disk.
+Use verified workspace paths to apply project scope; do not assume an
+unattributed session belongs to the current project. Apply time filters to
+message timestamps where available and deduplicate results by native session ID
+and message identity.
 
 ### AgentsView flag mapping
 
@@ -116,9 +107,7 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 - **Named repo** → match its basename against `projects --json` (same collision rule).
 - **Time hints** ("yesterday", "last week", "earlier today") → `--date-from` / `--date-to` /
   `--date <YYYY-MM-DD>` / `--active-since <RFC3339>` (per-message timestamps, not file mtime).
-- Filter to specific agents with `--agent <name>` per the `agents` config (e.g.
-  `--agent claude --agent codex`); omit `--agent` entirely when `agents: all` (the default)
-  to search every indexed coding agent. For ordinary searches, use
+- Filter to specific agents with `--agent <name>` per the `agents` config; query each requested agent separately and deduplicate. Omit `--agent` entirely when `agents: all` (the default) to search every indexed coding agent. For ordinary searches, use
   `--include-children` only if `include_children` is true. For a complete
   inventory, pass `--include-children`, `--include-automated`, and
   `--include-one-shot` when supported, unless the user excludes those sessions.
@@ -128,11 +117,11 @@ On the AgentsView backend, translate the natural-language scope/time hints (see 
 
 ## Approach
 
-The grep fallback (also the AgentsView path's last resort; the configured live recovery above is also searched alongside AgentsView):
+The grep fallback (also the AgentsView path's last resort):
 
 1. Search likely Claude, Codex, Pi, Gemini CLI, and Antigravity CLI stores within the requested scope; for a complete inventory, search all available stores. For Codex and Pi, select files by the session metadata's `cwd`, comparing resolved paths where possible. Include known custom session directories and report coverage limits that affect the answer.
 2. Shortlist searchable session files with `rg` / `grep` using keywords from the query. Parse Gemini JSON and JSONL according to their actual structure; inspect matching messages and their timestamps. Use `find -newer` / mtime only to narrow ordinary lookups; for a complete date-limited inventory, check message timestamps across candidate project files.
-3. For Antigravity, search available plaintext sidecars and transcript exports, including `~/.gemini/antigravity-cli/recovery-unverified/` and `~/.gemini/antigravity-cli/recovery-source-experimental/exports/` and `~/.gemini/antigravity-cli/recovery-source-experimental/rendered/` when present, and inspect prompt history or artifacts as partial evidence. Read any accompanying recovery notes: unverified daemon exports have unknown completeness; experimental source exports and rendered snapshots may have been compared with daemon responses using a locally modified reader; report the documented verification scope and limitations. Do not present these local results as upstream-verified transcripts. Search preserved referenced artifacts when relevant. Do not grep binary databases as if they were transcripts. If a compatible `agy-reader` is already available, an offline export can be attempted into a private temporary file; report unsupported formats. Do not automatically generate persistent plaintext sidecars or install tools.
+3. For Antigravity, search available plaintext sidecars and transcript exports, including `~/.gemini/antigravity-cli/recovery-unverified/` and `~/.gemini/antigravity-cli/recovery-source-experimental/exports/` and `~/.gemini/antigravity-cli/recovery-source-experimental/rendered/` when present, and inspect prompt history or artifacts as partial evidence. Read any accompanying recovery notes: unverified daemon exports have unknown completeness; experimental source exports and rendered snapshots may have been compared with daemon responses using a locally modified reader; report the documented verification scope and limitations. Do not present these local results as upstream-verified transcripts. Search preserved referenced artifacts when relevant. Do not grep binary databases as if they were transcripts. For offline decoding, follow the Antigravity coverage guidance above.
 4. Read the top candidates to pull the actual context (not just the matching lines). For Pi, inspect nested messages and their parent links when needed to distinguish branches; cite the header's session ID, not the filename timestamp.
 
 ## Coverage check
