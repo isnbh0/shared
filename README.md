@@ -47,6 +47,7 @@ Then install individual skills:
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
 /plugin install my@isnbh0
+/plugin install whiteboard@isnbh0
 ```
 
 ## Skills
@@ -234,6 +235,19 @@ such as those from TypeSafe's Jev or another System One model.
   prompt to write
 - A design skill, not an integration skill: API contracts stay with the substrate's own docs,
   with a Jev reference covering only the properties that constrain a design
+
+#### whiteboard
+
+Opens Mermaid files as tabs on a shared local whiteboard, synced both ways between the files and
+the browser. Activate it only when requested by name.
+
+- One page holds every open file as a tab, with a live preview and an editor
+- The agent and the person edit the same file, and each side's changes reach the other within a moment
+- An unsaved draft that collides with a file change offers "Reload from file" or "Overwrite file"
+- `wb shot` renders a diagram to PNG, so the agent can look before describing it
+
+Requires Node 24 or later and pnpm. The first `wb open` installs the dependencies and starts the
+server, which exits on its own after 30 minutes unused.
 
 ### Other (copy / symlink)
 

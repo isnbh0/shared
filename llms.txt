@@ -40,9 +40,10 @@ Use this only when the target is Claude Code and the user wants marketplace inst
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
 /plugin install my@isnbh0
+/plugin install whiteboard@isnbh0
 ```
 
-Only the thirteen plugins above are published to the Claude Code marketplace. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `anytime`, `packet`, `calibrate`, `leeway`, `landscaping`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains twenty-three skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
+Only the fourteen plugins above are published to the Claude Code marketplace. The `whiteboard` plugin holds the single `whiteboard` skill, an application that needs Node 24 or later and pnpm. The `zoomdoc` and `tractatus` skills are included in `doctype`. The `mapreduce`, `chunked`, `anytime`, `packet`, `calibrate`, `leeway`, `landscaping`, `doubt`, `consensus`, `seq`, `rigor`, `orchestrate`, `askme`, `delegate`, `tmi`, `dry-run`, `timeless`, `dredge`, `timestamp`, and `new` skills are included in the `macros` plugin. The `my` plugin contains twenty-three skills and macros, including its own `tractatus` renderer and the `video-knowhow` knowledge base. The `pictogram` skill is included in `labs`. The `action-flow`, `artifact-process-flow`, `multi-view`, and `numbered-edges` skills are included in `merbook`. The remaining skills (report-writer, rigorous-debug, phaser) must be installed via direct copy or symlink.
 
 The former `zoomdoc@isnbh0` plugin identifier is retired. Install `doctype@isnbh0` for both document skills; existing zoomdoc HTML documents remain usable. For a direct install, copy `plugins/doctype/skills/zoomdoc/` or `plugins/doctype/skills/tractatus/`.
 
@@ -191,6 +192,11 @@ Bundled skill:
 
 Source: `plugins/system1-machine/skills/system1-machine/`.
 
+### whiteboard
+Opens Mermaid files as tabs on a shared local whiteboard in the browser, synced both ways with the files on disk, so an agent and a person work on one diagram. Explicit-request only: activate it when the user asks for the whiteboard by name. Requires Node 24 or later and pnpm; the first `wb open` installs the dependencies and starts a local server that exits after 30 minutes idle.
+
+Source: `plugins/whiteboard/skills/whiteboard/`.
+
 ### Other direct-install skills
 
 ### report-writer
@@ -211,6 +217,8 @@ Battle-tested patterns and best practices for Phaser 3 game development. Passive
 Most skills are self-contained. The spex skill in the my plugin requires the implement skill from the separate spex plugin. Install both plugins to use it; other my skills can be installed individually.
 
 The `write`, `write-phased`, `write-phased-gradual`, and `implement` skills are included in the `spex` plugin. Plugin-level overviews live in `plugins/spex/README.md` and `plugins/macros/README.md`; they are documentation, not discoverable skills.
+
+The `whiteboard` skill needs Node 24 or later and pnpm at run time and ships its own copy of the Mermaiden packages under `vendor/`, so it depends on no other skill or checkout.
 
 ## File Structure Reference
 
@@ -326,9 +334,12 @@ shared/
 │   ├── study/
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── skills/study/
-│   └── gimme/
+│   ├── gimme/
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/gimme/
+│   └── whiteboard/
 │       ├── .claude-plugin/plugin.json
-│       └── skills/gimme/
+│       └── skills/whiteboard/         # SKILL.md, wb CLI, server, app, tests, vendored Mermaiden
 └── .claude/
     └── skills/                       # Claude Code symlinks, backward compat
 ```
@@ -363,11 +374,12 @@ Use `.agents/skill-configs/` for new configuration. This is a provider-neutral c
 ## Notes for LLMs
 
 - Ask or infer the target agent before installing. Do not assume Claude Code.
-- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, doctype, labs, merbook, system1-machine, my). The zoomdoc and tractatus skills are included in `doctype`; the old standalone zoomdoc plugin identifier is retired. Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`. The merbook archetype and pattern skills are included in `merbook`.
+- For Claude Code marketplace installs, prefer Option B for published plugins (clone, interview, spex, critique, macros, study, gimme, promptopt, doctype, labs, merbook, system1-machine, my, whiteboard). The zoomdoc and tractatus skills are included in `doctype`; the old standalone zoomdoc plugin identifier is retired. Macro subskills, including leeway, are included in `macros`; do not install them separately through the marketplace. The pictogram skill is included in `labs`. The merbook archetype and pattern skills are included in `merbook`.
 - For direct installs, copy or symlink the whole skill directory from `plugins/<plugin-name>/skills/<skill-name>/`.
 - If the target project already has a skills directory with existing content, never overwrite it. Merge by copying individual skill directories.
 - Use `.agents/skill-configs/<skill>/` for configuration. `.claude/skill-configs/<skill>/` is a legacy fallback only for skills that previously shipped that path.
 - Provider-specific install roots are centralized in `docs/cross-platform/README.md`; verify target-agent docs before automating installs.
 - The `phaser` skill is large (18 knowledgebase files). Only install it if the user is working on a Phaser 3 project.
 - The rigorous-debug skill requires a one-time initialization step after installation. Ask the target agent to activate it before use.
+- The whiteboard skill is an application: it needs Node 24 or later and pnpm, and its first run installs about 400 MB of dependencies. Say so before installing it for someone.
 - Always verify that the clone location (`~/shared` or user-specified) does not conflict with existing directories before cloning.

@@ -14,5 +14,8 @@ rm -f "$out"
      "*.pyo" \
      "*/.pytest_cache/*" \
      "*/.hypothesis/*" \
-     "*/target/*" )
+     "*/target/*" \
+    "*/node_modules/*" \
+    "*/test-results/*" \
+    "*/playwright-report/*" )
 echo "wrote $out"

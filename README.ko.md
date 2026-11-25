@@ -47,6 +47,7 @@ cp -R ~/shared/plugins/interview/skills/interview <skill-root>/
 /plugin install merbook@isnbh0
 /plugin install system1-machine@isnbh0
 /plugin install my@isnbh0
+/plugin install whiteboard@isnbh0
 ```
 
 ## 스킬
@@ -232,6 +233,17 @@ TypeSafe의 Jev를 비롯한 System One 모델처럼, 하나의 비싼 호출 �
   쓸지가 아니라 어떤 기계를 만들지를 설계 질문으로 전환
 - 연동 스킬이 아닌 설계 스킬입니다. API 계약은 해당 substrate의 문서에 맡기고, Jev 참조 문서는
   설계를 좌우하는 속성만 다룹니다
+
+#### whiteboard
+
+Mermaid 파일을 브라우저의 로컬 화이트보드에서 탭으로 열고, 파일과 양방향으로 동기화합니다. 이름을 불러 요청했을 때만 활성화됩니다.
+
+- 열린 모든 파일이 한 페이지에 탭으로 표시되며, 각 탭에 실시간 미리보기와 편집기가 있습니다
+- 에이전트와 사용자가 같은 파일을 편집하며, 어느 쪽의 변경도 곧바로 반영됩니다
+- 저장되지 않은 초안이 파일 변경과 충돌하면 "파일에서 다시 불러오기" 또는 "파일 덮어쓰기"를 선택합니다
+- `wb shot`은 다이어그램을 PNG로 렌더링하여, 에이전트가 설명하기 전에 직접 확인할 수 있게 합니다
+
+Node 24 이상과 pnpm이 필요합니다. 첫 `wb open`에서 의존성을 설치하고 서버를 시작하며, 서버는 30분 동안 사용하지 않으면 스스로 종료됩니다.
 
 ### 기타 (복사 / 심볼릭 링크)
 

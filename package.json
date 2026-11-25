@@ -7,7 +7,8 @@
       "plugins/macros/skills",
       "plugins/my/skills",
       "plugins/spex/skills",
-      "plugins/merbook/skills"
+      "plugins/merbook/skills",
+      "plugins/whiteboard/skills"
     ]
   }
 }

@@ -21,3 +21,23 @@ jobs:
           enable-cache: false
       - name: Test codex-image-gen offline
         run: uv run plugins/my/skills/codex-image-gen/tests/test_generate.py
+
+  whiteboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: plugins/whiteboard/skills/whiteboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: plugins/whiteboard/skills/whiteboard/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium-headless-shell
+      - run: pnpm check
