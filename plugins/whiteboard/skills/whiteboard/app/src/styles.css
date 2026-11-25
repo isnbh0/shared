@@ -1,0 +1,455 @@
+/*
+ * The page's styles, by concern:
+ *   Tokens       — color, size, and spacing values every rule below draws on.
+ *   Frame        — the tab bar on top and the panel filling the rest (one viewport, inner panes clip).
+ *   Controls     — one anatomy for every button (icon or text) and one set of interaction states
+ *                  (hover, pressed, aria-pressed, focus-visible, disabled) shared by all of them.
+ *   Regions      — tabs, toolbar, conflict banner, editor, preview, playback bar: each region's
+ *                  layout; its parent owns the gaps between its groups.
+ * The interaction states apply on top of every region's controls; a region sets only its surface
+ * color (--surface) so hover and pressed tints read against it.
+ */
+
+/* ---- Tokens ---- */
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  --ink: #18181b;
+  --muted: #52525b;
+  --line: #d4d4d8;
+  --line-soft: #e4e4e7;
+  --chrome: #f4f4f5;
+  --surface: #fff;
+  --hover: color-mix(in srgb, var(--ink) 7%, var(--surface));
+  --press: color-mix(in srgb, var(--ink) 14%, var(--surface));
+  --accent: #2563eb;
+  --accent-tint: #dbeafe;
+  --accent-tint-hover: #bfdbfe;
+  --grid: rgb(24 24 27 / 0.16);
+  --control: 28px;
+  --group-gap: 12px;
+  --item-gap: 2px;
+  --radius: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ---- Frame ---- */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 10;
+  top: 4px;
+  left: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+  outline: 2px solid var(--ink);
+}
+
+#panel,
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  margin: 2rem;
+  color: var(--muted);
+}
+
+/* ---- Controls: anatomy ---- */
+button {
+  font: inherit;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--control);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+}
+
+button.icon {
+  width: var(--control);
+  padding: 0;
+}
+
+button.text {
+  padding: 0 8px;
+}
+
+.icon-svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- Controls: interaction states, for every button on every surface ---- */
+button:hover {
+  background: var(--hover);
+}
+
+button:active {
+  background: var(--press);
+}
+
+button[aria-pressed="true"] {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+button[aria-pressed="true"]:hover {
+  background: var(--accent-tint-hover);
+}
+
+button[aria-pressed="true"]:active {
+  background: color-mix(in srgb, var(--accent) 30%, var(--surface));
+}
+
+button:disabled {
+  background: transparent;
+  color: var(--muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (forced-colors: active) {
+  button[aria-pressed="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+/* ---- Regions: tabs ---- */
+.bar {
+  flex: none;
+  border-bottom: 1px solid var(--line);
+  background: var(--chrome);
+  --surface: var(--chrome);
+}
+
+[role="tablist"] {
+  display: flex;
+  overflow-x: auto;
+}
+
+.tab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  max-width: 24rem;
+  padding-right: 4px;
+  border-right: 1px solid var(--line-soft);
+}
+
+.tab:has([aria-selected="true"]) {
+  --surface: #fff;
+  background: var(--surface);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+[role="tab"] {
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 6px 0 12px;
+  border-radius: 0;
+  justify-content: flex-start;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[role="tab"]:focus-visible {
+  outline-offset: -2px;
+}
+
+.tab-mark {
+  color: #b45309;
+}
+
+.tab-close {
+  width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.tab-close:hover {
+  color: var(--ink);
+}
+
+.tab-close .icon-svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- Regions: toolbar ---- */
+.toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--group-gap);
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--item-gap);
+}
+
+#zoom-reset {
+  min-width: 4.5em;
+  font-variant-numeric: tabular-nums;
+}
+
+.share-note {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.share-note.error {
+  color: #b91c1c;
+}
+
+.status {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Regions: conflict banner ---- */
+.conflict {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid #f59e0b;
+  --surface: #fef3c7;
+  background: var(--surface);
+}
+
+.conflict span {
+  margin-right: 4px;
+}
+
+.conflict button {
+  box-shadow: inset 0 0 0 1px #b45309;
+}
+
+/* ---- Regions: editor and preview, side by side ---- */
+.row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.editor {
+  flex: 1;
+  min-width: 0;
+  border-right: 1px solid var(--line);
+}
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+}
+
+/* A pan-and-zoom pane: it clips a canvas that carries the view's transform. */
+.preview {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  background: var(--surface);
+}
+
+/* The focus ring is its own top layer, so overlays inside the pane cannot cover it. */
+.preview:focus-visible {
+  outline: none;
+}
+
+.preview:focus-visible::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+}
+
+.preview.panning {
+  cursor: grabbing;
+}
+
+/* The grid moves and scales with the view (the viewport sets these properties). */
+.preview.grid {
+  background-image: radial-gradient(circle, var(--grid) 1px, transparent 1.25px);
+  background-size: calc(20px * var(--view-k, 1)) calc(20px * var(--view-k, 1));
+  background-position: var(--view-x, 0px) var(--view-y, 0px);
+}
+
+/* Layers, bottom to top: frozen lifeline extensions, the stage, frozen rows, the error, focus. */
+.preview > .mermaiden-sequence-frozen-underlay {
+  z-index: 0;
+}
+
+.preview-canvas {
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.preview-canvas svg {
+  display: block;
+}
+
+.preview.stale .preview-canvas {
+  opacity: 0.35;
+}
+
+/* Frozen participant rows (sequence diagrams), drawn in pane coordinates over the stage. */
+.preview-overlay {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mermaiden-sequence-frozen-background {
+  fill: var(--surface);
+}
+
+.mermaiden-sequence-frozen-separator {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.preview-error {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  margin: 0;
+  padding: 6px 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  cursor: auto;
+  white-space: pre-wrap;
+  font-family: ui-monospace, Menlo, monospace;
+  color: #b91c1c;
+}
+
+.preview-error:empty {
+  display: none;
+}
+
+/* ---- Regions: playback bar, floating over the preview so it shifts nothing ---- */
+.playback-bar {
+  position: absolute;
+  z-index: 2;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--item-gap);
+  max-width: calc(100% - 24px);
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgb(24 24 27 / 0.12);
+}
+
+.playback-text {
+  min-width: 0;
+  margin: 0 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playback-position {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}

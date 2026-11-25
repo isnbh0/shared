@@ -1,0 +1,62 @@
+{
+  "name": "mermaiden-toolkit",
+  "version": "0.1.0",
+  "description": "Experimental Mermaiden interaction reference implementations",
+  "license": "MIT",
+  "type": "module",
+  "peerDependencies": {
+    "mermaiden": "^0.1.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/relationships.css",
+    "./dist/sequence.css"
+  ],
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./relationships.css": "./dist/relationships.css",
+    "./sequence.css": "./dist/sequence.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isnbh0/mermaiden.git",
+    "directory": "packages/mermaiden-toolkit"
+  },
+  "bugs": {
+    "url": "https://github.com/isnbh0/mermaiden/issues"
+  },
+  "homepage": "https://github.com/isnbh0/mermaiden/tree/main/packages/mermaiden-toolkit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "pnpm run build:upstream && pnpm run build:self && pnpm run test:self",
+    "build": "pnpm run build:upstream && pnpm run build:self",
+    "typecheck": "pnpm run build:upstream && pnpm run typecheck:self",
+    "build:upstream": "pnpm --filter mermaiden run build:self",
+    "typecheck:self": "tsc -p tsconfig.json",
+    "build:self": "pnpm run typecheck:self && vite build && tsc -p tsconfig.declarations.json",
+    "test:self": "vitest run",
+    "test:related": "pnpm run build:upstream && pnpm run build:self && pnpm run test:related:self",
+    "test:related:self": "vitest related --run"
+  }
+}

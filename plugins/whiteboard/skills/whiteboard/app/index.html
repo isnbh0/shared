@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Whiteboard</title>
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true">
+      <!-- Lucide icons (ISC license). -->
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></symbol>
+      <symbol id="i-fit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+      <symbol id="i-zoom-out" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6"/></symbol>
+      <symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6"/><path d="M8 11h6"/></symbol>
+      <symbol id="i-mouse" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 6v4"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="5" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="12" cy="19" r="1"/><circle cx="19" cy="19" r="1"/><circle cx="5" cy="19" r="1"/></symbol>
+      <symbol id="i-related" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="9" rx="2"/><path d="m8 8.5.8 11 3-3 2.7 4.3 2.6-1.6-2.7-4.2 4.3-.8Z" fill="currentColor" stroke-width="1.5"/></symbol>
+      <symbol id="i-steps" viewBox="0 0 24 24"><path d="M10 6h11"/><path d="M10 12h11"/><path d="M10 18h11"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></symbol>
+      <symbol id="i-freeze" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/></symbol>
+      <symbol id="i-prev" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+      <symbol id="i-next" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    </svg>
+    <a class="skip-link" id="skip" href="#preview">Skip to diagram</a>
+    <header class="bar">
+      <h1 class="visually-hidden">Whiteboard</h1>
+      <div id="tabs"></div>
+    </header>
+    <main id="panel" role="tabpanel">
+      <p id="message" class="message" hidden></p>
+      <div id="workspace" class="workspace" hidden>
+        <div class="toolbar">
+          <div class="group">
+            <button type="button" id="edit" class="icon" aria-pressed="false" aria-label="Edit" title="Edit source"><svg class="icon-svg" aria-hidden="true"><use href="#i-edit"/></svg></button>
+          </div>
+          <div class="group" role="group" aria-label="Zoom">
+            <button type="button" id="fit" class="icon" aria-label="Fit" title="Fit diagram (Shift+1)"><svg class="icon-svg" aria-hidden="true"><use href="#i-fit"/></svg></button>
+            <button type="button" id="zoom-out" class="icon" aria-label="Zoom out" title="Zoom out (−)"><svg class="icon-svg" aria-hidden="true"><use href="#i-zoom-out"/></svg></button>
+            <button type="button" id="zoom-reset" class="text" aria-label="Zoom is 100 percent; activate for 100 percent" title="Zoom to 100% (0)">100%</button>
+            <button type="button" id="zoom-in" class="icon" aria-label="Zoom in" title="Zoom in (+)"><svg class="icon-svg" aria-hidden="true"><use href="#i-zoom-in"/></svg></button>
+          </div>
+          <div class="group" role="group" aria-label="View options">
+            <button type="button" id="scroll-pan" class="icon" aria-pressed="false" aria-label="Scroll to pan" title="Scroll to pan instead of zoom. Pinch or Ctrl/⌘+scroll to zoom."><svg class="icon-svg" aria-hidden="true"><use href="#i-mouse"/></svg></button>
+            <button type="button" id="grid" class="icon" aria-pressed="false" aria-label="Grid" title="Grid"><svg class="icon-svg" aria-hidden="true"><use href="#i-grid"/></svg></button>
+            <button type="button" id="highlight" class="icon" aria-pressed="true" aria-label="Highlight related" title="Highlight a hovered node's ancestors and descendants"><svg class="icon-svg" aria-hidden="true"><use href="#i-related"/></svg></button>
+            <button type="button" id="freeze" class="icon" aria-pressed="true" aria-label="Freeze participants" title="Keep participant names at the top and bottom while panning" hidden><svg class="icon-svg" aria-hidden="true"><use href="#i-freeze"/></svg></button>
+            <button type="button" id="playback" class="icon" aria-pressed="false" aria-label="Step through messages" title="Step through messages (← →)" hidden><svg class="icon-svg" aria-hidden="true"><use href="#i-steps"/></svg></button>
+          </div>
+          <div class="group">
+            <button type="button" id="share" class="icon" aria-label="Copy Mermaiden link" title="Copy a view-only link to this diagram on the hosted Mermaiden demo"><svg class="icon-svg" aria-hidden="true"><use href="#i-link"/></svg></button>
+            <span id="share-note" class="share-note" role="status"></span>
+          </div>
+          <p id="status" class="status" role="status"></p>
+        </div>
+        <div id="conflict" class="conflict" role="alert" hidden>
+          <span>Keep the file's version or yours?</span>
+          <button type="button" id="reload" class="text">Reload from file</button>
+          <button type="button" id="overwrite" class="text">Overwrite file</button>
+        </div>
+        <div class="row">
+          <section id="editor" class="editor" aria-label="Diagram source" hidden></section>
+          <div class="stage">
+            <section id="preview" class="preview" aria-label="Rendered diagram"></section>
+            <div id="playback-bar" class="playback-bar" role="group" aria-label="Message playback" hidden>
+              <button type="button" id="playback-previous" class="icon" aria-label="Previous message" title="Previous message (←)"><svg class="icon-svg" aria-hidden="true"><use href="#i-prev"/></svg></button>
+              <p class="playback-text" aria-live="polite"><span id="playback-position" class="playback-position"></span> <span id="playback-label" class="playback-label"></span></p>
+              <button type="button" id="playback-next" class="icon" aria-label="Next message" title="Next message (→)"><svg class="icon-svg" aria-hidden="true"><use href="#i-next"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

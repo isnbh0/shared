@@ -1,0 +1,59 @@
+{
+  "name": "mermaiden",
+  "version": "0.1.0",
+  "description": "Mermaid-compatible rendering with optional portable semantics",
+  "license": "MIT",
+  "type": "module",
+  "peerDependencies": {
+    "mermaid": "12.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": true,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "type-fest": "4.41.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isnbh0/mermaiden.git",
+    "directory": "packages/mermaiden"
+  },
+  "bugs": {
+    "url": "https://github.com/isnbh0/mermaiden/issues"
+  },
+  "homepage": "https://github.com/isnbh0/mermaiden/tree/main/packages/mermaiden#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "pnpm run build:self && pnpm run test:self",
+    "build": "pnpm run build:self",
+    "typecheck": "pnpm run typecheck:self",
+    "typecheck:self": "tsc -p tsconfig.json",
+    "build:self": "pnpm run typecheck:self && vite build && tsc -p tsconfig.declarations.json",
+    "test:self": "vitest run",
+    "test:related": "pnpm run build:self && pnpm run test:related:self",
+    "test:related:self": "vitest related --run"
+  }
+}

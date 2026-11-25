@@ -1,0 +1,46 @@
+[data-mermaiden-sequence-state="past"].sequence-playback-message {
+  opacity: 1;
+}
+
+[data-mermaiden-sequence-state="hidden"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.sequence-pinned-native[data-mermaiden-sequence-pinned-native] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sequence-playback-participant[data-mermaiden-sequence-state="hidden"] {
+  visibility: hidden;
+}
+
+.mermaiden-sequence-pinned-layer {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mermaiden-sequence-pinned-layer * {
+  pointer-events: none;
+}
+
+.mermaiden-sequence-frozen-underlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mermaiden-sequence-frozen-underlay + svg {
+  position: relative;
+  z-index: 1;
+}
+
+.mermaiden-sequence-frozen-lifeline {
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-dasharray: none;
+  vector-effect: non-scaling-stroke;
+}

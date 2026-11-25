@@ -60,3 +60,6 @@ $RECYCLE.BIN/
 
 # Rust artifacts
 **/target/
+
+# Node artifacts
+node_modules/

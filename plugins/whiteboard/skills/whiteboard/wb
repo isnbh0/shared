@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Agent CLI for the whiteboard; see SKILL.md.
+set -euo pipefail
+dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+exec node "$dir/cli/wb.ts" "$@"

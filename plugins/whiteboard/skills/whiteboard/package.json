@@ -1,0 +1,29 @@
+{
+  "name": "my-whiteboard",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p app/tsconfig.json",
+    "test": "vitest run tests/unit tests/integration",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run e2e",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "mermaid": "12.0.0",
+    "mermaiden": "file:vendor/mermaiden",
+    "mermaiden-toolkit": "file:vendor/mermaiden-toolkit",
+    "monaco-editor": "0.56.0",
+    "playwright": "^1.65.0",
+    "vite": "^8.3.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^24.19.2",
+    "fast-check": "^4.10.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

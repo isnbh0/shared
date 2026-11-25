@@ -1,0 +1,36 @@
+/*
+ * Relationship overlay presentation for explicit Mermaiden Toolkit attachment.
+ *
+ * Deliberately unlayered: layer assignment belongs to the importing cascade
+ * manifest, and a standalone consumer wants plain rules. Every custom property
+ * carries the light-theme fallback so a host that defines none still gets
+ * visible, contrast-checked overlays.
+ */
+
+.mermaiden-relationship-visual { pointer-events: none; }
+
+.relationship-node-overlay {
+  opacity: 0;
+  fill: none;
+  stroke-width: 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.relationship-node--current { opacity: 1; stroke: var(--relation-current, #007ca6); fill: color-mix(in srgb, var(--relation-current, #007ca6) 18%, transparent); }
+.relationship-node--ancestor { opacity: 1; stroke: var(--relation-ancestor, #4357a6); fill: color-mix(in srgb, var(--relation-ancestor, #4357a6) 12%, transparent); }
+.relationship-node--descendant { opacity: 1; stroke: var(--relation-descendant, #577a16); fill: color-mix(in srgb, var(--relation-descendant, #577a16) 12%, transparent); }
+.relationship-node--both { opacity: 1; stroke: var(--relation-both, #8a3fb0); fill: color-mix(in srgb, var(--relation-both, #8a3fb0) 15%, transparent); stroke-dasharray: 7 4; }
+
+.relationship-edge-overlay {
+  opacity: 0;
+  fill: none;
+  stroke: var(--relation-current, #007ca6);
+  stroke-width: 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.relationship-edge--active { opacity: .86; }
+.relationship-hit-target { fill: transparent; stroke: transparent; pointer-events: all; cursor: crosshair; }
+.relationship-hit-target:focus-visible { outline: none; stroke: var(--focus, #a13d61); stroke-width: 3; stroke-dasharray: 6 3; vector-effect: non-scaling-stroke; }
