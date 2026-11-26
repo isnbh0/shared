@@ -1,9 +1,8 @@
 # whiteboard notes
 
-`wb` is the agent CLI, `server/` the shared server, `app/` the page, `tests/` the checks, and
-`vendor/` the packed Mermaiden packages. Run
-`pnpm install` once (`wb` does it on first use); everything runs on Node 24 with TypeScript type
-stripping, so there is no build step except the page.
+[`README.md`](README.md) maps the directory and gives the commands for working on it. `wb` runs
+`pnpm install` itself on first use; everything runs on Node 24 with TypeScript type stripping, so
+there is no build step except the page.
 
 ## How it works
 

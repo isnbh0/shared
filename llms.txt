@@ -341,7 +341,8 @@ shared/
 │   │   └── skills/gimme/
 │   └── whiteboard/
 │       ├── .claude-plugin/plugin.json
-│       └── skills/whiteboard/         # SKILL.md, wb CLI, server, app, tests, vendored Mermaiden
+│       ├── README.md
+│       └── skills/whiteboard/         # SKILL.md, README.md, wb CLI, server, app, tests, vendored Mermaiden
 └── .claude/
     └── skills/                       # Claude Code symlinks, backward compat
 ```
