@@ -43,6 +43,9 @@ from what you read earlier.
 - Notice the user's edits and respond to them when they matter to the conversation. Use the
   diagram where a picture helps, and keep talking in chat where it does not.
 
+Before drawing a flowchart, decide what its arrows mean. If a skill for that is available, such as
+merbook's action-flow or artifact-process-flow, load it and follow it for the diagram's content.
+
 ## Look before describing
 
 Say what the diagram shows only as far as you have seen it. Mermaid's layout can surprise you, so

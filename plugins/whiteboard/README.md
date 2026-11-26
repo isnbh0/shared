@@ -68,3 +68,6 @@ The skill ships a command-line tool named `wb`, which the agent uses on your beh
 - [`skills/whiteboard/SKILL.md`](skills/whiteboard/SKILL.md) is what the agent follows.
 - [`skills/whiteboard/README.md`](skills/whiteboard/README.md) maps the application's source for
   anyone changing it.
+- [Merbook](../merbook/README.md) is a separate plugin of skills for writing flowcharts whose
+  arrows carry one consistent meaning. With it installed, the agent can use it for flowcharts on
+  the whiteboard.

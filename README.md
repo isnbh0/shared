@@ -249,6 +249,8 @@ the browser. You start it with your host's skill selector (see the
 - The agent and the person edit the same file, and each side's changes reach the other within a moment
 - An unsaved draft that collides with a file change offers "Reload from file" or "Overwrite file"
 - `wb shot` renders a diagram to PNG, so the agent can look before describing it
+- With merbook also installed, the agent can use its skills to decide what a flowchart's arrows
+  mean
 
 Requires Node 24 or later and pnpm 9 or later. The first `wb open` downloads about 400 MB of
 dependencies and starts a small local server, which keeps running after the session and exits after

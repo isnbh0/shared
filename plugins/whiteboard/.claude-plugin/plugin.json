@@ -1,6 +1,6 @@
 {
   "name": "whiteboard",
   "description": "Open Mermaid files as tabs on a shared local whiteboard, synced both ways with the files; needs Node 24 or later and pnpm",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": { "name": "isnbh0" }
 }
