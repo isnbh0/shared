@@ -13,25 +13,26 @@ documentation.
 
 You start the whiteboard yourself, by selecting the skill in your agent host, the program you talk
 to the agent in. The [cross-platform guide](../../docs/cross-platform/README.md) shows how each
-host selects a skill. The agent does not load it on its own.
+host selects a skill.
 
-The agent then picks or creates a Mermaid file, opens it on the whiteboard, and gives you an
-address beginning with `http://127.0.0.1:5179/`. Open that address in your browser.
+The agent then picks or creates a Mermaid file, opens it on the whiteboard, and gives you a
+local address such as `http://127.0.0.1:5179/…`. Open that address in your browser.
 
 ## The page
 
-One page holds every open file as a tab.
+One page holds every open file as a tab. Its toolbar is a row of icon buttons; hover over one to
+see what it does.
 
-- **Preview.** The diagram redraws as the file changes. Drag to pan, scroll to zoom, and use "Fit"
-  to see the whole diagram.
-- **Editor.** "Edit" opens a text editor for the file. Your changes save to the file as you type.
-- **Flowcharts.** "Highlight related" marks everything that leads to or from the node under the
-  cursor.
-- **Sequence diagrams.** "Step through messages" walks the diagram one message at a time, and
-  "Freeze participants" keeps the participant names in view while you pan.
-- **Share link.** The link button copies a view-only link to the diagram on the hosted
-  [Mermaiden demo](https://isnbh0.github.io/mermaiden/). The link itself carries the diagram's
-  text.
+- **Preview.** The diagram redraws as the file changes. Drag to pan, scroll to zoom, or fit the
+  whole diagram to the pane.
+- **Editor.** The edit button opens a text editor for the file. Your changes save to the file as
+  you type.
+- **Flowcharts.** Pointing at a node highlights everything that leads to or from it.
+- **Sequence diagrams.** The participant names stay in view while you pan, and a step-through mode
+  walks the diagram one message at a time.
+- **Share link.** The link button copies a view-only link that opens the diagram in the hosted
+  demo of [Mermaiden](https://isnbh0.github.io/mermaiden/), the library the page draws diagrams
+  with. The link itself carries the diagram's text, unsaved edits included.
 - **Conflicts.** When the file changes while you have unsaved edits, the page offers "Reload from
   file" and "Overwrite file".
 
@@ -51,7 +52,8 @@ The skill ships a command-line tool named `wb`, which the agent uses on your beh
 
 ## Requirements and costs
 
-- Node 24 or later and pnpm 9 or later. `wb` names whichever is missing or too old.
+- Node 24 or later, and pnpm 9 or later to install the dependencies. `wb` names whichever is
+  missing or too old.
 - The first `wb open` downloads about 400 MB of dependencies into the skill's `node_modules/`.
 - The first `wb shot` downloads a headless browser, one that runs without a window, of about
   100 MB.

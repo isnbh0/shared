@@ -1,8 +1,7 @@
 # whiteboard notes
 
-[`README.md`](README.md) maps the directory and gives the commands for working on it. `wb` runs
-`pnpm install` itself on first use; everything runs on Node 24 with TypeScript type stripping, so
-there is no build step except the page.
+[`README.md`](README.md) maps the directory and gives the commands for working on it. This file
+explains how the application works. `wb` runs `pnpm install` itself on first use.
 
 ## How it works
 
@@ -22,7 +21,8 @@ so a `wb` that lost a simultaneous start keeps waiting for the winner. `wb` star
 detached when health fails and waits up to 120 s.
 
 **Page build.** The server builds `app/` with Vite into `STATE/P/page` at startup. After changing
-app or Mermaiden sources, run `wb stop` so the next command rebuilds it.
+server, app, or Mermaiden sources, run `wb stop` so the next command starts a fresh server and
+rebuilds the page.
 
 **Idle exit.** The server exits after 30 minutes (`WHITEBOARD_IDLE_MINUTES`) with no request and
 no page event stream open.
@@ -122,7 +122,7 @@ Named gaps:
 
 - **Markdown with Mermaid blocks rendered in place,** then a general preview for agent output
   (HTML, images). The opener states a file's kind (for example `wb open --kind markdown`), so raw
-  Mermaid files named `.md` stay valid. Deferred to keep v2 to diagrams.
+  Mermaid files named `.md` stay valid.
 - **Render as data:** `wb inspect <path>` reporting parse errors, the semantic graph from
   `renderWithSemantics`, and layout bounds, so agents need fewer screenshots.
 - **A back-channel from the person:** selecting, pinning, or annotating nodes, streamed to agents
@@ -132,5 +132,4 @@ Named gaps:
 - **Direct editing in the render,** such as renaming a node label or dragging out an edge.
 - **Automatic restart when sources change:** health could report a hash of the server and page
   sources so `wb` restarts a stale server itself. Until then, `wb stop` does it by hand.
-- **Smaller items:** Mermaid syntax highlighting in Monaco, pan and zoom, sequence playback from the
-  toolkit, and a dark theme.
+- **Smaller items:** Mermaid syntax highlighting in Monaco and a dark theme.
